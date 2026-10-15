@@ -1,6 +1,4 @@
-# Wizard Combat
-
-Local camera game for one player and a stationary target.
+# Wizard Combat lets one player cast spells at a stationary target.
 
 ## Run
 
@@ -14,19 +12,36 @@ Open the printed local URL. The default is `http://127.0.0.1:5185/`. If that por
 
 ## Use
 
-1. Select the drawing hand.
-2. Use **Index fingertip** with an extended finger, or **Knuckles** while holding a wand.
-3. Select **Start camera** and allow access.
-4. Keep the whole selected hand visible. Hold still until **READY** appears.
-5. Draw a circle, V, Z, or Expelliarmus at normal speed. Use at least one tenth of the camera width.
-6. Stop briefly. An accepted shape casts once at the dummy. Circle gaps of up to about 60 degrees are allowed. Extra circle loops still produce one cast.
-7. Straight and simple curved return moves show **Move ignored**. They do not increase attempt or failure counts.
+1. Select **Training** from the main menu. The camera stays off until you start it.
+2. Select the drawing hand.
+3. Use **Index fingertip** with an extended finger, or **Knuckles** while holding a wand.
+4. Select **Start camera** and allow access.
+5. Keep the whole selected hand visible. Hold still until **READY** appears.
+6. Draw a circle, V, Z, or Expelliarmus at normal speed. Use at least one tenth of the camera width.
+7. Stop briefly. An accepted shape casts once at the dummy. Circle gaps of up to about 60 degrees are allowed. Extra circle loops still produce one cast.
+8. Straight and simple curved return moves show **Move ignored**. They do not increase attempt or failure counts.
 
 ```text
 Hold -> Ready -> Draw -> Stop -> Match -> Cast
                          |
                   Tracking lost -> Cancel
 ```
+
+## Menu and options
+
+The menu lists **Fight**, **Training**, **Options**, and **Credits**. Fight opens a **Coming soon** page with a link to Training. It does not start combat. **Back to menu** or Escape leaves Training and stops the camera while keeping lesson progress. Returning to Training requires starting the camera again. Lesson progress is not saved across page reloads.
+
+Options save music, sound effects, drawing hand, and difficulty in this browser. Left hand and Normal difficulty are the defaults. The top-right sound control saves a separate master mute setting. If browser storage is unavailable, settings still work for the open page.
+
+| Difficulty | Maximum draw time | Shape tolerance scale |
+| --- | --- | --- |
+| Easy | 9 seconds | 1.35 |
+| Normal | 6 seconds | 1 |
+| Hard | 3.5 seconds | 0.7 |
+
+The scale adjusts shape-distance limits, circle radial variation, and V/Z/Expelliarmus bend and straightness tolerances. It does not change spell directions, minimum drawing size, start/end holds, tracking-loss rules, lesson count, or the dummy timer. Normal preserves the original recognition behavior. Easy also uses its wider Expelliarmus tolerance when deciding whether a return move contains a spell corner; Hard keeps that attempt-counting check at Normal tolerance. These profiles are checked with simulated paths; physical difficulty has not been validated.
+
+Music starts after a pointer or keyboard action. It pauses in Training and when the page is hidden. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
 
 ## Expelliarmus and training
 
@@ -50,7 +65,7 @@ Left hand is the default. The path follows the hand, not the physical wand tip. 
 
 Similar palm detections of the same hand are combined, even when finger estimates differ. Selection follows both palm and control-point motion. A short label change can keep the same hand selected for up to 250 ms. Gaps of up to 200 ms can resume within a movement limit based on recent speed. A gap is never counted as an end pause. Longer gaps cancel capture.
 
-Hold for about 0.3 seconds to start or finish. After a successful cast, the end hold also prepares the next cast. No extra start hold is needed. Failed gestures, ignored moves, and tracking cancellations still require a new start hold. Small point movements are allowed during the hold. Capture starts after 4.5% image-width movement, with recent points kept for the start of the path. Capture stops after six seconds if no end pause is found.
+Hold for about 0.3 seconds to start or finish. After a successful cast, the end hold also prepares the next cast. No extra start hold is needed. Failed gestures, ignored moves, and tracking cancellations still require a new start hold. Small point movements are allowed during the hold. Capture starts after 4.5% image-width movement, with recent points kept for the start of the path. Capture stops after six seconds on Normal if no end pause is found; Easy allows nine seconds and Hard allows 3.5 seconds.
 
 ## Go/no-go trial
 
@@ -60,7 +75,7 @@ Hold for about 0.3 seconds to start or finish. After a successful cast, the end 
 - Hide the hand during a gesture. It must cancel without casting.
 - Check whether the displayed path follows your intended motion.
 
-The first useful decision is whether hand tracking and pause-based casting feel usable. Shape scores and damage are provisional.
+The first useful decision is whether hand tracking and pause-based casting feel usable. Shape scores are provisional. Combat damage rules are not implemented.
 
 ## Records and privacy
 
@@ -84,6 +99,9 @@ The first useful decision is whether hand tracking and pause-based casting feel 
 
 ## Implementation
 
+- `dist/shell.js` and `dist/menu.css`: main menu, view navigation, and responsive shell.
+- `dist/settings.js`: saved sound, hand, and difficulty options.
+- `dist/menu-audio.js`: local menu music and interface sounds.
 - `dist/app.js`: camera lifecycle, hand selection, display, and local records.
 - `dist/hand-input.js`: hand selection and short label-change handling.
 - `dist/tracker-worker.js`: MediaPipe Hand Landmarker in a worker, with GPU/CPU fallback.
@@ -107,6 +125,8 @@ The first useful decision is whether hand tracking and pause-based casting feel 
 
 MediaPipe and the $P recognizer retain their copyright and license terms in `licenses/`. The bundled MediaPipe runtime includes local modifications.
 
+The menu uses “Night Vigil” by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 and edited for length and looping. Original interface sounds use CC0. See [audio credits and source details](licenses/audio/NOTICE.md). Local fonts use the SIL Open Font License.
+
 `evidence/runtime-integrity.json` lists SHA-256 hashes for bundled runtime files and license files.
 
 ## Tests
@@ -118,6 +138,7 @@ Run `npm test`. The tests use Node.js built-in tools and the bundled runtime fil
 - Cast-flow tests check all 16 shape pairs without an extra start hold, fresh paths, duplicate casts, rejected moves, tracking loss, and control resets.
 - Lesson and dummy tests check the three-cast count, completion, reset, and two-second wand return.
 - Hand-input tests check hand selection, label changes, duplicate detections, and invalid input.
+- Settings and difficulty tests check defaults, saved values, invalid input, timeouts, and tolerance changes.
 - Runtime tests check file hashes and the three WASM binaries.
 - Server tests check static files, event storage, result cards, and request limits. They use a temporary folder and a local port, then remove the test data.
 
@@ -129,6 +150,6 @@ npx playwright-core install chromium
 npm run test:browser
 ```
 
-To use an existing Chromium browser, set `CHROMIUM_EXECUTABLE` to its executable path. The test starts its own server and uses simulated camera and hand input. It checks immediate consecutive casts, duplicate casts, spell feedback, lesson controls, wand return, saved records, and desktop/mobile layout. Test records are removed when it finishes. Screenshots are saved in `.tmp/browser-check/`.
+To use an existing Chromium browser, set `CHROMIUM_EXECUTABLE` to its executable path. The test starts its own server and uses simulated camera and hand input. It checks menu navigation, options, camera boundaries, immediate consecutive casts, duplicate casts, spell feedback, lesson controls, wand return, saved records, and desktop/mobile layout. Test records are removed when it finishes. Screenshots are saved in `.tmp/browser-check/`.
 
 All automated tests use simulated input. They do not replace a physical player trial.

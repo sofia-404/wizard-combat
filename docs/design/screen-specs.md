@@ -1,6 +1,6 @@
 # Each screen gives the player one clear next action.
 
-These are target UI specifications. The current prototype implements camera input, free practice, a three-cast lesson, and a stationary dummy. Menu and full fight mode remain proposed surfaces. The brandbook illustrations use synthetic state and must say so outside their frames.
+The root now implements the main menu, Options, Credits, and a Fight placeholder. Training keeps its existing light interface, camera input, free practice, three-cast lesson, and stationary dummy. The training layout below and full fight mode remain target specifications. Brandbook illustrations use synthetic state and must say so outside their frames.
 
 ## Shared rules
 
@@ -14,28 +14,45 @@ These are target UI specifications. The current prototype implements camera inpu
 
 ## Main menu
 
-Purpose: choose practice or a future fight without requesting camera access before it is needed.
+Purpose: choose a mode without requesting camera access.
 
 ```text
-PRODUCT MARK                         QUIET SCENE / MOVEMENT STUDY
-Wizard Combat                        Open arc and anchored trace
+ORIGINAL MARK    Wizard Combat              FULL-HEIGHT WIZARD IMAGE
 
-Practice                             One visible point of activity
-Fight (when implemented)
-Settings
+Fight             Coming soon              Original mature mage
+Training                                   Quiet teal scene
+Options
+Credits
 
-Camera off                           Local camera processing
+                                          Mute / unmute sound
+Camera processing stays on this device.
 ```
 
-Use an asymmetric composition: a calm left navigation column and a larger right scene. The logo is original and small enough to leave the title readable. Use “Practice” as the available next action. A future “Fight” option stays absent or clearly unavailable until real rules exist; never route a player into a dead end.
+Implemented in `dist/index.html`, `dist/menu.css`, and `dist/shell.js`. Keep the requested order: Fight, Training, Options, Credits. The full-viewport composition places navigation left and the supplied wizard image right. Reuse the existing palette, fonts, and original mark. Training receives initial keyboard focus. Focus and hover reveal the gold diamond, short rule, and small text shift.
 
-Settings contain drawing hand, input point, reduced-motion preference when available, and audio only if implemented. Describe camera use before the permission request. Starting practice opens setup or the training scene. Esc returns through a deliberate pause/back action rather than silently dropping a lesson.
+Training opens the existing light interface without starting the camera. Back to menu or Escape stops the camera and cancels capture while preserving lesson progress until reload. Returning to Training leaves the camera off. Back returns focus to the original menu trigger. Detail headings receive focus when their view opens.
 
-States: first use, returning user, focus/hover, unavailable feature, camera permission requested, camera blocked, camera unavailable. Do not invent persistent progression or a “Continue campaign” action.
+Fight opens a clearly labeled Coming soon view for Fight with dummy, with Back to menu and Open Training actions. It must not imply playable combat or introduce health, damage, or progression.
+
+### Options and sound
+
+Options use labeled switches for Music and Sound effects, plus native selectors for Drawing hand and Difficulty. Left hand and Normal are the defaults. The separate sound control mutes all menu audio without clearing the music/effects preferences. These values save in browser storage when available.
+
+Easy allows 9 seconds to draw with tolerance scale 1.35. Normal allows 6 seconds with scale 1 and preserves earlier behavior. Hard allows 3.5 seconds with scale 0.7. The scale changes shape-distance limits, circle radial variation, and V/Z/Expelliarmus bend and straightness checks. Easy also widens the Expelliarmus corner check used to identify an attempt; Hard leaves that check at Normal tolerance. Directions, minimum size, holds, tracking-loss rules, lesson count, and dummy response are unchanged. These are implementation values, not validated physical-player difficulty claims.
+
+Music begins after a pointer or keyboard action. It pauses in Training and when the page is hidden. Focus, hover, and click effects respect the effects preference and master mute. Essential state remains readable without audio.
+
+### Credits and responsive behavior
+
+Credits identify Emil Vakhitov and Sofia, link to “Night Vigil” by Kevin MacLeod and CC BY 4.0, disclose the music edit, and identify the original CC0 interface sounds and local SIL Open Font License fonts. Recording disclosures remain visible in Training and Credits.
+
+At narrow widths, text and controls fill the viewport while the image dims behind them. Detail views use a dark reading field. Reduced motion removes scene drift, view entrance, and hover travel. Inspect at 1920x1080 and a narrow viewport. Mobile camera play remains unvalidated.
 
 ## Training
 
 Purpose: learn one movement and complete three correct casts.
+
+The implemented entry and Back to menu control belong to the new shell. The layout below is the target dark-system migration; the existing light training controls and diagnostics remain in place.
 
 ```text
 Back   TRAINING                           Camera / hand status
@@ -76,6 +93,8 @@ On narrow screens, place the play field first, then the compact instruction and 
 ## Fight
 
 Purpose: present a future combat scene while keeping input state clear.
+
+The implemented Fight page is only a Coming soon placeholder. The scene below remains a future design.
 
 ```text
 Pause                   TARGET / OPPONENT                Tracking

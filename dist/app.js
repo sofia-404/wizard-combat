@@ -1,3 +1,4 @@
+import {getSettings,updateSettings} from './settings.js';
 import {GestureController,bounds} from './gesture.js';
 import {ExpelliarmusLesson} from './lesson.js';
 import {TrainingDummy} from './dummy.js';
@@ -8,12 +9,13 @@ const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d'),preview=$
 let stream=null,worker=null,token=0,modelReady=false,busy=false,loading=false,delegate='GPU',recovering=false;
 let lastVideoTime=-1,lastSent=0,lastResult=0,rateStart=0,rateCount=0,hz=0,inference=0,selectedPoints=null,cursor=null;
 let session=crypto.randomUUID(),events=[],hits=0,flashUntil=0,lastPath=[],lastPathUntil=0,lastUI='',saveQueue=[],saving=false;
-const controller=new GestureController(onGesture);
+$('hand').value=getSettings().hand;
+const controller=new GestureController(onGesture,{difficulty:getSettings().difficulty});
 const handInput=new HandInput();
 const lesson=new ExpelliarmusLesson();
 const dummy=new TrainingDummy();
 let inputSettings=readSettings(),tracking={},trackingAt=0,trackingFrames=0,noHandFrames=0,labelHoldFrames=0,wrongHandFrames=0,edgeFrames=0,duplicateFrames=0,lastFrameT=null;
-function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value};}
+function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value,difficulty:getSettings().difficulty};}
 function reportTracking(cause,data={}){
   tracking={...tracking,...data,trackingCause:cause};trackingFrames++;
   if(cause==='no_hand')noHandFrames++;
@@ -116,6 +118,7 @@ function drawPreview(points,accepted){
   pc.beginPath();points.forEach((p,i)=>{const a=map(p);i?pc.lineTo(a.x,a.y):pc.moveTo(a.x,a.y);});pc.strokeStyle=accepted?'#2f7251':'#b77748';pc.lineWidth=3;pc.lineCap='round';pc.lineJoin='round';pc.stroke();
   const first=map(points[0]);pc.beginPath();pc.arc(first.x,first.y,4,0,Math.PI*2);pc.fillStyle='#b77748';pc.fill();
 }
+export function stopTrainingCamera(){stopCamera('Camera stopped. Lesson progress kept.');}
 function stopCamera(reason='Camera stopped'){
   if(stream)record({type:'camera',reason});
   token++;loading=false;modelReady=false;recovering=false;busy=false;
@@ -224,3 +227,6 @@ $('reset').addEventListener('click',()=>{controller.reset();lesson.stop();render
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(stream||loading))stopCamera('Paused. Start camera to resume.');});
 window.addEventListener('pagehide',()=>stopCamera('Page closed'));
 requestAnimationFrame(animate);
+
+window.addEventListener('wizard-settings',()=>{const settings=getSettings();if(settings.hand===inputSettings.hand&&settings.difficulty===inputSettings.difficulty)return;controller.cancel('Options changed. Hold still to start.','input_changed');controller.setDifficulty(settings.difficulty);$('hand').value=settings.hand;inputSettings=readSettings();handInput.reset();tracking={};cursor=null;selectedPoints=null;lastPath=[];lastUI='';record({type:'settings',reason:'Drawing options changed'});});
+$('hand').addEventListener('change',()=>updateSettings({hand:$('hand').value}));

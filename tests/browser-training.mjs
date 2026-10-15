@@ -28,7 +28,7 @@ try{
  });
  const origin=new URL(base).origin;
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,headless:true,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
- const context=await browser.newContext({viewport:{width:1440,height:1100},permissions:['camera']});
+ const context=await browser.newContext({viewport:{width:1920,height:1080},permissions:['camera']});
  const page=await context.newPage(),errors=[],records=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/api/*',async route=>{
@@ -54,6 +54,7 @@ try{
   };
  });
  await page.goto(base);
+ await page.getByRole('button',{name:'Training',exact:true}).click();
 
  assert.equal(await page.title(),'Wizard Combat');
  const send=async points=>page.evaluate(steps=>{window.steps=steps;window.step=0;},[...Array(18).fill(points[0]),...points,...Array(22).fill(points.at(-1))]);
@@ -148,7 +149,7 @@ try{
  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await page.screenshot({path:path.join(output,'mobile.png'),fullPage:true});
- await page.setViewportSize({width:1440,height:1100});
+ await page.setViewportSize({width:1920,height:1080});
  await page.locator('#lessonStart').click();await expectState('active',0);
  assert.equal(await page.locator('#camera').textContent(),'Stop camera');
  for(let i=1;i<=3;i++)await draw(exp,'Expelliarmus');

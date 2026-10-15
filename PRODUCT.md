@@ -22,7 +22,7 @@ The player holds a hand still, draws a shape, then pauses to cast. Input follows
 
 ## Operating Context
 
-The app runs locally with Node.js 24 or later. Camera permission is required. Runtime assets are bundled locally; gameplay uses no external service. The camera preview is mirrored. The default selected hand is left.
+The app runs locally with Node.js 24 or later. Camera permission is required for Training input, not menu navigation. Runtime assets are bundled locally; gameplay uses no external service. The camera preview is mirrored. The default selected hand is left.
 
 ```text
 Hold -> Ready -> Draw -> Pause -> Match -> Cast
@@ -39,7 +39,11 @@ Hold -> Ready -> Draw -> Pause -> Match -> Cast
 - Camera controls and lesson controls work separately. Stopping the camera preserves lesson progress.
 - The current page includes developer diagnostics, timing, result cards, and session counters.
 - Camera images, video, and raw point sequences are not saved. Local records include results, timing, settings, tracking reasons, and drawings of captured paths.
-- Main-menu navigation and a full fight experience are proposed design surfaces, not shipped gameplay. Opponents, health rules, multiplayer, progression, audio, and win conditions remain undecided.
+- The root opens a main menu with Fight, Training, Options, and Credits. Training opens without starting the camera. Back or Escape stops the camera and preserves the current lesson until reload.
+- Fight with dummy is a Coming soon page. Full combat, opponents, health rules, multiplayer, progression, and win conditions remain undecided.
+- Music, sound effects, master mute, drawing hand, and difficulty persist in browser storage when available. Left hand and Normal are defaults. Menu music starts after user interaction and pauses in Training or a hidden page.
+- Difficulty changes draw timeout and selected recognition tolerances: Easy uses 9 seconds and scale 1.35; Normal uses 6 seconds and scale 1; Hard uses 3.5 seconds and scale 0.7. Normal preserves earlier behavior. Directions, holds, tracking-loss rules, three-cast count, and two-second dummy response stay the same. See README.md for the affected checks. Physical difficulty has not been validated.
+- Credits identify the creators, local fonts, CC BY 4.0 music, and original CC0 interface sounds.
 
 ## Brand Commitments
 
@@ -47,7 +51,7 @@ All repository content must use English, as requested by the user. This includes
 
 Keep the name Wizard Combat. Use Hogwarts Legacy only as a palette reference: midnight navy, teal fog, aged gold, and cyan magic. Create original marks, diagrams, layout, scenes, and typography treatment. The identity must feel mature and restrained.
 
-The current request creates a complete repository brandbook, reusable design assets, and screen specifications. This branch establishes the standard; applying it to current gameplay is a separate migration.
+The repository includes a brandbook, reusable design assets, and screen specifications. The main menu, Options, Credits, and Fight placeholder apply this system. Training retains its existing light interface; its full visual migration remains separate.
 
 ## Evidence on Hand
 
@@ -56,7 +60,7 @@ The current request creates a complete repository brandbook, reusable design ass
 - `dist/lesson.js` and `dist/dummy.js`: implemented lesson and target states.
 - `tests/`: simulated-input checks. These do not replace physical player trials.
 
-There is no validated full-combat system or supplied production environment art. Brandbook previews must label illustrative states and future screens clearly.
+There is no validated full-combat system. The menu uses a supplied wizard image; this does not establish a playable combat environment. Brandbook previews must label illustrative states and future screens clearly.
 
 ## Product Principles
 

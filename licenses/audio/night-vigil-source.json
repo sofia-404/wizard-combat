@@ -1,0 +1,23 @@
+{
+  "retrieved": "2026-10-15",
+  "metadata_url": "https://incompetech.com/music/royalty-free/pieces.json",
+  "track_page": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1900047",
+  "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Night%20Vigil.mp3",
+  "track": {
+    "title": "Night Vigil",
+    "filename": "Night Vigil.mp3",
+    "length": "00:04:48",
+    "instruments": "Choir, Flute, Basses, Cellos",
+    "genre": "22",
+    "bpm": "54",
+    "description": "This piece gives me the feels. Remember that episode in Game of Thrones where the dead were coming to Winterfell, but they'd be there later... so everyone is just waiting. Cleaning the horses, eating cold soup, hugging friends, stacking wood. There is deep sadness in there. That's this piece.",
+    "feel": "Mystical, Somber",
+    "uploaded": "2020-01-05",
+    "isrc": "USUAN1900047",
+    "collection": "20",
+    "sheetmusic": null,
+    "video": "https://youtu.be/Jhw0F4gvYfM",
+    "itunes": "https://music.apple.com/us/album/night-vigil/1492168723?i=1492168724&app=itunes",
+    "filmmusicURL": "https://incompetech.filmmusic.io/song/5746-night-vigil/"
+  }
+}

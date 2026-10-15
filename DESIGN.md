@@ -82,7 +82,7 @@ components:
 
 Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.
 
-Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. This is the target system for new UI and the brandbook. The existing light prototype remains unchanged until the migration is implemented.
+Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. This is the system used by the brandbook and the implemented menu shell, Options, Credits, and Fight placeholder. Training retains the existing light interface; its full visual migration remains separate.
 
 **Key Characteristics:**
 

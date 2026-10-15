@@ -1,9 +1,51 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="stylesheet" href="/style.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/menu.css"></head>
 <body>
+<div id="menuShell" class="menu-shell">
+  <div class="menu-art" aria-hidden="true"></div>
+  <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">Mute sound</button>
+  <section id="mainMenu" class="menu-screen" aria-labelledby="menuTitle">
+    <div class="menu-masthead"><img src="/brand/assets/mark.svg" alt="" width="48" height="48"><h1 id="menuTitle">Wizard<br>Combat</h1></div>
+    <nav class="menu-nav" aria-label="Main menu">
+      <button type="button" data-view="fight"><span>Fight</span><small>Coming soon</small></button>
+      <button type="button" data-view="training"><span>Training</span></button>
+      <button type="button" data-view="options"><span>Options</span></button>
+      <button type="button" data-view="credits"><span>Credits</span></button>
+    </nav>
+  </section>
+  <section id="fightView" class="menu-screen detail-view" hidden aria-labelledby="fightTitle">
+    <button type="button" class="menu-back" data-back>Back to menu</button>
+    <h2 id="fightTitle" tabindex="-1">Fight</h2><h3>Fight with dummy</h3><p class="coming-soon">Coming soon</p>
+    <p>Fight mode is being built. Learn your first spell in Training.</p>
+    <button type="button" class="menu-action" data-view="training">Open Training</button>
+  </section>
+  <section id="optionsView" class="menu-screen detail-view" hidden aria-labelledby="optionsTitle">
+    <button type="button" class="menu-back" data-back>Back to menu</button>
+    <h2 id="optionsTitle" tabindex="-1">Options</h2>
+    <form id="optionsForm" class="options-form">
+      <label class="switch-row" for="musicSetting"><span>Music</span><input id="musicSetting" type="checkbox" role="switch" checked></label>
+      <label class="switch-row" for="sfxSetting"><span>Sound effects</span><input id="sfxSetting" type="checkbox" role="switch" checked></label>
+      <label for="handSetting"><span>Drawing hand</span><select id="handSetting"><option value="Left">Left hand</option><option value="Right">Right hand</option></select></label>
+      <label for="difficultySetting"><span>Difficulty</span><select id="difficultySetting"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></label>
+      <p id="difficultyHelp" class="setting-help">6 seconds to draw. Standard shape tolerance.</p>
+    </form>
+    <p class="setting-note">Changes save on this device. Spell directions stay the same for either hand.</p>
+  </section>
+  <section id="creditsView" class="menu-screen detail-view credits-view" hidden aria-labelledby="creditsTitle">
+    <button type="button" class="menu-back" data-back>Back to menu</button>
+    <h2 id="creditsTitle" tabindex="-1">Credits</h2><p>Wizard Combat</p><p>A local camera game built around deliberate hand movements.</p>
+    <h3>Created by</h3><p>Emil Vakhitov and Sofia</p><h3>Music</h3><p><a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1900047" target="_blank" rel="noopener">“Night Vigil” by Kevin MacLeod</a> (incompetech.com), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Edited for length and looping.</p>
+    <h3>Sound &amp; type</h3><p>Original menu sound effects, released under CC0. Cormorant Garamond and Source Sans 3, licensed under the SIL Open Font License.</p>
+    <h3>Thanks &amp; licenses</h3>
+    <p>Hand tracking by <a href="/licenses/MediaPipe-Apache-2.0.txt" target="_blank" rel="noopener">MediaPipe (Apache 2.0)</a>. Gesture recognition includes the <a href="/licenses/PDollar-BSD.txt" target="_blank" rel="noopener">$P recognizer (BSD)</a>.</p>
+    <p>Font notices: <a href="/licenses/fonts/CormorantGaramond-OFL.txt" target="_blank" rel="noopener">Cormorant Garamond</a> and <a href="/licenses/fonts/SourceSans3-OFL.txt" target="_blank" rel="noopener">Source Sans 3</a>.</p>
+    <p class="setting-note">Camera images and video are not saved. Training records include results, timing, settings, and captured path drawings.</p>
+  </section>
+</div>
+<div id="trainingView" hidden><div class="training-navigation"><button id="trainingBack" type="button">Back to menu</button><span>Training</span></div>
 <main>
-  <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
+  <header><div><p class="eyebrow">CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
   <section class="toolbar" aria-label="Camera controls">
     <button id="camera" class="primary">Start camera</button>
     <label>Drawing hand<select id="hand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
@@ -27,7 +69,7 @@
       <p>Move right, then down.</p>
     </div>
     <div class="lesson-copy">
-      <p class="eyebrow">TRAINING / FIRST SPELL</p><h2 id="lessonTitle">Learn Expelliarmus</h2>
+      <p class="eyebrow">FIRST SPELL</p><h2 id="lessonTitle">Learn Expelliarmus</h2>
       <p>Move right, then down. Keep moving at the corner. Pause at the end.</p>
       <p>Use the same direction with either hand. Only Expelliarmus counts toward this lesson.</p>
       <div class="lesson-progress"><label for="lessonProgress">Correct casts <b id="lessonCount">0 / 3</b></label><progress id="lessonProgress" max="3" value="0">0 of 3</progress></div>
@@ -73,5 +115,5 @@
     <div><svg viewBox="0 0 60 60" role="img" aria-label="Start at the dot. Move right, then down."><circle cx="10" cy="10" r="3"/><path d="M13 10H48V50M28 6L33 10L28 14M43 44L48 50L53 44"/></svg><div><b>Expelliarmus</b><span>Start at the dot. Right, then down. Do not pause at the corner.</span></div></div>
   </section>
   <section class="session"><div class="panel-heading"><span>SESSION CHECK</span><span id="saveStatus">No records yet</span></div><div class="counters"><div><b id="attempts">0</b><span>Completed attempts</span></div><div><b id="accepted">0</b><span>Accepted</span></div><div><b id="rejected">0</b><span>Rejected</span></div><div><b id="lost">0</b><span>Tracking lost</span></div><div><b id="accuracy">—</b><span>Expected shape</span></div><div><b id="p90">—</b><span>90% response</span></div></div><p class="hint">Choose a test shape to count correct results. Result cards and control logs save on this laptop. No camera images are saved.</p><ol id="events" class="event-list"><li class="muted">No gestures yet.</li></ol></section>
-</main><script type="module" src="/app.js"></script>
+</main></div><script type="module" src="/shell.js"></script>
 </body></html>

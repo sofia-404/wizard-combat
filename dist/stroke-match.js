@@ -1,6 +1,6 @@
 // Fit ordered strokes to the resampled path. Stroke lengths can differ.
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-function fitStrokes(points,bounds){
+function fitStrokes(points,bounds,precisionScale=1){
   const n=points.length,diag=Math.hypot(bounds.width,bounds.height),cache=new Map();
   const segment=(a,b)=>{
     const key=a*n+b;if(cache.has(key))return cache.get(key);
@@ -17,9 +17,9 @@ function fitStrokes(points,bounds){
   const result=(parts,shape)=>{
     const error=parts.reduce((s,p)=>s+p.error,0)/parts.length;
     const bend=Math.max(...parts.map(p=>p.bend)),efficiency=Math.min(...parts.map(p=>p.efficiency));
-    return {distance:error,gate:bend>.23||efficiency<(shape==='V'?.85:.75)?'curved_strokes':'ok',bend,efficiency,limit:shape==='V'?.065:.045};
+    return {distance:error,gate:bend>.23*precisionScale||efficiency<1-(1-(shape==='V'?.85:.75))*precisionScale?'curved_strokes':'ok',bend,efficiency,limit:(shape==='V'?.065:.045)*precisionScale};
   };
-  const missing=gate=>({distance:1,gate,bend:0,efficiency:0,limit:.045});
+  const missing=gate=>({distance:1,gate,bend:0,efficiency:0,limit:.045*precisionScale});
   let v=missing('v_strokes'),z=missing('z_strokes');
   const low=points.flatMap((p,i)=>p.y>=bounds.maxY-bounds.height*.05?[i]:[]);
   for(const bottom of low){
@@ -57,13 +57,13 @@ function fitStrokes(points,bounds){
   return {V:v,Z:z};
 }
 
-export function matchStrokes(points,bounds){
-  const fit=fitStrokes(points,bounds);
+export function matchStrokes(points,bounds,precisionScale=1){
+  const fit=fitStrokes(points,bounds,precisionScale);
   fit.Z.trim=0;
   if((fit.Z.gate==='ok'||fit.Z.gate==='z_orientation')&&fit.Z.distance<fit.Z.limit)return fit;
   for(const trim of [3,6,9])for(const end of ['start','end']){
     const part=end==='start'?points.slice(trim):points.slice(0,-trim);
-    const candidate=fitStrokes(part,bounds).Z;
+    const candidate=fitStrokes(part,bounds,precisionScale).Z;
     if(candidate.gate==='ok'&&candidate.distance<candidate.limit){
       fit.Z={...candidate,trim:trim/(points.length-1)};return fit;
     }
