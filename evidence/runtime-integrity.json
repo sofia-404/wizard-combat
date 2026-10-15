@@ -1,0 +1,57 @@
+[
+  {
+    "file": "dist/vendor/vision_bundle.js",
+    "sha256": "022cbbfcdb74bae18e4bbc722e429e046d5fdd35f6183f1359c56b652b8b87f7",
+    "bytes": 156161
+  },
+  {
+    "file": "dist/models/hand_landmarker.task",
+    "sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+    "bytes": 7819105
+  },
+  {
+    "file": "licenses/MediaPipe-Apache-2.0.txt",
+    "sha256": "8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8",
+    "bytes": 12331
+  },
+  {
+    "file": "dist/vendor/wasm/vision_wasm_nosimd_internal.wasm",
+    "sha256": "8b5997a744744851055a8947053e35869ba641eea6e65816c024e5b614309d6e",
+    "bytes": 12168316
+  },
+  {
+    "file": "dist/vendor/wasm/vision_wasm_nosimd_internal.js",
+    "sha256": "0573719a9ec3c3ae2ec575976b4677b95f910805ad157557b5e9ad851b023bd9",
+    "bytes": 334439
+  },
+  {
+    "file": "dist/vendor/wasm/vision_wasm_module_internal.wasm",
+    "sha256": "0df5fd6dbc0caac9a44324d2d0d1128cd7c1da01b6e063a1acc26527762a1dc2",
+    "bytes": 12997272
+  },
+  {
+    "file": "dist/vendor/wasm/vision_wasm_internal.wasm",
+    "sha256": "cd83225ca4e9bfc1604b2cb87b8b22b6ea1399a8ede30a21053f17d96a3441f1",
+    "bytes": 12997248
+  },
+  {
+    "file": "dist/vendor/wasm/vision_wasm_module_internal.js",
+    "sha256": "aeebb2cee42185f0599274c59c3044ef8ddaa6c4ea09f9d325eca67f0c751230",
+    "bytes": 334674
+  },
+  {
+    "file": "dist/vendor/wasm/vision_wasm_internal.js",
+    "sha256": "cdd18b64fa7cc33aaf3937496835070c1352cb90594d012184d699e0270bc8a9",
+    "bytes": 334636
+  },
+  {
+    "file": "dist/vendor/pdollar.js",
+    "sha256": "a517c168de18271996d643f4163f6db274a06a16563ab32cab7b911a9a1c3add",
+    "bytes": 13152
+  },
+  {
+    "file": "licenses/PDollar-BSD.txt",
+    "sha256": "2aa9621ca054262c4a6167ff2f50b3e8dfe4a7e97894750fca7cefb78474ffb2",
+    "bytes": 2267
+  }
+]

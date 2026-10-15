@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<main>
+  <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
+  <section class="toolbar" aria-label="Camera controls">
+    <button id="camera" class="primary">Start camera</button>
+    <label>Drawing hand<select id="hand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
+    <label>Track point<select id="point"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
+    <label>Test shape<select id="expected"><option value="Any">Any shape</option><option value="Circle">Circle</option><option value="V">V</option><option value="Z">Z</option></select></label>
+    <button id="reset" class="quiet">New test session</button>
+  </section>
+  <div class="workspace">
+    <section class="camera-panel">
+      <div class="panel-heading"><span>01 / CAPTURE</span><span id="cameraState">Camera off</span></div>
+      <div class="viewport" id="viewport">
+        <video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas>
+        <div class="empty" id="empty"><div class="camera-icon">+</div><h2>Your movement starts here.</h2><p>Start the camera. Show the selected hand.<br>Use a clear, normal-speed movement.</p></div>
+        <div class="cue"><span id="phase">OFF</span><strong id="instruction">Start the camera to begin.</strong></div>
+      </div>
+      <div class="telemetry"><span>Tracking <b id="tracking">Off</b></span><span>Rate <b id="hz">—</b></span><span>Inference <b id="inference">—</b></span><span>Engine <b id="engine">—</b></span></div>
+      <p class="hint">This tracks your hand, not the physical wand tip. Use <b>Knuckles</b> while holding a wand. Keep the whole hand in view.</p>
+      <details><summary>Hand labels do not match?</summary><label class="check"><input id="swap" type="checkbox"> Swap left and right labels</label><p>Use this only if the selected hand is not the hand shown as detected.</p></details>
+    </section>
+    <aside>
+      <section class="result-panel">
+        <div class="panel-heading"><span>02 / RESULT</span><span id="resultTag">Waiting</span></div>
+        <div class="result-top"><canvas id="pathPreview" width="170" height="140" aria-label="Last captured path"></canvas><div><p class="eyebrow">LAST SHAPE</p><h2 id="lastShape">—</h2><p id="lastReason">Draw, then stop briefly.</p></div></div>
+        <div class="result-metrics"><div><b id="score">—</b><span>Shape match</span></div><div><b id="latency">—</b><span>End to result</span></div></div>
+        <p id="diagnosis" class="hint">No captured shape yet.</p>
+      </section>
+      <section class="target-panel">
+        <div class="panel-heading"><span>03 / STATIC TARGET</span><span id="hits">0 hits</span></div>
+        <div class="target-scene" id="targetScene">
+          <svg id="dummy" viewBox="0 0 300 210" role="img" aria-label="Stationary training dummy"><ellipse cx="150" cy="191" rx="83" ry="9" fill="#d9dfd3"/><path d="M150 139v51M123 190h54" stroke="#6e7764" stroke-width="9" stroke-linecap="round"/><path d="M102 83h96" stroke="#b2865c" stroke-width="12" stroke-linecap="round"/><path d="M124 70q26-8 52 0l8 64q-34 17-68 0z" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="45" r="21" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="103" r="22" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="11" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="3" fill="#9b5535"/><path d="M83 191h134" stroke="#a5ae9b" stroke-width="2"/></svg>
+          <span id="impact" class="impact"></span>
+        </div>
+        <p id="targetNote">Accepted shapes cast at the dummy.</p>
+      </section>
+    </aside>
+  </div>
+  <section class="how"><div><span class="step">1</span><div><b>Pause anywhere</b><p>Hold still briefly. Wait for READY.</p></div></div><div><span class="step">2</span><div><b>Draw one shape</b><p>Use at least 1/10 of the camera width.</p></div></div><div><span class="step">3</span><div><b>Stop to cast</b><p>A shape casts once. A return move can also match.</p></div></div></section>
+  <section class="shapes" aria-label="Gesture examples">
+    <div><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="21"/></svg><div><b>Circle</b><span>Small gap allowed. Extra loops cast once.</span></div></div>
+    <div><svg viewBox="0 0 60 60"><path d="M10 10L30 50L50 10"/></svg><div><b>V</b><span>Down, then up. Either direction.</span></div></div>
+    <div><svg viewBox="0 0 60 60"><path d="M10 10H50L10 50H50"/></svg><div><b>Z</b><span>Match this Z on screen. No reflected Z.</span></div></div>
+  </section>
+  <section class="session"><div class="panel-heading"><span>SESSION CHECK</span><span id="saveStatus">No records yet</span></div><div class="counters"><div><b id="attempts">0</b><span>Completed attempts</span></div><div><b id="accepted">0</b><span>Accepted</span></div><div><b id="rejected">0</b><span>Rejected</span></div><div><b id="lost">0</b><span>Tracking lost</span></div><div><b id="accuracy">—</b><span>Expected shape</span></div><div><b id="p90">—</b><span>90% response</span></div></div><p class="hint">Choose a test shape to count correct results. Result cards and control logs save on this laptop. No camera images are saved.</p><ol id="events" class="event-list"><li class="muted">No gestures yet.</li></ol></section>
+</main><script type="module" src="/app.js"></script>
+</body></html>

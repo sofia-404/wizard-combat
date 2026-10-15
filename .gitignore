@@ -1,0 +1,7 @@
+node_modules/
+.tmp/
+.cache/
+play-data/
+.DS_Store
+.env
+.env.*

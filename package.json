@@ -1,0 +1,11 @@
+{
+  "name": "wizard-combat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/gestures.test.mjs tests/hand-input.test.mjs tests/runtime.test.mjs tests/server.test.mjs"
+  }
+}
