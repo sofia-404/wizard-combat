@@ -65,7 +65,7 @@ Options save music, sound effects, drawing hand, and difficulty in this browser.
 
 The scale adjusts shape-distance limits, circle radial variation, and V/Z/Expelliarmus bend and straightness tolerances. It does not change spell directions, minimum drawing size, start/end holds, tracking-loss rules, lesson count, or the dummy timer. Normal preserves the original recognition behavior. Easy also uses its wider Expelliarmus tolerance when deciding whether a return move contains a spell corner; Hard keeps that attempt-counting check at Normal tolerance. These profiles are checked with simulated paths; physical difficulty has not been validated.
 
-Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Duel plays separate battle music. Practice has no music. Music pauses when the page is hidden. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
+Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Duel plays separate battle music. Practice has no music. Music pauses when the page is hidden. While a shape is drawn, a soft looping trail sound follows the fingertip speed and stops when the stroke ends. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
 
 ## Expelliarmus and training
 
@@ -131,6 +131,7 @@ See [Spell files](docs/spells.md) for the registry, definition fields, and steps
 - `dist/shell.js` and `dist/menu.css`: main menu, view navigation, and responsive shell.
 - `dist/settings.js`: saved sound, hand, and difficulty options.
 - `dist/menu-audio.js`: local menu and Duel music and interface sounds.
+- `dist/draw-audio.js`: looping trail sound while a shape is drawn.
 - `dist/app.js`: camera lifecycle, hand selection, display, and local records.
 - `dist/hand-input.js`: hand selection and short label-change handling.
 - `dist/tracker-worker.js`: MediaPipe Hand Landmarker in a worker, with GPU/CPU fallback.

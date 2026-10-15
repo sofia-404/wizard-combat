@@ -1,5 +1,18 @@
 [
   {
+    "path": "dist/audio/draw-trail.wav",
+    "bytes": 176444,
+    "sha256": "13c546940eee883b38ea272d340361389394f4b835ab5ae94105e7f17950f935",
+    "duration_seconds": 2.0,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
+      }
+    ]
+  },
+  {
     "path": "dist/audio/duel-clash-defiant.mp3",
     "bytes": 949365,
     "sha256": "48e8c134aecd4d66fea6d76ef8fc8fba82c62c1628be21b9ff626068312ec206",

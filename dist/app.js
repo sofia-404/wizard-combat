@@ -8,6 +8,7 @@ import {animations} from './presentation/animations.js';
 import {renderSpellChoices} from './presentation/gesture-guide.js';
 import {HandInput} from './hand-input.js';
 import {resultCard,resultTitle} from './result-card.js';
+import {createDrawAudio} from './draw-audio.js';
 const $=id=>document.getElementById(id);
 renderSpellChoices($('expected'),document.querySelector('.shapes'));
 const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d'),preview=$('pathPreview'),pc=preview.getContext('2d');
@@ -16,6 +17,7 @@ let lastVideoTime=-1,lastSent=0,lastResult=0,rateStart=0,rateCount=0,hz=0,infere
 let session=crypto.randomUUID(),events=[],hits=0,flashUntil=0,lastPath=[],lastPathUntil=0,lastUI='',saveQueue=[],saving=false;
 $('hand').value=getSettings().hand;
 const controller=new GestureController(onGesture,{difficulty:getSettings().difficulty});
+const drawAudio=createDrawAudio(getSettings);
 const handInput=new HandInput();
 const lesson=new SpellLesson();
 const dummy=new TrainingDummy();
@@ -210,6 +212,7 @@ function animate(now){
     set('phase',controller.missingCause?'HOLD':controller.state==='waiting'?'HOLD':controller.state.toUpperCase());
     if(controller.message!==lastUI){set('instruction',controller.message);lastUI=controller.message;}
   }
+  drawAudio.update(Boolean(stream)&&controller.state==='drawing'&&!controller.missingCause,controller.speed);
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(selectedPoints){ctx.strokeStyle='#b2d7a777';ctx.lineWidth=1.3;for(const [a,b] of connections){ctx.beginPath();ctx.moveTo((1-selectedPoints[a].x)*canvas.width,selectedPoints[a].y*canvas.height);ctx.lineTo((1-selectedPoints[b].x)*canvas.width,selectedPoints[b].y*canvas.height);ctx.stroke();}}
   const path=controller.state==='drawing'?controller.path:now<lastPathUntil?lastPath:[];

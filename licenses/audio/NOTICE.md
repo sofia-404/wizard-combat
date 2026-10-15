@@ -77,9 +77,25 @@ https://creativecommons.org/publicdomain/zero/1.0/
 No attribution is required for these two sounds. The music has its separate
 CC BY 4.0 requirements above.
 
+## Drawing sound
+
+`dist/audio/draw-trail.wav` loops while the player draws a spell shape. It is
+an original procedural sound made for Wizard Combat by
+`scripts/generate-draw-audio.py`. It mixes quiet sine partials from 2.5 to
+8 kHz, faint A5 and E6 tones, short sparkle pings, and an 8 Hz flutter. Every
+part completes whole cycles in the 2-second loop, so the loop has no seam. It
+uses no third-party recordings, sound libraries, or external AI service. It is
+released under CC0 1.0 Universal like the other original interface sounds.
+
+The game plays it through Web Audio. Fingertip speed sets its level and a
+small pitch rise. The level is zero below 0.05 screen widths per second and
+reaches the maximum gain of 0.14 at 0.6 screen widths per second. It fades out
+in about 60 ms when the stroke ends, tracking is lost, or sound is off.
+
 ## Reproduction and playback
 
 Run `python3 scripts/generate-menu-audio.py` to regenerate the interface sounds.
+Run `python3 scripts/generate-draw-audio.py` to regenerate the drawing sound.
 To recreate the music edits, download the originals to temporary files and run:
 
 ```sh
@@ -88,7 +104,7 @@ python3 scripts/generate-menu-audio.py --battle-source /path/to/Clash-Defiant.mp
 ```
 
 Python 3 and FFmpeg with `libmp3lame` are required for the music edits.
-The interface sounds use only Python's standard library.
+The interface and drawing sounds use only Python's standard library.
 
 Start music at about 0.25 volume and effects at about 0.35 volume. Keep both
 under the user's sound controls. Start playback after a user gesture. Music
@@ -99,4 +115,5 @@ switching screens or muting. The WAV effects have smooth attacks and tails.
 Throttle repeated hover playback so movement across buttons stays quiet.
 
 `assets.json` records file size, duration, encoding, and SHA-256 hashes.
-The four distributed audio files total about 2.14 MB.
+The five distributed audio files total about 2.32 MB. The drawing sound is
+about 0.18 MB.
