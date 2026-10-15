@@ -40,9 +40,9 @@ Hold -> Ready -> Draw -> Pause -> Match -> Cast
 - The current page includes developer diagnostics, timing, result cards, and session counters.
 - Camera images, video, and raw point sequences are not saved. Local records include results, timing, settings, tracking reasons, and drawings of captured paths.
 - The root opens a main menu with Fight, Training, Options, and Credits. Fight opens the static-dummy Duel. Training opens Practice. Neither entry starts the camera. Back or Escape stops the camera and preserves the current lesson until reload.
-- Music, sound effects, master mute, drawing hand, and difficulty persist in browser storage when available. Left hand and Normal are defaults. Menu music starts after user interaction and pauses in Training, Duel, or a hidden page.
+- Music, sound effects, master mute, drawing hand, and difficulty persist in browser storage when available. Left hand and Normal are defaults. Music starts after user interaction. Menu screens play menu music, Duel plays battle music, and Practice has no music. Music pauses on a hidden page. A sound control in the Training and Duel bar uses the same master mute.
 - Difficulty changes draw timeout and selected recognition tolerances: Easy uses 9 seconds and scale 1.35; Normal uses 6 seconds and scale 1; Hard uses 3.5 seconds and scale 0.7. Normal preserves earlier behavior. Directions, holds, tracking-loss rules, three-cast count, and two-second dummy response stay the same. See README.md for the affected checks. Physical difficulty has not been validated.
-- Credits identify the creators, local fonts, CC BY 4.0 music, and original CC0 interface sounds.
+- Credits identify the creators, local fonts, CC BY 4.0 menu and Duel music, and original CC0 interface sounds.
 - Practice and Duel share one camera, detector, input settings, and Practice session, including lesson progress.
 - Duel implements a static target with health, spell travel, hit reactions, defeat, and reset. The dummy does not attack. Health and hit counts are separate from Practice and reset on page reload. See `README.md` for the current rules and `docs/spells.md` for shared spell definitions.
 - Duel events use the existing local record queue. Cast IDs link launches, hits, cancellations, and defeat to the gesture record. There is no database or saved health restoration.

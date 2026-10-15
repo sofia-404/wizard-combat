@@ -35,15 +35,15 @@ Fight opens the existing static-dummy Duel without starting the camera. Practice
 
 ### Options and sound
 
-Options use labeled switches for Music and Sound effects, plus native selectors for Drawing hand and Difficulty. Left hand and Normal are the defaults. The separate sound control mutes all menu audio without clearing the music/effects preferences. These values save in browser storage when available.
+Options use labeled switches for Music and Sound effects, plus native selectors for Drawing hand and Difficulty. Left hand and Normal are the defaults. The separate sound control mutes all game audio without clearing the music/effects preferences. Training and Duel repeat this control at the right end of their top bar. These values save in browser storage when available.
 
 Easy allows 9 seconds to draw with tolerance scale 1.35. Normal allows 6 seconds with scale 1 and preserves earlier behavior. Hard allows 3.5 seconds with scale 0.7. The scale changes shape-distance limits, circle radial variation, and V/Z/Expelliarmus bend and straightness checks. Easy also widens the Expelliarmus corner check used to identify an attempt; Hard leaves that check at Normal tolerance. Directions, minimum size, holds, tracking-loss rules, lesson count, and dummy response are unchanged. These are implementation values, not validated physical-player difficulty claims.
 
-Music begins after a pointer or keyboard action. It pauses in Training, Duel, and when the page is hidden. Focus, hover, and click effects respect the effects preference and master mute. Essential state remains readable without audio.
+Music begins after a pointer or keyboard action. Menu screens play menu music. Duel plays battle music, and Practice has no music. Each track pauses when its view closes or the page is hidden. Focus, hover, and click effects respect the effects preference and master mute. Essential state remains readable without audio.
 
 ### Credits and responsive behavior
 
-Credits identify Emil Vakhitov and Sofia, link to “Night Vigil” by Kevin MacLeod and CC BY 4.0, disclose the music edit, and identify the original CC0 interface sounds and local SIL Open Font License fonts. Recording disclosures remain visible in Training and Credits.
+Credits identify Emil Vakhitov and Sofia, link to “Night Vigil” and “Clash Defiant” by Kevin MacLeod and CC BY 4.0, disclose the music edits, and identify the original CC0 interface sounds and local SIL Open Font License fonts. Recording disclosures remain visible in Training and Credits.
 
 At narrow widths, text and controls fill the viewport while the image dims behind them. Detail views use a dark reading field. Reduced motion removes scene drift, view entrance, and hover travel. Inspect at 1920x1080 and a narrow viewport. Mobile camera play remains unvalidated.
 

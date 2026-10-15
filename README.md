@@ -55,7 +55,7 @@ Hold -> Ready -> Draw -> Stop -> Match -> Cast
 
 The menu lists **Fight**, **Training**, **Options**, and **Credits**. Fight opens the static-dummy Duel. Training opens Practice. **Back to menu** or Escape leaves either mode, stops the camera, and cancels pending Duel flights while keeping lesson progress and dummy health. Returning to either mode requires starting the camera again. Lesson progress is not saved across page reloads.
 
-Options save music, sound effects, drawing hand, and difficulty in this browser. Left hand and Normal difficulty are the defaults. The top-right sound control saves a separate master mute setting. If browser storage is unavailable, settings still work for the open page.
+Options save music, sound effects, drawing hand, and difficulty in this browser. Left hand and Normal difficulty are the defaults. The top-right sound control in the menu, and the sound control in the Training and Duel bar, save a separate master mute setting. If browser storage is unavailable, settings still work for the open page.
 
 | Difficulty | Maximum draw time | Shape tolerance scale |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ Options save music, sound effects, drawing hand, and difficulty in this browser.
 
 The scale adjusts shape-distance limits, circle radial variation, and V/Z/Expelliarmus bend and straightness tolerances. It does not change spell directions, minimum drawing size, start/end holds, tracking-loss rules, lesson count, or the dummy timer. Normal preserves the original recognition behavior. Easy also uses its wider Expelliarmus tolerance when deciding whether a return move contains a spell corner; Hard keeps that attempt-counting check at Normal tolerance. These profiles are checked with simulated paths; physical difficulty has not been validated.
 
-Music starts after a pointer or keyboard action. It pauses in Training, Duel, and when the page is hidden. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
+Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Duel plays separate battle music. Practice has no music. Music pauses when the page is hidden. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
 
 ## Expelliarmus and training
 
@@ -130,7 +130,7 @@ See [Spell files](docs/spells.md) for the registry, definition fields, and steps
 
 - `dist/shell.js` and `dist/menu.css`: main menu, view navigation, and responsive shell.
 - `dist/settings.js`: saved sound, hand, and difficulty options.
-- `dist/menu-audio.js`: local menu music and interface sounds.
+- `dist/menu-audio.js`: local menu and Duel music and interface sounds.
 - `dist/app.js`: camera lifecycle, hand selection, display, and local records.
 - `dist/hand-input.js`: hand selection and short label-change handling.
 - `dist/tracker-worker.js`: MediaPipe Hand Landmarker in a worker, with GPU/CPU fallback.
@@ -153,7 +153,7 @@ See [Spell files](docs/spells.md) for the registry, definition fields, and steps
 
 MediaPipe and the $P recognizer retain their copyright and license terms in `licenses/`. The bundled MediaPipe runtime includes local modifications.
 
-The menu uses “Night Vigil” by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 and edited for length and looping. Original interface sounds use CC0. See [audio credits and source details](licenses/audio/NOTICE.md). Local fonts use the SIL Open Font License.
+The menu uses “Night Vigil” and Duel uses “Clash Defiant”, both by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 and edited for length and looping. Original interface sounds use CC0. See [audio credits and source details](licenses/audio/NOTICE.md). Local fonts use the SIL Open Font License.
 
 `evidence/runtime-integrity.json` lists SHA-256 hashes for bundled runtime files and license files.
 

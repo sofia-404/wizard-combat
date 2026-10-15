@@ -93,6 +93,7 @@ function selectTab(tab, focus = false) {
   else gestureMirror.stop();
   syncControls();
   if (previousTab !== (duel ? 'duel' : 'practice')) logDuel('tab_change', {previousTab});
+  document.dispatchEvent(new CustomEvent('wizard:game-view', {detail: {view: duel ? 'duel' : 'practice'}}));
   if (focus) tab.focus();
 }
 
