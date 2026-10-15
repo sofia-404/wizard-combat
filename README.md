@@ -12,6 +12,30 @@ npm start
 
 Open the printed local URL. The default is `http://127.0.0.1:5185/`. If that port is busy, the server tries the next port.
 
+## Views
+
+**Practice** opens first and keeps the existing camera controls, lessons, and spell detection.
+Select **Duel** for a wizard on the left and a human-shaped static dummy on the right, in a moonlit arena based on the supplied reference.
+Use **Back to Practice** to return. The tabs also support Left/Right Arrow, Home, and End keys.
+
+Start or stop the camera from either tab. Duel has hand, control-point, and hand-label settings, a live camera view, and spell feedback. Hold until READY, draw Circle, V, Z, or Expelliarmus, then pause. Each accepted cast sends one spell from the player's wand to the dummy, followed by a hit effect and the existing accuracy-based damage value. Rejected paths and tracking losses do not cast.
+
+The battlefield also shows the live hand path, cursor, READY/DRAWING instructions, and spell result. It copies the existing transparent path overlay, with no camera picture or second detector. Spell travel takes 120 ms after recognition. The end hold and spell detection rules are unchanged.
+
+Both tabs share one camera stream, detector, settings, and practice session, including lesson progress and saved records. The same camera video and path overlay move to the selected tab. Changing tabs does not restart the camera or reset practice progress. The original Practice controls and behavior remain in place.
+
+Spell effects play only in the visible Duel tab and clear when you leave it or hide the page. The dummy is a separate image. Each spell hit moves it: Circle gives a small recoil, V gives a stronger flinch, Z gives a short shake, and Expelliarmus pushes it back. The player and arena stay still.
+
+At zero health, the dummy falls and stays down. **Reset dummy** stops any active reaction and returns it to its starting pose. Tab changes keep a defeated dummy down. Reduced motion uses a stationary hit glow and changes directly to the fallen pose.
+
+Both Duel health bars start at 200. The player stays at full health because the static dummy does not attack. A spell hit removes 20 health below 78% accuracy, 25 health from 78% to below 88%, or 30 health at 88% and above. Damage applies once at impact and cannot reduce health below zero. At zero, the dummy shows defeat and accepts no further Duel spells.
+
+**Reset dummy** restores dummy health and clears the Duel hit count and pending spell effects. It keeps the camera, settings, Practice records, and lesson progress. Duel health and hits are separate from Practice: Practice casts and its session reset do not change Duel health. Tab changes keep health but cancel spells still in flight. Reloading the page starts with full health.
+
+Navigation and arena styles are in `dist/duel.js` and `dist/duel.css`. Spell flight and hit effects are in `dist/duel-effects.js`; health state and damage timing are in `dist/duel-health.js`. Damage tiers and spell colors come from `dist/spells/`. Both views use `dist/combat/cast.js` for damage values. Dummy poses and reactions are in `dist/duel-reactions.js`. The battlefield path display is in `dist/duel-gesture.js`.
+
+The current artwork uses `dist/assets/duel-arena-background.jpg` and the transparent `dist/assets/duel-dummy.png`. Their edit prompts are in `evidence/duel-reaction-artwork.txt`. The original `dist/assets/duel-arena.jpg` and its prompt in `evidence/duel-artwork.txt` are kept.
+
 ## Use
 
 1. Select the drawing hand.
@@ -65,6 +89,9 @@ The first useful decision is whether hand tracking and pause-based casting feel 
 ## Records and privacy
 
 - Results, timing, tracking-loss reasons, and input settings save to `play-data/events.jsonl`.
+- Each new record includes `activeTab` (`practice` or `duel`). Duel records use `type: duel` and `source: duel`. Their `cause` is `view_init`, `tab_change`, `cast`, `hit`, `cancel`, `defeat`, or `reset`.
+- Duel records include player health, dummy health, maximum health, and hit count. A hit includes `previousDummyHealth`, actual `damage`, and `castToHitMs`, measured from Duel cast handling to impact with the browser clock. This time excludes gesture detection and the end hold. `castId` links cast, hit, cancellation, and defeat records to the original gesture record. Reset records include health before and after reset.
+- Duel uses the existing local save queue and session ID. Failed saves retry. Cancelled flights do not log a hit. Closing the page before the queue is saved can lose pending records.
 - Version 3 records include tracking summaries each second: detected labels, label confidence, missing frames, label holds, wrong-hand frames, edge frames, and duplicate detections.
 - Gesture records include the cause, path size, point count, each shape distance, and each shape gate. Each shape has its own limit. Do not compare circle and V/Z distance values. Label confidence measures left/right certainty, not detection quality.
 - Spell records include the Expelliarmus distance, gate, limit, bend, and straightness. Records also include lesson state and count. Lesson controls, wand removal, and wand return save separate events.
@@ -84,16 +111,17 @@ The first useful decision is whether hand tracking and pause-based casting feel 
 
 ## Implementation
 
+See [Spell files](docs/spells.md) for the registry, definition fields, and steps to add a spell. The old top-level spell modules remain as compatibility exports.
+
 - `dist/app.js`: camera lifecycle, hand selection, display, and local records.
 - `dist/hand-input.js`: hand selection and short label-change handling.
 - `dist/tracker-worker.js`: MediaPipe Hand Landmarker in a worker, with GPU/CPU fallback.
 - `dist/gesture.js`: capture, movement filtering, and match selection.
-- `dist/expelliarmus.js`: ordered right-then-down spell fitting.
-- `dist/lesson.js`: three-cast lesson state and messages.
-- `dist/dummy.js`: wand removal and return timer.
-- `dist/stroke-match.js`: ordered two-stroke V and three-stroke Z fitting.
-- `dist/path-turns.js`: outer-loop depth and ordered turn checks.
-- `dist/circle-match.js`: circle templates and the $P matcher.
+- `dist/spells/`: spell and shape definitions, registry, and data checks.
+- `dist/gestures/`: loop, ordered stroke, and ordered corner checks.
+- `dist/combat/`: damage values, wand removal, and return timer.
+- `dist/training/lesson.js`: shared lesson state and messages.
+- `dist/presentation/`: Practice cast animation and shape guides.
 - `dist/result-card.js`: result card image, with no camera content.
 - `server.mjs`: local static server, scalar logs, and result card storage.
 
@@ -130,5 +158,7 @@ npm run test:browser
 ```
 
 To use an existing Chromium browser, set `CHROMIUM_EXECUTABLE` to its executable path. The test starts its own server and uses simulated camera and hand input. It checks immediate consecutive casts, duplicate casts, spell feedback, lesson controls, wand return, saved records, and desktop/mobile layout. Test records are removed when it finishes. Screenshots are saved in `.tmp/browser-check/`.
+
+Run `npm run test:duel` for the Duel browser checks, using the same Playwright setup. They check shared camera controls, the battlefield path and instructions, cast-to-hit time, casts and hits for all four spells, health at impact, hit reactions, falling, reset during a fall, repeated hits, cancelled-flight damage, separate Practice state, rejected input, tracking loss, tab changes, stopped camera, denied permission, reduced motion, and desktop/mobile layout. Unit tests also check damage boundaries, duplicate hits, and late hits after reset.
 
 All automated tests use simulated input. They do not replace a physical player trial.
