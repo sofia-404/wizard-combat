@@ -8,8 +8,32 @@
     <button id="camera" class="primary">Start camera</button>
     <label>Drawing hand<select id="hand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
     <label>Track point<select id="point"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
-    <label>Test shape<select id="expected"><option value="Any">Any shape</option><option value="Circle">Circle</option><option value="V">V</option><option value="Z">Z</option></select></label>
+    <label>Test shape<select id="expected"><option value="Any">Any shape</option><option value="Circle">Circle</option><option value="V">V</option><option value="Z">Z</option><option value="Expelliarmus">Expelliarmus</option></select></label>
     <button id="reset" class="quiet">New test session</button>
+  </section>
+  <section class="lesson-panel" aria-labelledby="lessonTitle">
+    <div class="lesson-guide">
+      <svg class="lesson-schema" viewBox="0 0 340 300" role="img" aria-labelledby="lessonDiagramTitle lessonDiagramDesc">
+        <title id="lessonDiagramTitle">Expelliarmus movement</title>
+        <desc id="lessonDiagramDesc">Start at the blue circle. Move right, then down to the diamond. Do not pause at the corner.</desc>
+        <path class="schema-border" d="M46 48H270V246M46 60H258V246"/>
+        <path class="schema-path" d="M46 54H264V246"/>
+        <g class="schema-ring"><circle cx="113" cy="54" r="10"/><circle cx="215" cy="54" r="10"/><circle cx="264" cy="122" r="10"/><circle cx="264" cy="196" r="10"/></g>
+        <path class="schema-arrows" d="M160 48L167 54L160 60M258 155L264 162L270 155"/>
+        <circle class="schema-start" cx="46" cy="54" r="9"/>
+        <path class="schema-end" d="M264 233L280 249L264 265L248 249Z"/>
+        <text x="27" y="30">START</text><text x="246" y="286">STOP</text>
+      </svg>
+      <p>Move right, then down.</p>
+    </div>
+    <div class="lesson-copy">
+      <p class="eyebrow">TRAINING / FIRST SPELL</p><h2 id="lessonTitle">Learn Expelliarmus</h2>
+      <p>Move right, then down. Keep moving at the corner. Pause at the end.</p>
+      <p>Use the same direction with either hand. Only Expelliarmus counts toward this lesson.</p>
+      <div class="lesson-progress"><label for="lessonProgress">Correct casts <b id="lessonCount">0 / 3</b></label><progress id="lessonProgress" max="3" value="0">0 of 3</progress></div>
+      <p id="lessonMessage" role="status" aria-live="polite">Start the lesson. Make three correct Expelliarmus casts.</p>
+      <div class="lesson-actions"><button id="lessonStop" class="quiet" hidden>Stop lesson</button><button id="lessonStart" class="primary">Start lesson</button></div>
+    </div>
   </section>
   <div class="workspace">
     <section class="camera-panel">
@@ -33,9 +57,10 @@
       <section class="target-panel">
         <div class="panel-heading"><span>03 / STATIC TARGET</span><span id="hits">0 hits</span></div>
         <div class="target-scene" id="targetScene">
-          <svg id="dummy" viewBox="0 0 300 210" role="img" aria-label="Stationary training dummy"><ellipse cx="150" cy="191" rx="83" ry="9" fill="#d9dfd3"/><path d="M150 139v51M123 190h54" stroke="#6e7764" stroke-width="9" stroke-linecap="round"/><path d="M102 83h96" stroke="#b2865c" stroke-width="12" stroke-linecap="round"/><path d="M124 70q26-8 52 0l8 64q-34 17-68 0z" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="45" r="21" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="103" r="22" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="11" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="3" fill="#9b5535"/><path d="M83 191h134" stroke="#a5ae9b" stroke-width="2"/></svg>
+          <svg id="dummy" viewBox="0 0 300 210" role="img" aria-label="Training dummy holding a wand"><ellipse cx="150" cy="191" rx="83" ry="9" fill="#d9dfd3"/><path d="M150 139v51M123 190h54" stroke="#6e7764" stroke-width="9" stroke-linecap="round"/><path d="M102 83h96" stroke="#b2865c" stroke-width="12" stroke-linecap="round"/><path d="M124 70q26-8 52 0l8 64q-34 17-68 0z" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="45" r="21" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="103" r="22" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="11" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="3" fill="#9b5535"/><path d="M83 191h134" stroke="#a5ae9b" stroke-width="2"/><g id="dummyWand"><path d="M198 83l25-28" stroke="#734927" stroke-width="5" stroke-linecap="round"/><path d="M219 59l4-4" stroke="#deb966" stroke-width="4" stroke-linecap="round"/></g></svg>
           <span id="impact" class="impact"></span>
         </div>
+        <p id="dummyStatus" role="status">Wand ready</p>
         <p id="targetNote">Accepted shapes cast at the dummy.</p>
       </section>
     </aside>
@@ -45,6 +70,7 @@
     <div><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="21"/></svg><div><b>Circle</b><span>Small gap allowed. Extra loops cast once.</span></div></div>
     <div><svg viewBox="0 0 60 60"><path d="M10 10L30 50L50 10"/></svg><div><b>V</b><span>Down, then up. Either direction.</span></div></div>
     <div><svg viewBox="0 0 60 60"><path d="M10 10H50L10 50H50"/></svg><div><b>Z</b><span>Match this Z on screen. No reflected Z.</span></div></div>
+    <div><svg viewBox="0 0 60 60" role="img" aria-label="Start at the dot. Move right, then down."><circle cx="10" cy="10" r="3"/><path d="M13 10H48V50M28 6L33 10L28 14M43 44L48 50L53 44"/></svg><div><b>Expelliarmus</b><span>Start at the dot. Right, then down. Do not pause at the corner.</span></div></div>
   </section>
   <section class="session"><div class="panel-heading"><span>SESSION CHECK</span><span id="saveStatus">No records yet</span></div><div class="counters"><div><b id="attempts">0</b><span>Completed attempts</span></div><div><b id="accepted">0</b><span>Accepted</span></div><div><b id="rejected">0</b><span>Rejected</span></div><div><b id="lost">0</b><span>Tracking lost</span></div><div><b id="accuracy">—</b><span>Expected shape</span></div><div><b id="p90">—</b><span>90% response</span></div></div><p class="hint">Choose a test shape to count correct results. Result cards and control logs save on this laptop. No camera images are saved.</p><ol id="events" class="event-list"><li class="muted">No gestures yet.</li></ol></section>
 </main><script type="module" src="/app.js"></script>

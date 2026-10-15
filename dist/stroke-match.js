@@ -42,6 +42,10 @@ function fitStrokes(points,bounds){
     const a=segment(0,i),b=segment(i,j),c=segment(j,n-1);
     if(a.dx*c.dx<=0||a.dx*b.dx>=0||
       Math.min(Math.abs(a.dx),Math.abs(c.dx))<bounds.width*.18||Math.abs(b.dx)<bounds.width*.35||
+      // Require horizontal outer strokes and a diagonal middle stroke.
+      // A tall corner with small sideways drift is not a Z.
+      Math.abs(a.dy)>Math.abs(a.dx)*.5||Math.abs(c.dy)>Math.abs(c.dx)*.5||
+      Math.abs(b.dx)<Math.abs(b.dy)*.4||
       Math.max(Math.abs(a.dy),Math.abs(c.dy))>bounds.height*.35||Math.abs(b.dy)<bounds.height*.60||
       Math.abs(points.at(-1).y-points[0].y)<bounds.height*.65)continue;
     const candidate=result([a,b,c],'Z');

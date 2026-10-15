@@ -1,4 +1,6 @@
 import {GestureController,bounds} from './gesture.js';
+import {ExpelliarmusLesson} from './lesson.js';
+import {TrainingDummy} from './dummy.js';
 import {HandInput} from './hand-input.js';
 import {resultCard,resultTitle} from './result-card.js';
 const $=id=>document.getElementById(id);
@@ -8,6 +10,8 @@ let lastVideoTime=-1,lastSent=0,lastResult=0,rateStart=0,rateCount=0,hz=0,infere
 let session=crypto.randomUUID(),events=[],hits=0,flashUntil=0,lastPath=[],lastPathUntil=0,lastUI='',saveQueue=[],saving=false;
 const controller=new GestureController(onGesture);
 const handInput=new HandInput();
+const lesson=new ExpelliarmusLesson();
+const dummy=new TrainingDummy();
 let inputSettings=readSettings(),tracking={},trackingAt=0,trackingFrames=0,noHandFrames=0,labelHoldFrames=0,wrongHandFrames=0,edgeFrames=0,duplicateFrames=0,lastFrameT=null;
 function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value};}
 function reportTracking(cause,data={}){
@@ -26,7 +30,7 @@ function reportTracking(cause,data={}){
 const connections=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
 function set(id,value){if($(id).textContent!==String(value))$(id).textContent=String(value);}
 function record(data,png=null){
-  const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:1,...inputSettings,...data};
+  const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:2,...inputSettings,lessonState:lesson.state,lessonCount:lesson.count,...data};
   saveQueue.push({event,png,eventSaved:false});flush();
 }
 async function flush(){
@@ -47,6 +51,7 @@ async function flush(){
 setInterval(flush,5000);
 function onGesture(event){
   if(event.type==='capture'){record({type:'capture',cause:event.cause,...tracking,...event.diagnostics});return;}
+  lesson.update(event);renderLesson();
   const now=performance.now();
   const result={type:event.type,shape:event.shape||'None',score:event.score||0,margin:event.margin||0,latency:Math.round((event.latency||0)+Math.max(0,now-(controller.lastT||now))),duration:Math.round(event.duration||0),reason:event.reason||'',expected:inputSettings.expected,hz:Math.round(hz),inference:Math.round(inference)};
   Object.assign(result,tracking,event.diagnostics||{},{cause:event.cause||'unknown'});
@@ -64,8 +69,29 @@ function onGesture(event){
     const damage=event.score>=88?30:event.score>=78?25:20;
     set('impact','+'+damage);set('targetNote',`${event.shape} · ${damage} damage`);
     $('targetScene').classList.remove('hit');void $('targetScene').offsetWidth;$('targetScene').classList.add('hit');flashUntil=now+1100;
+    if(dummy.cast(event,now)){
+      renderDummy();record({type:'settings',cause:'dummy_disarm',reason:'Dummy disarmed. Wand returns in 2 seconds.'});
+    }
   }
   renderSession();
+}
+function renderDummy(){
+  $('targetScene').classList.toggle('disarmed',dummy.disarmed);
+  set('dummyStatus',dummy.disarmed?'Disarmed · Wand returns in 2 seconds':'Wand ready');
+  $('dummy').setAttribute('aria-label',dummy.disarmed?'Training dummy with dropped wand':'Training dummy holding a wand');
+}
+function renderLesson(){
+  set('lessonCount',`${lesson.count} / 3`);$('lessonProgress').value=lesson.count;
+  const complete=lesson.state==='complete';
+  set('lessonProgress',`${lesson.count} of 3`);
+  set('lessonMessage',complete?'Lesson complete: 3/3.':lesson.message);
+  $('lessonMessage').classList.toggle('lesson-complete',complete);
+  set('lessonStart',complete?'Practice again':'Start lesson');
+  $('lessonStart').hidden=lesson.state==='active';
+  $('lessonStart').className=complete?'quiet':'primary';
+  set('lessonStop',complete?'Finish lesson':'Stop lesson');
+  $('lessonStop').hidden=lesson.state==='idle';
+  $('lessonStop').className=complete?'primary':'quiet';
 }
 function renderSession(){
   const completed=events.filter(e=>e.type==='cast'||e.type==='reject');
@@ -161,6 +187,9 @@ function receive(data){
 }
 function animate(now){
   requestAnimationFrame(animate);
+  if(dummy.restore(now)){
+    renderDummy();record({type:'settings',cause:'dummy_return',reason:'Dummy wand returned.'});
+  }
   if(modelReady&&stream){
     if(now-lastResult>300){reportTracking('worker_stall',{frameAge:Math.round(now-lastResult)});controller.cancel('Tracking delayed. Start again.','worker_stall');handInput.reset();selectedPoints=null;cursor=null;set('tracking','Tracking delayed');}
     if(now-lastResult>3500){recover('Tracking stopped');}
@@ -178,9 +207,20 @@ function animate(now){
   if(cursor){ctx.beginPath();ctx.arc(cursor.x*canvas.width,cursor.y*canvas.width,controller.state==='ready'?10:6,0,Math.PI*2);ctx.fillStyle=controller.state==='ready'?'#c2f3a0':'#ffffff';ctx.fill();ctx.strokeStyle='#29432f';ctx.lineWidth=2;ctx.stroke();}
   if(flashUntil&&now>flashUntil){$('targetScene').classList.remove('hit');flashUntil=0;}
 }
+$('lessonStart').addEventListener('click',()=>{
+  controller.cancel('Lesson started. Hold still to start.','input_changed');
+  lesson.start();renderLesson();lastPath=[];lastUI='';
+  record({type:'settings',cause:'lesson_start',reason:'Expelliarmus lesson started'});
+});
+$('lessonStop').addEventListener('click',()=>{
+  const finished=lesson.state==='complete';
+  controller.cancel('Lesson stopped. Hold still to start.','input_changed');
+  lesson.stop();renderLesson();lastPath=[];lastUI='';
+  record({type:'settings',cause:finished?'lesson_finish':'lesson_stop',reason:finished?'Expelliarmus lesson finished':'Expelliarmus lesson stopped'});
+});
 $('camera').addEventListener('click',startCamera);
 for(const id of ['hand','point','swap','expected'])$(id).addEventListener('change',()=>{controller.cancel('Input changed. Hold still to start.','input_changed');inputSettings=readSettings();handInput.reset();tracking={};record({type:'settings',reason:'Input changed'});cursor=null;selectedPoints=null;lastPath=[];lastUI='';});
-$('reset').addEventListener('click',()=>{controller.reset();handInput.reset();tracking={};set('diagnosis','No captured shape yet.');events=[];hits=0;session=crypto.randomUUID();lastPath=[];drawPreview([],false);set('hits','0 hits');set('lastShape','—');set('lastReason','Draw, then stop briefly.');set('score','—');set('latency','—');set('resultTag','Waiting');set('targetNote','Accepted shapes cast at the dummy.');record({type:'reset',reason:'New test session'});renderSession();});
+$('reset').addEventListener('click',()=>{controller.reset();lesson.stop();renderLesson();dummy.reset();renderDummy();handInput.reset();tracking={};set('diagnosis','No captured shape yet.');events=[];hits=0;session=crypto.randomUUID();lastPath=[];drawPreview([],false);set('hits','0 hits');set('lastShape','—');set('lastReason','Draw, then stop briefly.');set('score','—');set('latency','—');set('resultTag','Waiting');set('targetNote','Accepted shapes cast at the dummy.');record({type:'reset',reason:'New test session'});renderSession();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(stream||loading))stopCamera('Paused. Start camera to resume.');});
 window.addEventListener('pagehide',()=>stopCamera('Page closed'));
 requestAnimationFrame(animate);

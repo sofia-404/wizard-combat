@@ -1,5 +1,6 @@
 import {matchCircle} from './circle-match.js';
 import {matchStrokes} from './stroke-match.js';
+import {matchExpelliarmus} from './expelliarmus.js';
 import {loopTurns} from './path-turns.js';
 // Image-width units, including y. This preserves physical shape proportions.
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -33,7 +34,9 @@ export function movementIntent(points){
   }
   const zigzag=reversals>=2&&Math.abs(end.y-a.y)>=b.height*.50;
   const loop=distance(a,end)<diag*.65&&length>diag*1.7;
-  const motionForm=loop?'loop':zigzag?'zigzag':valley?'valley':'move';
+  const corner=!loop&&!zigzag&&!valley&&Math.max(b.width,b.height)>=.10&&deviation>=.12
+    ?matchExpelliarmus(resample(points),b):null;
+  const motionForm=loop?'loop':zigzag?'zigzag':valley?'valley':corner?.gate==='ok'&&corner.distance<corner.limit?'spell_corner':'move';
   return {intent:Math.max(b.width,b.height)>=.10&&deviation>=.12&&motionForm!=='move',lineDeviation:+deviation.toFixed(4),motionForm};
 }
 export function recognize(points){
@@ -61,7 +64,7 @@ export function recognize(points){
   diagnostics.vCornerTurn=Math.round(strokes.V.cornerTurn||0);
   diagnostics.circleIndentLimit=.08;
   if(strokes.V.gate==='ok'&&diagnostics.circleCoverage<210&&diagnostics.vCornerTurn<45)strokes.V.gate='rounded_arc';
-  const fits={Circle:{distance:circle.distance,gate:circleGate,limit:.12},...strokes};
+  const fits={Circle:{distance:circle.distance,gate:circleGate,limit:.12},...strokes,Expelliarmus:matchExpelliarmus(sample,b)};
   const matches=[];
   for(const [shape,fit] of Object.entries(fits)){
     const key=shape.toLowerCase();
@@ -78,7 +81,7 @@ export function recognize(points){
   Object.assign(diagnostics,{strokeMatcher:'ordered_segments',zOrientation:strokes.Z.orientation||'unknown',zTrim:+(strokes.Z.trim||0).toFixed(3),circleCornerMargin:.02,matchCandidates:matches.join(',')||'None',closure:+closure.toFixed(3),winding:+winding.toFixed(3)});
   const score=accepted?Math.max(0,Math.round(100*(1-fits[shape].distance/(shape==='Circle'?.45:.15)))):0;
   return {accepted,shape,score,margin:0,cause,
-    reason:accepted?'Shape accepted':cause==='z_orientation'?'Z is reversed. Follow the Z shown.':cause==='inward_turn'?'Loop turns inward. Draw a round loop.':matches.length>1?'Shape unclear. Draw one clear shape.':'No match. Draw a clear circle, V, or Z.',diagnostics};
+    reason:accepted?'Shape accepted':cause==='z_orientation'?'Z is reversed. Follow the Z shown.':cause==='inward_turn'?'Loop turns inward. Draw a round loop.':matches.length>1?'Shape unclear. Draw one clear shape.':'No match. Follow one of the shapes shown.',diagnostics};
 }
 
 function movementDiagnostics(path){const {lineDeviation,motionForm}=movementIntent(path);return {lineDeviation,motionForm:motionForm||'move'};}
