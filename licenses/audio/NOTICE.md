@@ -1,4 +1,4 @@
-The menu and Duel use credited music. The menu also uses two original interface
+The menu and Fight use credited music. The menu also uses two original interface
 sounds.
 
 ## Menu music
@@ -30,7 +30,7 @@ URLs. `incompetech-license-evidence.txt` preserves the attribution template
 from the publisher's track page. These are evidence and notices, not a copy
 of the full license; the linked license controls use.
 
-## Duel music
+## Fight music
 
 “Clash Defiant” by Kevin MacLeod (incompetech.com).
 Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).

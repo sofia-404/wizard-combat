@@ -1,6 +1,6 @@
-import circle from './circle/definition.js';
-import v from './v/definition.js';
-import z from './z/definition.js';
+import protego from './protego/definition.js';
+import basicCast from './basic-cast/definition.js';
+import confringo from './confringo/definition.js';
 import expelliarmus from './expelliarmus/definition.js';
 import {validateDefinitions} from './validate.js';
 
@@ -12,13 +12,13 @@ function freeze(value) {
   return value;
 }
 
-const definitions = [circle, v, z, expelliarmus];
+const definitions = [protego, basicCast, confringo, expelliarmus];
 validateDefinitions(definitions);
 export const spellList = freeze(definitions);
 export const spells = freeze(Object.fromEntries(spellList.map(spell => [spell.id, spell])));
 const byShape = Object.freeze(Object.fromEntries(spellList.map(spell => [spell.label, spell])));
 
-// Preserve the existing event/log labels at the boundary. IDs are used internally.
+// Events and records use the registered display label. IDs are used internally.
 export function spellForShape(shape) {
   return Object.hasOwn(byShape, shape) ? byShape[shape] : undefined;
 }

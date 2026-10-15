@@ -1,0 +1,30 @@
+/* Training reuses the Fight layout and the Practice movement diagrams. */
+#trainingView[hidden],#trainingView [hidden]{display:none}
+#trainingDummyActor{transform-box:view-box;transform-origin:1404px 773px}
+#trainingDummyWand{transform-box:view-box;transform-origin:1348px 534px;transform:translate(0,0) rotate(0deg)}
+#trainingDummyActor[data-disarmed="true"] #trainingDummyWand{transform:translate(-35px,230px) rotate(54deg);animation:fight-wand-drop 520ms ease-out}
+#trainingArenaPhase{color:#c2f3a0;font-size:10px;letter-spacing:1px;min-width:58px}
+#trainingArenaResult{color:#ddc494;font-size:11px;line-height:1.5;margin:6px 0 0}
+.training-target-status{display:flex;justify-content:space-between;gap:12px;padding:12px 0;color:#a9b8c0;font-size:11px}
+.training-lesson{min-width:0}
+.training-lesson-copy{padding:14px 16px}
+.training-lesson label{color:#b9c6cb}
+#trainingSpell{width:100%;background:#101a21;border-color:#52616b;color:#e6e8df}
+#trainingSpellTitle{font-family:Georgia,'Times New Roman',serif;font-size:23px;font-weight:400;color:#e7d5b2;line-height:1.3;margin:14px 0 12px}
+#trainingDescription,#trainingMessage,.training-hint{font-size:11px;line-height:1.6;color:#c5d4dd;margin:10px 0}
+.training-hint{color:#a9b8c0}
+.training-lesson .lesson-guide{margin:0}
+.training-lesson .lesson-progress label{color:#b9c6cb}
+.training-completion{font-size:12px;color:#c2f3a0;margin:12px 0}
+.training-completion strong{font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400}
+.training-completion p{font-size:11px;line-height:1.6;margin:6px 0}
+#trainingCameraMount .viewport{width:100%}
+#trainingCameraMount .empty h2{font-size:16px}
+#trainingCameraMount .empty p{font-size:10px}
+#trainingCameraMount .camera-icon{height:35px;width:35px;margin-bottom:10px;font-size:24px;border-radius:10px}
+#trainingCameraMount .cue{bottom:8px;left:8px;right:8px;padding:9px;gap:8px;min-height:42px}
+#trainingCameraMount .cue strong{font-size:10px}
+#trainingCameraMount .cue span{font-size:8px;min-width:40px}
+#trainingCameraMount .legacy-practice-shield,#trainingCameraMount .legacy-practice-shield-status{display:none}
+@media(max-width:600px){#trainingArenaPhase{min-width:50px;font-size:9px}#trainingArenaResult{font-size:10px}}
+@media(prefers-reduced-motion:reduce){#trainingDummyActor[data-disarmed="true"] #trainingDummyWand{animation:none}}

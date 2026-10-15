@@ -22,6 +22,18 @@ test('every difficulty preserves the Expelliarmus direction and minimum size',()
   }
   assert.deepEqual(recognize(path),recognize(path,'normal'));
 });
+test('every difficulty accepts all four spells and keeps their size gates',()=>{
+  const spells={
+    Expelliarmus:path,
+    Protego:Array.from({length:64},(_,i)=>({x:.45+.15*Math.cos(i/63*Math.PI*2),y:.4+.15*Math.sin(i/63*Math.PI*2)})),
+    'Basic Cast':resample([{x:.2,y:.2},{x:.35,y:.5},{x:.5,y:.2}],64),
+    Confringo:resample([{x:.2,y:.2},{x:.5,y:.2},{x:.2,y:.5},{x:.5,y:.5}],64)
+  };
+  for(const difficulty of ['easy','normal','hard'])for(const [shape,points] of Object.entries(spells)){
+    assert.equal(recognize(points,difficulty).shape,shape,`${difficulty}: ${shape}`);
+    assert.equal(recognize(points.map(p=>({x:p.x*.1,y:p.y*.1})),difficulty).accepted,false,`${difficulty}: small ${shape}`);
+  }
+});
 test('difficulty applies capture timeout while normal retains six seconds',()=>{
   for(const [difficulty,limit] of [['easy',9000],['normal',6000],['hard',3500]]){
     const events=[];const controller=new GestureController(event=>events.push(event),{difficulty});
@@ -50,11 +62,11 @@ test('Normal accepts a bowed spell that Hard rejects',()=>{
   assert.equal(recognize(trace,'normal').shape,'Expelliarmus');
   assert.equal(recognize(trace,'hard').accepted,false);
 });
-test('Easy still rejects reflected Z and Expelliarmus paths',()=>{
-  const z=resample([{x:.2,y:.2},{x:.5,y:.2},{x:.2,y:.5},{x:.5,y:.5}]);
+test('Easy still rejects reflected Confringo and Expelliarmus paths',()=>{
+  const confringo=resample([{x:.2,y:.2},{x:.5,y:.2},{x:.2,y:.5},{x:.5,y:.5}]);
   const reflect=points=>points.map(point=>({x:1-point.x,y:point.y}));
-  assert.equal(recognize(z,'easy').shape,'Z');
-  assert.equal(recognize(reflect(z),'easy').accepted,false);
+  assert.equal(recognize(confringo,'easy').shape,'Confringo');
+  assert.equal(recognize(reflect(confringo),'easy').accepted,false);
   assert.equal(recognize(path,'easy').shape,'Expelliarmus');
   assert.equal(recognize(reflect(path),'easy').accepted,false);
 });

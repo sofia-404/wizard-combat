@@ -1,11 +1,12 @@
 import {spellColor} from './presentation/spell-color.js';
+import {spellForShape} from './spells/index.js';
 
 const READY = 'translate(0px, 0px) rotate(0deg)';
 const FALLEN = 'translate(-35px, 45px) rotate(-84deg)';
 const REACTIONS = {
-  Circle: {moves: [READY, 'translate(14px, -5px) rotate(3deg)', 'translate(-4px, 0px) rotate(-1deg)', READY]},
-  V: {moves: [READY, 'translate(22px, 8px) rotate(7deg)', 'translate(10px, 4px) rotate(3deg)', READY]},
-  Z: {moves: [READY, 'translate(18px, 0px) rotate(3deg)', 'translate(-10px, 0px) rotate(-3deg)', 'translate(15px, 0px) rotate(2deg)', 'translate(-6px, 0px) rotate(-1deg)', READY]},
+  default: {moves: [READY, 'translate(14px, -5px) rotate(3deg)', 'translate(-4px, 0px) rotate(-1deg)', READY]},
+  'Basic Cast': {moves: [READY, 'translate(22px, 8px) rotate(7deg)', 'translate(10px, 4px) rotate(3deg)', READY]},
+  Confringo: {moves: [READY, 'translate(18px, 0px) rotate(3deg)', 'translate(-10px, 0px) rotate(-3deg)', 'translate(15px, 0px) rotate(2deg)', 'translate(-6px, 0px) rotate(-1deg)', READY]},
   Expelliarmus: {moves: [READY, 'translate(30px, -12px) rotate(10deg)', 'translate(16px, -2px) rotate(4deg)', READY]}
 };
 
@@ -32,10 +33,11 @@ export function createDummyReactions(actor) {
   }
 
   function react(shape, lethal = false) {
+    if (spellForShape(shape)?.visuals.cast === 'shield') return;
     if (defeated) return;
     cancel();
     defeated = lethal;
-    const reaction = REACTIONS[shape] || REACTIONS.Circle;
+    const reaction = REACTIONS[shape] || REACTIONS.default;
     actor.dataset.reaction = shape;
     actor.dataset.pose = lethal ? 'falling' : 'recoil';
     actor.setAttribute('aria-label', lethal ? 'Training dummy falling' : `Training dummy hit by ${shape}`);

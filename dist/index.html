@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/duel.css"><link rel="stylesheet" href="/menu.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/fight.css"><link rel="stylesheet" href="/menu.css"><link rel="stylesheet" href="/presentation/shield.css"><link rel="stylesheet" href="/training.css"></head>
 <body>
 <div id="menuShell" class="menu-shell">
   <div class="menu-art" aria-hidden="true"></div>
@@ -10,6 +10,7 @@
     <nav class="menu-nav" aria-label="Main menu">
       <button type="button" data-view="fight"><span>Fight</span></button>
       <button type="button" data-view="training"><span>Training</span></button>
+      <button type="button" data-view="legacy-practice"><span>[OLD] Practice</span></button>
       <button type="button" data-view="options"><span>Options</span></button>
       <button type="button" data-view="credits"><span>Credits</span></button>
     </nav>
@@ -34,22 +35,18 @@
     <h3>Thanks &amp; licenses</h3>
     <p>Hand tracking by <a href="/licenses/MediaPipe-Apache-2.0.txt" target="_blank" rel="noopener">MediaPipe (Apache 2.0)</a>. Gesture recognition includes the <a href="/licenses/PDollar-BSD.txt" target="_blank" rel="noopener">$P recognizer (BSD)</a>.</p>
     <p>Font notices: <a href="/licenses/fonts/CormorantGaramond-OFL.txt" target="_blank" rel="noopener">Cormorant Garamond</a> and <a href="/licenses/fonts/SourceSans3-OFL.txt" target="_blank" rel="noopener">Source Sans 3</a>.</p>
-    <p class="setting-note">Camera images and video are not saved. Training records include results, timing, settings, and captured path drawings.</p>
+    <p class="setting-note">Camera images and video are not saved. Training saves result and lesson records. Fight and [OLD] Practice also save captured path drawings.</p>
   </section>
 </div>
-<div id="trainingView" hidden><div class="training-navigation"><button id="trainingBack" type="button">Back to menu</button><span>Training &amp; Duel</span><button id="gameSoundToggle" class="game-sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">Mute sound</button></div>
+<div id="gameView" hidden><div class="game-navigation"><button id="gameBack" type="button">Back to menu</button><span id="gameViewName">Training</span><button id="gameSoundToggle" class="game-sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">Mute sound</button></div>
 <main>
   <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
-  <nav class="view-tabs" role="tablist" aria-label="Game views">
-    <button id="practiceTab" class="view-tab" type="button" role="tab" aria-selected="true" aria-controls="practiceView">Practice</button>
-    <button id="duelTab" class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="duelView" tabindex="-1">Duel <span class="tab-badge">NEW</span></button>
-  </nav>
-  <div id="practiceView" role="tabpanel" aria-labelledby="practiceTab">
+  <div id="legacyPracticeView" role="region" aria-label="[OLD] Practice" hidden>
   <section class="toolbar" aria-label="Camera controls">
     <button id="camera" class="primary">Start camera</button>
     <label>Drawing hand<select id="hand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
     <label>Track point<select id="point"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
-    <label>Test shape<select id="expected"><option value="Any">Any shape</option><option value="Circle">Circle</option><option value="V">V</option><option value="Z">Z</option><option value="Expelliarmus">Expelliarmus</option></select></label>
+    <label>Test shape<select id="expected"><option value="Any">Any shape</option><option value="Protego">Protego</option><option value="Basic Cast">Basic Cast</option><option value="Confringo">Confringo</option><option value="Expelliarmus">Expelliarmus</option></select></label>
     <button id="reset" class="quiet">New test session</button>
   </section>
   <section class="lesson-panel" aria-labelledby="lessonTitle">
@@ -81,6 +78,7 @@
       <div class="panel-heading"><span>01 / CAPTURE</span><span id="cameraState">Camera off</span></div>
       <div class="viewport" id="viewport">
         <video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas>
+        <span id="legacyPracticeShieldStatus" class="legacy-practice-shield-status" role="status"></span><svg id="legacyPracticeShield" class="shield-sphere legacy-practice-shield" viewBox="0 0 640 480" aria-hidden="true"></svg>
         <div class="empty" id="empty"><div class="camera-icon">+</div><h2>Your movement starts here.</h2><p>Start the camera. Show the selected hand.<br>Use a clear, normal-speed movement.</p></div>
         <div class="cue"><span id="phase">OFF</span><strong id="instruction">Start the camera to begin.</strong></div>
       </div>
@@ -102,78 +100,143 @@
           <span id="impact" class="impact"></span>
         </div>
         <p id="dummyStatus" role="status">Wand ready</p>
-        <p id="targetNote">Accepted shapes cast at the dummy.</p>
+        <p id="targetNote">Attack spells hit the dummy. Protego protects you.</p>
       </section>
     </aside>
   </div>
   <section class="how"><div><span class="step">1</span><div><b>Pause anywhere</b><p>Hold still briefly. Wait for READY.</p></div></div><div><span class="step">2</span><div><b>Draw one shape</b><p>Use at least 1/10 of the camera width.</p></div></div><div><span class="step">3</span><div><b>Stop to cast</b><p>A successful cast prepares the next. A return move can also match.</p></div></div></section>
   <section class="shapes" aria-label="Gesture examples">
-    <div><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="21"/></svg><div><b>Circle</b><span>Small gap allowed. Extra loops cast once.</span></div></div>
-    <div><svg viewBox="0 0 60 60"><path d="M10 10L30 50L50 10"/></svg><div><b>V</b><span>Down, then up. Either direction.</span></div></div>
-    <div><svg viewBox="0 0 60 60"><path d="M10 10H50L10 50H50"/></svg><div><b>Z</b><span>Match this Z on screen. No reflected Z.</span></div></div>
+    <div><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="21"/></svg><div><b>Protego</b><span>Draw a circle in either direction. Small gaps are allowed. Extra loops cast once.</span></div></div>
+    <div><svg viewBox="0 0 60 60" role="img" aria-label="Basic Cast: start at the dot. Move down, then up. Either direction. Pause at the end."><circle cx="10" cy="10" r="3"/><path d="M11.5 13L30 50L48.5 13"/><path d="M14 29L20 30L23 24M34 33L40 30L42 37"/><path d="M50 6L54 10L50 14L46 10Z"/></svg><div><b>Basic Cast</b><span>Start at the dot. Down, then up. Either direction. Pause at the end.</span></div></div>
+    <div><svg viewBox="0 0 60 60" role="img" aria-label="Confringo: start at the dot. Move right, down-left, then right. Pause at the end."><circle cx="10" cy="10" r="3"/><path d="M13 10H50L10 50H46"/><path d="M27 6L31 10L27 14M28 25V32H35M28 46L32 50L28 54"/><path d="M50 46L54 50L50 54L46 50Z"/></svg><div><b>Confringo</b><span>Right, down-left, then right. Either end can be the start. No mirror image.</span></div></div>
     <div><svg viewBox="0 0 60 60" role="img" aria-label="Start at the dot. Move right, then down."><circle cx="10" cy="10" r="3"/><path d="M13 10H48V50M28 6L33 10L28 14M43 44L48 50L53 44"/></svg><div><b>Expelliarmus</b><span>Start at the dot. Right, then down. Do not pause at the corner.</span></div></div>
   </section>
   <section class="session"><div class="panel-heading"><span>SESSION CHECK</span><span id="saveStatus">No records yet</span></div><div class="counters"><div><b id="attempts">0</b><span>Completed attempts</span></div><div><b id="accepted">0</b><span>Accepted</span></div><div><b id="rejected">0</b><span>Rejected</span></div><div><b id="lost">0</b><span>Tracking lost</span></div><div><b id="accuracy">—</b><span>Expected shape</span></div><div><b id="p90">—</b><span>90% response</span></div></div><p class="hint">Choose a test shape to count correct results. Result cards and control logs save on this laptop. No camera images are saved.</p><ol id="events" class="event-list"><li class="muted">No gestures yet.</li></ol></section>
   </div>
-  <section id="duelView" role="tabpanel" aria-labelledby="duelTab" hidden>
-    <div class="duel-heading">
-      <div><p class="duel-kicker">THE TRAINING GROUNDS</p><h2>A place to master your magic.</h2></div>
-      <span class="duel-mode"><span aria-hidden="true"></span> Static dummy</span>
+  <section id="fightView" role="region" aria-label="Fight" hidden>
+    <div class="fight-heading">
+      <div><p class="fight-kicker">THE TRAINING GROUNDS</p><h2>A place to master your magic.</h2></div>
+      <span class="fight-mode"><span aria-hidden="true"></span> Static dummy</span>
     </div>
-    <div class="duel-controls" aria-label="Duel camera controls">
-      <button id="duelCamera" class="duel-start" type="button">Start camera</button>
-      <label>Drawing hand<select id="duelHand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
-      <label>Track point<select id="duelPoint"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
-      <label class="duel-swap"><input id="duelSwap" type="checkbox"> Swap hand labels</label>
-      <button id="duelResetDummy" class="duel-back" type="button">Reset dummy</button>
-      <span id="duelCameraState" class="duel-camera-state" role="status">Camera off</span>
+    <div class="fight-controls" aria-label="Fight camera controls">
+      <button id="fightCamera" class="fight-start" type="button">Start camera</button>
+      <label>Drawing hand<select id="fightHand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
+      <label>Track point<select id="fightPoint"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
+      <label class="fight-swap"><input id="fightSwap" type="checkbox"> Swap hand labels</label>
+      <button id="fightResetDummy" class="fight-back" type="button">Reset dummy</button>
+      <span id="fightCameraState" class="fight-camera-state" role="status">Camera off</span>
     </div>
-    <div class="duel-stage">
-    <div class="duel-battlefield">
-    <div class="duel-arena">
-      <img class="arena-art" src="/assets/duel-arena-background.jpg" width="1659" height="948" alt="A wizard in blue robes stands on the left of a stone floor in a moonlit ruined castle." loading="lazy">
-      <svg class="duel-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
-        <ellipse class="duel-dummy-shadow" cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
-        <g id="duelDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
-          <image href="/assets/duel-dummy.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+    <div class="fight-stage">
+    <div class="fight-battlefield">
+    <div class="fight-arena">
+      <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard in blue robes stands on the left of a stone floor in a moonlit ruined castle." loading="lazy">
+      <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
+        <ellipse class="fight-dummy-shadow" cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
+        <g id="fightDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
+          <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+          <g id="fightDummyWand" aria-hidden="true">
+            <image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/>
+          </g>
         </g>
       </svg>
       <div class="arena-shade" aria-hidden="true"></div>
-      <svg id="duelEffects" class="duel-effects" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
-      <canvas id="duelGesture" class="duel-gesture" width="640" height="480" aria-label="Live hand path on the battlefield"></canvas>
-      <div class="duel-hud">
-        <div class="fighter-card fighter-player"><span class="fighter-role">YOUR WIZARD</span><strong>Player</strong><progress id="duelPlayerHealth" class="duel-health" max="200" value="200" aria-label="Player health">200 of 200</progress><span id="duelPlayerHealthText" class="duel-health-value">200 / 200</span><span class="fighter-detail">Static dummy does not attack</span></div>
-        <div class="arena-emblem" aria-label="Practice arena"><span aria-hidden="true">◇</span><span>PRACTICE</span></div>
-        <div class="fighter-card fighter-dummy"><span class="fighter-role">YOUR TARGET</span><strong>Training dummy</strong><progress id="duelDummyHealth" class="duel-health" max="200" value="200" aria-label="Dummy health">200 of 200</progress><span id="duelDummyHealthText" class="duel-health-value">200 / 200</span><span id="duelDummyState" class="fighter-detail">Static · No return fire</span></div>
+      <svg id="fightEffects" class="fight-effects" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+      <svg id="fightShield" class="shield-sphere" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+      <canvas id="fightGesture" class="fight-gesture" width="640" height="480" aria-label="Live hand path on the battlefield"></canvas>
+      <div class="fight-hud">
+        <div class="fighter-card fighter-player"><span class="fighter-role">YOUR WIZARD</span><strong>Player</strong><progress id="fightPlayerHealth" class="fight-health" max="200" value="200" aria-label="Player health">200 of 200</progress><span id="fightPlayerHealthText" class="fight-health-value">200 / 200</span><span class="fighter-detail">Static dummy does not attack</span></div>
+        <div id="fightTimer" class="fight-timer" role="timer" aria-label="Fight time remaining in seconds" aria-live="off">100</div>
+        <div class="fighter-card fighter-dummy"><span class="fighter-role">YOUR TARGET</span><strong>Training dummy</strong><progress id="fightDummyHealth" class="fight-health" max="200" value="200" aria-label="Dummy health">200 of 200</progress><span id="fightDummyHealthText" class="fight-health-value">200 / 200</span><span id="fightDummyState" class="fighter-detail">Static · No return fire</span></div>
       </div>
-      <div id="duelDefeat" class="duel-defeat" hidden><strong>Dummy defeated</strong><span>Select Reset dummy to continue.</span></div>
+      <div id="fightDefeat" class="fight-defeat" hidden><strong>Dummy defeated</strong><span>Select Reset dummy to continue.</span></div>
       <div class="arena-caption"><span><i class="player-dot" aria-hidden="true"></i> PLAYER</span><span class="arena-location">THE MOONLIT COURT</span><span>STATIC DUMMY <i class="dummy-dot" aria-hidden="true"></i></span></div>
     </div>
-    <div class="duel-arena-feedback">
-      <div><b id="duelArenaPhase">OFF</b><span id="duelArenaInstruction">Start the camera to begin.</span></div>
-      <p id="duelArenaResult">Start the camera. Hold still until READY.</p>
+    <div class="fight-arena-feedback">
+      <div><b id="fightArenaPhase">OFF</b><span id="fightArenaInstruction">Start the camera to begin.</span></div>
+      <p id="fightArenaResult">Start the camera. Hold still until READY.</p>
+      <p id="fightShieldStatus" class="shield-status" role="status">Shield inactive</p>
     </div>
     </div>
-    <div class="duel-live">
-      <section class="duel-camera-panel" aria-label="Live camera and hand path">
-        <div class="duel-panel-heading"><span>YOUR CAMERA</span><span id="duelTracking">Off</span></div>
-        <div id="duelCameraMount"></div>
+    <div class="fight-live">
+      <section class="fight-camera-panel" aria-label="Live camera and hand path">
+        <div class="fight-panel-heading"><span>YOUR CAMERA</span><span id="fightTracking">Off</span></div>
+        <div id="fightCameraMount"></div>
       </section>
-      <section class="duel-cast-panel" aria-label="Spell feedback">
-        <div class="duel-panel-heading"><span>SPELL CONTROL</span><span id="duelHits">0 hits</span></div>
-        <p id="duelCastStatus" role="status" aria-live="polite">Start the camera. Hold still until READY.</p>
-        <p id="duelResult">Draw one shape, then pause to cast.</p>
-        <div class="duel-spell-guide" aria-label="Spell shapes">
-          <span><b>○</b> Circle</span><span><b>V</b> V</span><span><b>Z</b> Z</span><span><b>┐</b> Expelliarmus</span>
+      <section class="fight-cast-panel" aria-label="Spell feedback">
+        <div class="fight-panel-heading"><span>SPELL CONTROL</span><span id="fightHits">0 hits</span></div>
+        <p id="fightCastStatus" role="status" aria-live="polite">Start the camera. Hold still until READY.</p>
+        <p id="fightResult">Draw one shape, then pause to cast.</p>
+        <p id="fightWandStatus" class="fight-help" role="status">Wand ready</p>
+        <div class="fight-spell-guide" aria-label="Spell shapes">
+          <span><b>○</b> Protego</span><span><b aria-hidden="true">V</b> Basic Cast</span><span><b aria-hidden="true"><svg viewBox="0 0 60 60" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3"><path d="M10 10H50L10 50H50"/></svg></b> Confringo</span><span><b>┐</b> Expelliarmus</span>
         </div>
-        <p class="duel-help">Expelliarmus: move right, then down. Pause only at the end. Use the same direction with either hand.</p>
-        <p class="duel-help">The camera follows your hand, not the wand tip. Use Knuckles when you hold a wand.</p>
+        <p class="fight-help">Expelliarmus: move right, then down. Pause only at the end. Use the same direction with either hand.</p>
+        <p class="fight-help">The camera follows your hand, not the wand tip. Use Knuckles when you hold a wand.</p>
       </section>
     </div>
     </div>
-    <div class="duel-bottom">
-      <div class="duel-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>Accepted spells fly from your wand to the dummy. Both tabs share the same camera, settings, and practice session.</p></div></div>
-      <button id="backToPractice" class="duel-back" type="button"><span aria-hidden="true">←</span> Back to Practice</button>
+    <div class="fight-bottom">
+      <div class="fight-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>Attack spells fly to the dummy. Protego protects you. All three modes use the same camera controls and settings. Fight and [OLD] Practice also share the practice session. Training keeps separate lesson progress.</p></div></div>
+    </div>
+  </section>
+  <section id="trainingView" role="region" aria-label="Training" hidden>
+    <div class="fight-heading"><div><p class="fight-kicker">THE TRAINING GROUNDS</p><h2>Learn a spell.</h2></div><span class="fight-mode"><span aria-hidden="true"></span><output id="trainingLearnedTotal">0 of 4 spells learned</output></span></div>
+    <div class="fight-controls" aria-label="Training camera controls">
+      <button id="trainingCamera" class="fight-start" type="button">Start camera</button>
+      <label>Drawing hand<select id="trainingHand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
+      <label>Track point<select id="trainingPoint"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
+      <label class="fight-swap"><input id="trainingSwap" type="checkbox"> Swap hand labels</label>
+      <span id="trainingCameraState" class="fight-camera-state" role="status">Camera off</span>
+    </div>
+    <div class="fight-stage">
+      <div class="fight-battlefield">
+        <div class="fight-arena">
+          <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard faces a stationary training dummy in the moonlit arena." loading="lazy">
+          <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
+            <ellipse cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
+            <g id="trainingDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
+              <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+              <g id="trainingDummyWand" aria-hidden="true"><image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/></g>
+            </g>
+          </svg>
+          <div class="arena-shade" aria-hidden="true"></div>
+          <svg id="trainingEffects" class="fight-effects" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+          <svg id="trainingShield" class="shield-sphere" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+          <canvas id="trainingGesture" class="fight-gesture" width="640" height="480" aria-label="Live hand path in the training arena"></canvas>
+          <div class="fight-hud">
+            <div class="fighter-card fighter-player"><span class="fighter-role">YOUR SPELL</span><strong id="trainingArenaSpell">Expelliarmus</strong><span class="fighter-rule"></span><span class="fighter-detail">Follow the path. Make three correct casts.</span></div>
+            <div></div>
+            <div class="fighter-card fighter-dummy"><span class="fighter-role">YOUR TARGET</span><strong>Training dummy</strong><span class="fighter-rule"></span><span class="fighter-detail">Static · No return fire</span></div>
+          </div>
+          <div class="arena-caption"><span><i class="player-dot" aria-hidden="true"></i> PLAYER</span><span class="arena-location">THE MOONLIT COURT</span><span>STATIC DUMMY <i class="dummy-dot" aria-hidden="true"></i></span></div>
+        </div>
+        <div class="fight-arena-feedback">
+          <div><b id="trainingArenaPhase">OFF</b><span id="trainingArenaInstruction">Start the camera to begin.</span></div>
+          <p id="trainingArenaResult">Start a lesson to count correct casts.</p>
+        </div>
+        <div class="training-target-status"><span id="trainingWandStatus" role="status">Wand ready</span><span id="trainingShieldStatus" role="status">Shield inactive</span></div>
+      </div>
+      <div class="fight-live">
+        <section class="fight-camera-panel" aria-label="Mirrored camera preview"><div class="fight-panel-heading"><span>YOUR CAMERA</span><span id="trainingTracking">Off</span></div><div id="trainingCameraMount"></div></section>
+      <section class="fight-cast-panel training-lesson" aria-labelledby="trainingSpellTitle">
+        <div class="fight-panel-heading"><span>SPELL LESSON</span><span>THREE CORRECT CASTS</span></div>
+        <div class="training-lesson-copy">
+        <label for="trainingSpell">Choose a spell<select id="trainingSpell"></select></label>
+        <h3 id="trainingSpellTitle">Expelliarmus</h3>
+        <div id="trainingGuide" class="lesson-guide"></div>
+        <p id="trainingDescription">Move right, then down. Keep moving at the corner.</p>
+        <p class="training-hint">Use the same screen directions with either hand. Pause at the end.</p>
+        <div class="lesson-progress"><label for="trainingProgress">Correct casts <b id="trainingCount">0 / 3</b></label><progress id="trainingProgress" max="3" value="0">0 of 3</progress></div>
+        <div id="trainingCompletion" class="training-completion" role="status" aria-live="polite" hidden><strong id="trainingLearnedTitle">Spell learned</strong><p>Lesson complete. Three correct casts.</p></div>
+        <p id="trainingMessage" role="status" aria-live="polite">Start the lesson. Make three correct Expelliarmus casts.</p>
+        <div class="lesson-actions"><button id="trainingStart" class="fight-start" type="button">Start lesson</button><button id="trainingStop" class="fight-back" type="button" hidden>Stop lesson</button></div>
+        <p id="trainingEffectNote" class="training-hint">Expelliarmus removes the dummy's wand for two seconds.</p>
+        </div>
+      </section>
+      </div>
+    </div>
+    <div class="fight-bottom">
+      <div class="fight-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>The camera follows your hand, not the wand tip. Select Knuckles when you hold a wand. Camera and lesson controls are separate. Progress stays when you return to the menu or stop the camera. Reloading the page clears it.</p><p>Camera processing stays on this device. Training results save locally. Camera images and video are not saved.</p></div></div>
     </div>
   </section>
 </main></div><script type="module" src="/shell.js"></script>

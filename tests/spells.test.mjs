@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {recognize,resample,GestureController} from '../dist/gesture.js';
 import {narrowCorner} from './fixtures/narrow-corner.mjs';
 
-test('Spell paths and Z rejection', () => {
+test('Spell paths and Confringo rejection', () => {
 
 let checks=0;
 const path=(pairs,n=40)=>resample(pairs.map(([x,y])=>({x,y})),n);
@@ -27,9 +27,9 @@ function expectCast(points,shape,options){
   assert.equal(hits[0].shape,shape);checks++;
   return hits[0];
 }
-// Existing shapes keep their labels, including reversed drawing order.
-const old={Circle:Array.from({length:60},(_,i)=>({x:.45+.15*Math.cos(i/59*Math.PI*2),y:.35+.15*Math.sin(i/59*Math.PI*2)})),
-  V:path([[.25,.2],[.4,.5],[.55,.2]]),Z:path([[.25,.2],[.55,.2],[.25,.5],[.55,.5]])};
+// Existing paths keep reversed drawing order.
+const old={Protego:Array.from({length:60},(_,i)=>({x:.45+.15*Math.cos(i/59*Math.PI*2),y:.35+.15*Math.sin(i/59*Math.PI*2)})),
+  'Basic Cast':path([[.25,.2],[.4,.5],[.55,.2]]),Confringo:path([[.25,.2],[.55,.2],[.25,.5],[.55,.5]])};
 for(const [shape,points] of Object.entries(old))for(const step of [22,33,50])for(const reverse of [false,true]){
   expectCast(reverse?[...points].reverse():points,shape,{step});
 }
@@ -52,7 +52,7 @@ const negatives={
   quarterArc:Array.from({length:40},(_,i)=>({x:.2+.3*Math.sin(i/39*Math.PI/2),y:.5-.3*Math.cos(i/39*Math.PI/2)})),
   return:path([[.2,.2],[.5,.5],[.2,.2]]),
   square:path([[.2,.2],[.5,.2],[.5,.5],[.2,.5],[.2,.2]]),
-  reflectedZ:old.Z.map(p=>({x:1-p.x,y:p.y}))
+  reflectedZ:old.Confringo.map(p=>({x:1-p.x,y:p.y}))
 };
 for(const [name,points] of Object.entries(negatives)){
   assert.equal(recognize(points).accepted,false,name+' direct');
@@ -96,7 +96,7 @@ for(const scale of [.6,1,1.2])for(const count of [21,40,64])for(const reverse of
   const result=recognize(points);
   assert.equal(result.accepted,false,'narrow corner must not cast');
   assert.equal(result.score,0,'a rejected corner must have no match score');
-  assert.equal(result.diagnostics.zGate,'z_strokes');
+  assert.equal(result.diagnostics.confringoGate,'z_strokes');
   assert.equal(casts(run(points)).length,0,'narrow corner after capture');checks++;
 }
 // Check Expelliarmus proportions on both sides of the existing .4--2.5 limit.
@@ -131,12 +131,12 @@ for(const ratio of [.18,.23,.327,.39,.41,.6,1,1.69,2.49,2.51,3]){
   assert.equal(casts(events).length,0);
   assert.ok(events.some(e=>e.type==='ignored'));checks++;
 }
-// A real narrow Z still has three clear strokes, in either drawing order.
+// A real narrow Confringo still has three clear strokes, in either drawing order.
 for(const ratio of [.5,.7,1,1.4,2])for(const reverse of [false,true]){
   const height=.3,width=height*ratio;
   let points=path([[.15,.15],[.15+width,.15],[.15,.15+height],[.15+width,.15+height]],45);
   if(reverse)points.reverse();
-  expectCast(points,'Z');
+  expectCast(points,'Confringo');
 }
 console.log(`PASS: ${checks} gesture cases. Simulated input only.`);
 });

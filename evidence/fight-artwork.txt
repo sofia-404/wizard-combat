@@ -1,5 +1,5 @@
 Method: built-in image_gen tool, using the user-provided image as a reference.
-Asset: dist/assets/duel-arena.jpg
+Asset: dist/assets/fight-arena.jpg
 Source: exec-f5b061c9-cccc-496a-b9e2-4529389927c9.png
 Export: JPEG quality 87, original dimensions, using macOS sips.
 Scope: one static scene for the first layout step; characters are part of the scene.

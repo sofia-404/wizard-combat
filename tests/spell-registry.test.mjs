@@ -15,7 +15,7 @@ const cast = (shape, score = 90) => ({type: 'cast', accepted: true, shape, score
 
 test('registry preserves labels and order; shared definitions cannot hold player state', () => {
   assert.deepEqual(spellList.map(spell => [spell.id, spell.label, spell.kind]), [
-    ['circle', 'Circle', 'shape'], ['v', 'V', 'shape'], ['z', 'Z', 'shape'], ['expelliarmus', 'Expelliarmus', 'spell']
+    ['protego', 'Protego', 'spell'], ['basic-cast', 'Basic Cast', 'spell'], ['confringo', 'Confringo', 'spell'], ['expelliarmus', 'Expelliarmus', 'spell']
   ]);
   for (const spell of spellList) {
     assert.equal(spells[spell.id], spellForShape(spell.label));
@@ -33,9 +33,12 @@ test('invalid definitions fail before a spell can enter play', () => {
     list => { list[0].gesture.checker = 'missing'; },
     list => { list[0].gesture.scoreScale = 0; },
     list => { list[0].effects[0].type = 'missing'; },
-    list => { list[0].effects[0].tiers.reverse(); },
-    list => { list[0].effects[0].tiers[0].value = NaN; },
+    list => { list[1].effects[0].tiers.reverse(); },
+    list => { list[1].effects[0].tiers[0].value = NaN; },
     list => { list[3].effects[1].durationMs = -1; },
+    list => { list[0].effects[0].durationMs = 0; },
+    list => { list[0].effects[0].target = 'target'; },
+    list => { list[0].effects[0].repeat = 'stack'; },
     list => { list[3].effects[1].repeat = 'unknown'; },
     list => { list[0].visuals.cast = 'missing'; },
     list => { delete list[0].visuals.color; },
@@ -49,18 +52,18 @@ test('invalid definitions fail before a spell can enter play', () => {
   }
 });
 
-test('registered colors preserve the four Duel colors and the Circle fallback', () => {
-  for (const [shape, color] of Object.entries({Circle:'#8ce8ff',V:'#c5a0ff',Z:'#ffe19a',Expelliarmus:'#ff927e'})) {
+test('registered colors include red Confringo and preserve the Protego fallback', () => {
+  for (const [shape, color] of Object.entries({Protego:'#8ce8ff','Basic Cast':'#c5a0ff',Confringo:'#ef4444',Expelliarmus:'#ff927e'})) {
     assert.equal(spellForShape(shape).visuals.color,color);
     assert.equal(spellColor(shape),color);
   }
   for (const shape of [undefined,null,'unknown']) assert.equal(spellColor(shape),'#8ce8ff');
 });
 
-test('every registered spell keeps the exact damage boundaries', () => {
+test('attack damage bands stay unchanged; shields do no damage', () => {
   for (const spell of spellList) {
     for (const [score, expected] of [[0,20], [77.999,20], [78,25], [87.999,25], [88,30], [100,30]]) {
-      assert.equal(castDamage(cast(spell.label, score)), expected, `${spell.id}: ${score}`);
+      assert.equal(castDamage(cast(spell.label, score)), spell.effects.some(effect=>effect.type==='damage') ? expected : 0, `${spell.id}: ${score}`);
     }
     assert.equal(castDamage({...cast(spell.label), accepted: false}), 0);
     assert.equal(castDamage({...cast(spell.label), type: 'cancel'}), 0);
@@ -78,7 +81,7 @@ test('effect and lesson state stay separate for each player; old imports still w
   assert.equal(second.restore(2200), true);
   const lesson = new SpellLesson('expelliarmus'), legacy = new ExpelliarmusLesson();
   lesson.start(); legacy.start();
-  for (const event of [cast('V'), cast('Expelliarmus'), {type:'reject'}, cast('Expelliarmus'), cast('Expelliarmus')]) {
+  for (const event of [cast('Basic Cast'), cast('Expelliarmus'), {type:'reject'}, cast('Expelliarmus'), cast('Expelliarmus')]) {
     lesson.update(event); legacy.update(event);
     assert.deepEqual([lesson.state,lesson.count,lesson.message], [legacy.state,legacy.count,legacy.message]);
   }
@@ -90,9 +93,9 @@ test('registry selection preserves shape conflicts and direction rules', () => {
   const line = pairs => resample(pairs.map(([x,y]) => ({x,y})), 40);
   const paths = [
     ['Expelliarmus', line([[.25,.2],[.55,.2],[.55,.5]])],
-    ['V', line([[.25,.2],[.4,.5],[.55,.2]])],
-    ['Z', line([[.25,.2],[.55,.2],[.25,.5],[.55,.5]])],
-    ['Circle', Array.from({length:60}, (_,i) => ({x:.45+.15*Math.cos(i/59*Math.PI*2),y:.35+.15*Math.sin(i/59*Math.PI*2)}))]
+    ['Basic Cast', line([[.25,.2],[.4,.5],[.55,.2]])],
+    ['Confringo', line([[.25,.2],[.55,.2],[.25,.5],[.55,.5]])],
+    ['Protego', Array.from({length:60}, (_,i) => ({x:.45+.15*Math.cos(i/59*Math.PI*2),y:.35+.15*Math.sin(i/59*Math.PI*2)}))]
   ];
   for (const [shape, path] of paths) {
     const result = recognize(path);
@@ -104,4 +107,49 @@ test('registry selection preserves shape conflicts and direction rules', () => {
     assert.equal(recognize(path.map(p => ({...p,x:1-p.x}))).accepted, false);
   }
   assert.equal(recognize([...paths[0][1]].reverse()).accepted, false);
+});
+
+test('Confringo uses its spell name in results and diagnostics, with the existing zigzag rules', () => {
+  assert.equal(spells.confringo.kind, 'spell');
+  assert.equal(spells.confringo.gesture.checker, 'zigzag');
+  assert.equal(spellForShape('Z'), undefined);
+  assert.equal(spells.z, undefined);
+  const points = resample([{x:.25,y:.2},{x:.55,y:.2},{x:.25,y:.5},{x:.55,y:.5}], 40);
+  for (const path of [points, [...points].reverse()]) {
+    const result = recognize(path);
+    assert.equal(result.shape, 'Confringo');
+    assert.equal(result.diagnostics.matchCandidates, 'Confringo');
+    assert.equal(result.diagnostics.confringoGate, 'ok');
+    assert.equal(result.diagnostics.confringoOrientation, 'normal');
+    assert.equal(Object.keys(result.diagnostics).some(key => /^z[A-Z]/.test(key)), false);
+  }
+  const mirrored = recognize(points.map(point => ({...point, x:1-point.x})));
+  assert.equal(mirrored.accepted, false);
+  assert.equal(mirrored.cause, 'z_orientation');
+  assert.equal(mirrored.reason, 'Confringo is mirrored. Follow the shown path.');
+});
+
+
+test('Basic Cast keeps its movement, effects, and bidirectional recognition', () => {
+  const spell = spells['basic-cast'];
+  assert.equal(spell.kind, 'spell');
+  assert.deepEqual(spell.gesture, {checker:'valley', scoreScale:.15, diagnosticKey:'basiccast', strokeDiagnostics:true});
+  assert.equal(spell.lesson, null);
+  assert.deepEqual(spell.effects, [{type:'damage', tiers:[{minScore:88,value:30},{minScore:78,value:25},{minScore:0,value:20}]}]);
+  assert.deepEqual(spell.visuals, {cast:'dummy-hit', color:'#c5a0ff'});
+  assert.equal(spellForShape('V'), undefined);
+  assert.equal(spells.v, undefined);
+  assert.match(spell.guide.label, /Basic Cast: start at the dot.*Either direction.*Pause at the end/);
+  assert.equal(spell.guide.elements[0][0], 'circle');
+  assert.equal(spell.guide.elements.at(-1)[1].d, 'M50 6L54 10L50 14L46 10Z');
+  const points = resample([{x:.25,y:.2},{x:.4,y:.5},{x:.55,y:.2}], 40);
+  for (const path of [points, [...points].reverse()]) {
+    const result = recognize(path);
+    assert.equal(result.shape, 'Basic Cast');
+    assert.ok(result.score >= 88);
+    assert.equal(result.diagnostics.matchCandidates, 'Basic Cast');
+    assert.equal(result.diagnostics.basiccastGate, 'ok');
+    assert.ok(result.diagnostics.basiccastCornerTurn >= 45);
+    assert.equal(Object.keys(result.diagnostics).some(key => /^v[A-Z]/.test(key)), false);
+  }
 });

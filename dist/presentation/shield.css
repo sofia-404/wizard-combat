@@ -1,0 +1,9 @@
+.shield-sphere{pointer-events:none;opacity:0;position:absolute;inset:0;width:100%;height:100%}
+.shield-sphere.shield-active{opacity:1;animation:shield-appear 180ms cubic-bezier(.16,1,.3,1)}
+.legacy-practice-shield-status{position:absolute;top:12px;left:15px;color:#f4f0e5;background:#14271ee6;padding:6px 10px;font-size:14px;pointer-events:none}
+.legacy-practice-shield-status:has(+ .shield-sphere:not(.shield-active)){display:none}
+.fight-open .legacy-practice-shield,.fight-open .legacy-practice-shield-status{display:none}
+@keyframes shield-appear{from{opacity:.2}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.shield-sphere.shield-active{animation:none}}
+
+.shield-status{font-size:14px;line-height:1.5;margin:6px 0 0;color:inherit}

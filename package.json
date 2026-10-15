@@ -9,8 +9,9 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node tests/browser-training.mjs",
-    "test:duel": "node tests/browser-duel.mjs"
+    "test:legacy-practice": "node tests/browser-legacy-practice.mjs",
+    "test:fight": "node tests/browser-fight.mjs",
+    "test:training": "node tests/browser-training-tab.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.63.0"

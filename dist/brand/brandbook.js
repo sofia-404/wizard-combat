@@ -5,7 +5,7 @@ const descriptions = {
   training:
     "Training separates the gesture area from instructions. Cool light shows the path, and three marks make progress clear.",
   fight:
-    "The duel concept keeps the center clear. Status and spell controls stay at the edges. The target and feedback are visual demonstrations only.",
+    "The fight concept keeps the center clear. Status and spell controls stay at the edges. The target and feedback are visual demonstrations only.",
 };
 function showScreen(name, focus = false) {
   tabs.forEach((tab) => {

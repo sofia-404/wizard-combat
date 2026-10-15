@@ -6,6 +6,8 @@ import {castDamage} from './combat/cast.js';
 import {spellForShape} from './spells/index.js';
 import {animations} from './presentation/animations.js';
 import {renderSpellChoices} from './presentation/gesture-guide.js';
+import {Shield} from './combat/shield.js';
+import {createShieldView} from './presentation/shield-view.js';
 import {HandInput} from './hand-input.js';
 import {resultCard,resultTitle} from './result-card.js';
 import {createDrawAudio} from './draw-audio.js';
@@ -21,6 +23,8 @@ const drawAudio=createDrawAudio(getSettings);
 const handInput=new HandInput();
 const lesson=new SpellLesson();
 const dummy=new TrainingDummy();
+const shield=new Shield();
+const shieldView=createShieldView($('legacyPracticeShield'),$('legacyPracticeShieldStatus'),shield,{cx:320,cy:240,rx:210,ry:220});
 let inputSettings=readSettings(),tracking={},trackingAt=0,trackingFrames=0,noHandFrames=0,labelHoldFrames=0,wrongHandFrames=0,edgeFrames=0,duplicateFrames=0,lastFrameT=null;
 function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value,difficulty:getSettings().difficulty};}
 function reportTracking(cause,data={}){
@@ -39,7 +43,7 @@ function reportTracking(cause,data={}){
 const connections=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
 function set(id,value){if($(id).textContent!==String(value))$(id).textContent=String(value);}
 export function record(data,png=null){
-  const activeTab=$('duelView')?.hidden===false?'duel':'practice';
+  const activeTab=$('gameView').hidden?'menu':$('trainingView')?.hidden===false?'training':$('fightView')?.hidden===false?'fight':$('legacyPracticeView').hidden===false?'legacy-practice':'menu';
   const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:3,...inputSettings,lessonState:lesson.state,lessonCount:lesson.count,activeTab,...data};
   saveQueue.push({event,png,eventSaved:false});flush();
 }
@@ -59,7 +63,16 @@ async function flush(){
   finally{saving=false;}
 }
 setInterval(flush,5000);
+export function cancelGestureCapture(reason){
+  controller.cancel(reason,'input_changed');lastPath=[];lastUI='';
+}
 function onGesture(event){
+  if($('gameView').hidden)return;
+  if($('trainingView')?.hidden===false){
+    lastPath=event.path||[];lastPathUntil=performance.now()+3500;
+    document.dispatchEvent(new CustomEvent('wizard:training-gesture',{detail:{...event,id:crypto.randomUUID()}}));
+    return;
+  }
   if(event.type==='capture'){record({type:'capture',cause:event.cause,...tracking,...event.diagnostics});return;}
   lesson.update(event);renderLesson();
   const now=performance.now();
@@ -75,10 +88,14 @@ function onGesture(event){
   set('score',event.shape&&event.shape!=='None'?event.score+'%':'—');set('latency',event.type==='cancel'?'—':result.latency+' ms');
   set('diagnosis',event.type==='cancel'?event.reason:`${result.shape==='None'?'Path':'Closest: '+result.shape} | Size ${Math.round(Math.max(result.width||0,result.height||0)*100)}% | ${result.samples||0} points`);
   if(event.type==='cast'){
-    hits++;set('hits',`${hits} ${hits===1?'hit':'hits'}`);
     const damage=castDamage(event);
-    set('impact','+'+damage);set('targetNote',`${event.shape} · ${damage} damage`);
-    animations[spellForShape(event.shape).visuals.cast]($('targetScene'));flashUntil=now+1100;
+    const spell=spellForShape(event.shape);
+    if(damage>0){hits++;set('hits',`${hits} ${hits===1?'hit':'hits'}`);}
+    set('impact',damage>0?'+'+damage:'');
+    const protection=spell.effects.find(effect=>effect.type==='shield');
+    set('targetNote',protection?`${event.shape} · Shield for ${protection.durationMs/1000} seconds`:`${event.shape} · ${damage} damage`);
+    animations[spell.visuals.cast]($('targetScene'));flashUntil=now+1100;
+    if($('fightView').hidden&&shield.cast(event,now))shieldView.refresh(spell.visuals.color);
     if(dummy.cast(event,now)){
       renderDummy();record({type:'settings',cause:'dummy_disarm',reason:'Dummy disarmed. Wand returns in 2 seconds.'});
     }
@@ -127,7 +144,7 @@ function drawPreview(points,accepted){
   pc.beginPath();points.forEach((p,i)=>{const a=map(p);i?pc.lineTo(a.x,a.y):pc.moveTo(a.x,a.y);});pc.strokeStyle=accepted?'#2f7251':'#b77748';pc.lineWidth=3;pc.lineCap='round';pc.lineJoin='round';pc.stroke();
   const first=map(points[0]);pc.beginPath();pc.arc(first.x,first.y,4,0,Math.PI*2);pc.fillStyle='#b77748';pc.fill();
 }
-export function stopTrainingCamera(){stopCamera('Camera stopped. Lesson progress kept.');}
+export function stopGameCamera(){stopCamera('Camera stopped. Lesson progress kept.');}
 function stopCamera(reason='Camera stopped'){
   if(stream)record({type:'camera',reason});
   token++;loading=false;modelReady=false;recovering=false;busy=false;
@@ -233,9 +250,11 @@ $('lessonStop').addEventListener('click',()=>{
 });
 $('camera').addEventListener('click',startCamera);
 for(const id of ['hand','point','swap','expected'])$(id).addEventListener('change',()=>{controller.cancel('Input changed. Hold still to start.','input_changed');inputSettings=readSettings();handInput.reset();tracking={};record({type:'settings',reason:'Input changed'});cursor=null;selectedPoints=null;lastPath=[];lastUI='';});
-$('reset').addEventListener('click',()=>{controller.reset();lesson.stop();renderLesson();dummy.reset();renderDummy();handInput.reset();tracking={};set('diagnosis','No captured shape yet.');events=[];hits=0;session=crypto.randomUUID();lastPath=[];drawPreview([],false);set('hits','0 hits');set('lastShape','—');set('lastReason','Draw, then stop briefly.');set('score','—');set('latency','—');set('resultTag','Waiting');set('targetNote','Accepted shapes cast at the dummy.');record({type:'reset',reason:'New test session'});renderSession();});
+$('reset').addEventListener('click',()=>{controller.reset();lesson.stop();renderLesson();dummy.reset();renderDummy();handInput.reset();tracking={};set('diagnosis','No captured shape yet.');events=[];hits=0;session=crypto.randomUUID();lastPath=[];drawPreview([],false);set('hits','0 hits');set('lastShape','—');set('lastReason','Draw, then stop briefly.');set('score','—');set('latency','—');set('resultTag','Waiting');set('targetNote','Attack spells hit the dummy. Protego protects you.');record({type:'reset',reason:'New test session'});renderSession();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(stream||loading))stopCamera('Paused. Start camera to resume.');});
 window.addEventListener('pagehide',()=>stopCamera('Page closed'));
+$('reset').addEventListener('click',()=>shieldView.clear());
+document.addEventListener('visibilitychange',()=>shieldView.refresh());
 requestAnimationFrame(animate);
 
 window.addEventListener('wizard-settings',()=>{const settings=getSettings();if(settings.hand===inputSettings.hand&&settings.difficulty===inputSettings.difficulty)return;controller.cancel('Options changed. Hold still to start.','input_changed');controller.setDifficulty(settings.difficulty);$('hand').value=settings.hand;inputSettings=readSettings();handInput.reset();tracking={};cursor=null;selectedPoints=null;lastPath=[];lastUI='';record({type:'settings',reason:'Drawing options changed'});});
