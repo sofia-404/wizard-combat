@@ -7,7 +7,9 @@ import {createGestureMirror} from './fight-gesture.js';
 import {Shield} from './combat/shield.js';
 import {castDamage} from './combat/cast.js';
 import {createShieldView} from './presentation/shield-view.js';
-import {record, cancelGestureCapture} from './app.js';
+import {record, cancelGestureCapture, toggleGameCamera} from './app.js';
+
+import {getInputState} from './input-state.js';
 
 const $ = id => document.getElementById(id);
 const session = new TrainingSession();
@@ -48,7 +50,7 @@ function renderGuide() {
       : 'This spell hits the dummy. Only the selected spell counts toward the lesson.');
   let svg;
   if (spell.id === 'expelliarmus') {
-    svg = document.querySelector('#legacyPracticeView .lesson-schema').cloneNode(true);
+    svg = $('expelliarmusGuide').content.querySelector('svg').cloneNode(true);
     for (const node of svg.querySelectorAll('[id]')) node.id = 'training' + node.id;
     svg.setAttribute('aria-labelledby', 'traininglessonDiagramTitle traininglessonDiagramDesc');
   } else {
@@ -62,7 +64,7 @@ function renderGuide() {
       markerWidth="36" markerHeight="36" refX="0" refY="0" orient="auto" markerUnits="userSpaceOnUse">
       <path class="schema-end" d="M-16 0L0-16L16 0L0 16Z"/>
     </marker></defs>`;
-    // Display the existing paths with the same marks as the Practice guide.
+    // Display the existing paths with the same marks as the Expelliarmus guide.
     const diagrams = {
       'basic-cast': `
         ${endMarker}
@@ -175,23 +177,11 @@ document.addEventListener('wizard:training-gesture', ({detail: event}) => {
   }
 });
 function syncControls() {
-  for (const [source, target] of [['camera','trainingCamera'], ['cameraState','trainingCameraState'], ['tracking','trainingTracking']]) set(target, $(source).textContent);
-  $('trainingCamera').disabled = $('camera').disabled;
-  $('trainingHand').value = $('hand').value;
-  $('trainingPoint').value = $('point').value;
-  $('trainingSwap').checked = $('swap').checked;
+  for (const [source, target] of [['camera','trainingCamera'], ['cameraState','trainingCameraState'], ['tracking','trainingTracking']]) set(target, getInputState()[source]);
+  $('trainingCamera').disabled = getInputState().cameraDisabled;
 }
-$('trainingCamera').addEventListener('click', () => $('camera').click());
-for (const [source, target] of [['hand','trainingHand'], ['point','trainingPoint'], ['swap','trainingSwap']]) {
-  $(target).addEventListener('change', () => {
-    if (source === 'swap') $(source).checked = $(target).checked;
-    else $(source).value = $(target).value;
-    $(source).dispatchEvent(new Event('change', {bubbles:true}));
-  });
-  $(source).addEventListener('change', syncControls);
-}
-const controls = new MutationObserver(syncControls);
-for (const id of ['camera','cameraState','tracking']) controls.observe($(id), {childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['disabled']});
+$('trainingCamera').addEventListener('click', toggleGameCamera);
+document.addEventListener('wizard:input-state', syncControls);
 document.addEventListener('wizard:view', ({detail}) => {
   clearEffects();disarm.refresh();shieldView.refresh();syncControls();
   if (detail.view === 'training') mirror.start();

@@ -4,13 +4,15 @@
 <body>
 <div id="menuShell" class="menu-shell">
   <div class="menu-art" aria-hidden="true"></div>
-  <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">Mute sound</button>
+  <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m15 9 6 6m0-6-6 6"/></svg>
+    <span id="soundToggleLabel">Mute sound</span>
+  </button>
   <section id="mainMenu" class="menu-screen" aria-labelledby="menuTitle">
-    <div class="menu-masthead"><img src="/brand/assets/mark.svg" alt="" width="48" height="48"><h1 id="menuTitle">Wizard<br>Combat</h1></div>
+    <div class="menu-masthead"><h1 id="menuTitle">Wizard Combat</h1></div>
     <nav class="menu-nav" aria-label="Main menu">
       <button type="button" data-view="fight"><span>Fight</span></button>
       <button type="button" data-view="training"><span>Training</span></button>
-      <button type="button" data-view="legacy-practice"><span>[OLD] Practice</span></button>
       <button type="button" data-view="options"><span>Options</span></button>
       <button type="button" data-view="credits"><span>Credits</span></button>
     </nav>
@@ -22,6 +24,7 @@
       <label class="switch-row" for="musicSetting"><span>Music</span><input id="musicSetting" type="checkbox" role="switch" checked></label>
       <label class="switch-row" for="sfxSetting"><span>Sound effects</span><input id="sfxSetting" type="checkbox" role="switch" checked></label>
       <label for="handSetting"><span>Drawing hand</span><select id="handSetting"><option value="Left">Left hand</option><option value="Right">Right hand</option></select></label>
+      <label for="pointSetting"><span>Track point</span><select id="pointSetting"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
       <label for="difficultySetting"><span>Difficulty</span><select id="difficultySetting"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></label>
       <p id="difficultyHelp" class="setting-help">6 seconds to draw. Standard shape tolerance.</p>
     </form>
@@ -35,22 +38,20 @@
     <h3>Thanks &amp; licenses</h3>
     <p>Hand tracking by <a href="/licenses/MediaPipe-Apache-2.0.txt" target="_blank" rel="noopener">MediaPipe (Apache 2.0)</a>. Gesture recognition includes the <a href="/licenses/PDollar-BSD.txt" target="_blank" rel="noopener">$P recognizer (BSD)</a>.</p>
     <p>Font notices: <a href="/licenses/fonts/CormorantGaramond-OFL.txt" target="_blank" rel="noopener">Cormorant Garamond</a> and <a href="/licenses/fonts/SourceSans3-OFL.txt" target="_blank" rel="noopener">Source Sans 3</a>.</p>
-    <p class="setting-note">Camera images and video are not saved. Training saves result and lesson records. Fight and [OLD] Practice also save captured path drawings.</p>
+    <p class="setting-note">Camera images and video are not saved. Training saves result and lesson records. Fight also saves captured path drawings.</p>
   </section>
 </div>
 <div id="gameView" hidden><div class="game-navigation"><button id="gameBack" type="button">Back to menu</button><span id="gameViewName">Training</span></div>
 <main>
-  <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
-  <div id="legacyPracticeView" role="region" aria-label="[OLD] Practice" hidden>
-  <section class="toolbar" aria-label="Camera controls">
-    <button id="camera" class="primary">Start camera</button>
-    <label>Drawing hand<select id="hand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
-    <label>Track point<select id="point"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
-    <label>Test shape<select id="expected"><option value="Any">Any shape</option><option value="Protego">Protego</option><option value="Basic Cast">Basic Cast</option><option value="Confringo">Confringo</option><option value="Expelliarmus">Expelliarmus</option></select></label>
-    <button id="reset" class="quiet">New test session</button>
-  </section>
-  <section class="lesson-panel" aria-labelledby="lessonTitle">
-    <div class="lesson-guide">
+  <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div></header>
+  <div id="cameraHome" hidden>
+      <div class="viewport" id="viewport">
+        <video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas>
+        <div class="empty" id="empty"><div class="camera-icon">+</div><h2>Your movement starts here.</h2><p>Start the camera. Show the selected hand.<br>Use a clear, normal-speed movement.</p></div>
+        <div class="cue"><span id="phase">OFF</span><strong id="instruction">Start the camera to begin.</strong></div>
+      </div>
+  </div>
+  <template id="expelliarmusGuide">
       <svg class="lesson-schema" viewBox="0 0 340 300" role="img" aria-labelledby="lessonDiagramTitle lessonDiagramDesc">
         <title id="lessonDiagramTitle">Expelliarmus movement</title>
         <desc id="lessonDiagramDesc">Start at the blue circle. Move right, then down to the diamond. Do not pause at the corner.</desc>
@@ -62,57 +63,7 @@
         <path class="schema-end" d="M264 233L280 249L264 265L248 249Z"/>
         <text x="27" y="30">START</text><text x="246" y="286">STOP</text>
       </svg>
-      <p>Move right, then down.</p>
-    </div>
-    <div class="lesson-copy">
-      <p class="eyebrow">FIRST SPELL</p><h2 id="lessonTitle">Learn Expelliarmus</h2>
-      <p>Move right, then down. Keep moving at the corner. Pause at the end.</p>
-      <p>Use the same direction with either hand. Only Expelliarmus counts toward this lesson.</p>
-      <div class="lesson-progress"><label for="lessonProgress">Correct casts <b id="lessonCount">0 / 3</b></label><progress id="lessonProgress" max="3" value="0">0 of 3</progress></div>
-      <p id="lessonMessage" role="status" aria-live="polite">Start the lesson. Make three correct Expelliarmus casts.</p>
-      <div class="lesson-actions"><button id="lessonStop" class="quiet" hidden>Stop lesson</button><button id="lessonStart" class="primary">Start lesson</button></div>
-    </div>
-  </section>
-  <div class="workspace">
-    <section class="camera-panel">
-      <div class="panel-heading"><span>01 / CAPTURE</span><span id="cameraState">Camera off</span></div>
-      <div class="viewport" id="viewport">
-        <video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas>
-        <span id="legacyPracticeShieldStatus" class="legacy-practice-shield-status" role="status"></span><svg id="legacyPracticeShield" class="shield-sphere legacy-practice-shield" viewBox="0 0 640 480" aria-hidden="true"></svg>
-        <div class="empty" id="empty"><div class="camera-icon">+</div><h2>Your movement starts here.</h2><p>Start the camera. Show the selected hand.<br>Use a clear, normal-speed movement.</p></div>
-        <div class="cue"><span id="phase">OFF</span><strong id="instruction">Start the camera to begin.</strong></div>
-      </div>
-      <div class="telemetry"><span>Tracking <b id="tracking">Off</b></span><span>Rate <b id="hz">—</b></span><span>Inference <b id="inference">—</b></span><span>Engine <b id="engine">—</b></span></div>
-      <p class="hint">This tracks your hand, not the physical wand tip. Use <b>Knuckles</b> while holding a wand. Keep the whole hand in view.</p>
-      <details><summary>Hand labels do not match?</summary><label class="check"><input id="swap" type="checkbox"> Swap left and right labels</label><p>Use this only if the selected hand is not the hand shown as detected.</p></details>
-    </section>
-    <aside>
-      <section class="result-panel">
-        <div class="panel-heading"><span>02 / RESULT</span><span id="resultTag">Waiting</span></div>
-        <div class="result-top"><canvas id="pathPreview" width="170" height="140" aria-label="Last captured path"></canvas><div><p class="eyebrow">LAST SHAPE</p><h2 id="lastShape">—</h2><p id="lastReason">Draw, then stop briefly.</p></div></div>
-        <div class="result-metrics"><div><b id="score">—</b><span>Shape match</span></div><div><b id="latency">—</b><span>End to result</span></div></div>
-        <p id="diagnosis" class="hint">No captured shape yet.</p>
-      </section>
-      <section class="target-panel">
-        <div class="panel-heading"><span>03 / STATIC TARGET</span><span id="hits">0 hits</span></div>
-        <div class="target-scene" id="targetScene">
-          <svg id="dummy" viewBox="0 0 300 210" role="img" aria-label="Training dummy holding a wand"><ellipse cx="150" cy="191" rx="83" ry="9" fill="#d9dfd3"/><path d="M150 139v51M123 190h54" stroke="#6e7764" stroke-width="9" stroke-linecap="round"/><path d="M102 83h96" stroke="#b2865c" stroke-width="12" stroke-linecap="round"/><path d="M124 70q26-8 52 0l8 64q-34 17-68 0z" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="45" r="21" fill="#c5a782" stroke="#997651" stroke-width="2"/><circle cx="150" cy="103" r="22" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="11" fill="none" stroke="#f3ebe0" stroke-width="2"/><circle cx="150" cy="103" r="3" fill="#9b5535"/><path d="M83 191h134" stroke="#a5ae9b" stroke-width="2"/><g id="dummyWand"><path d="M198 83l25-28" stroke="#734927" stroke-width="5" stroke-linecap="round"/><path d="M219 59l4-4" stroke="#deb966" stroke-width="4" stroke-linecap="round"/></g></svg>
-          <span id="impact" class="impact"></span>
-        </div>
-        <p id="dummyStatus" role="status">Wand ready</p>
-        <p id="targetNote">Attack spells hit the dummy. Protego protects you.</p>
-      </section>
-    </aside>
-  </div>
-  <section class="how"><div><span class="step">1</span><div><b>Pause anywhere</b><p>Hold still briefly. Wait for READY.</p></div></div><div><span class="step">2</span><div><b>Draw one shape</b><p>Use at least 1/10 of the camera width.</p></div></div><div><span class="step">3</span><div><b>Stop to cast</b><p>A successful cast prepares the next. A return move can also match.</p></div></div></section>
-  <section class="shapes" aria-label="Gesture examples">
-    <div><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="21"/></svg><div><b>Protego</b><span>Draw a circle in either direction. Small gaps are allowed. Extra loops cast once.</span></div></div>
-    <div><svg viewBox="0 0 60 60" role="img" aria-label="Basic Cast: start at the dot. Move down, then up. Either direction. Pause at the end."><circle cx="10" cy="10" r="3"/><path d="M11.5 13L30 50L48.5 13"/><path d="M14 29L20 30L23 24M34 33L40 30L42 37"/><path d="M50 6L54 10L50 14L46 10Z"/></svg><div><b>Basic Cast</b><span>Start at the dot. Down, then up. Either direction. Pause at the end.</span></div></div>
-    <div><svg viewBox="0 0 60 60" role="img" aria-label="Confringo: start at the dot. Move right, down-left, then right. Pause at the end."><circle cx="10" cy="10" r="3"/><path d="M13 10H50L10 50H46"/><path d="M27 6L31 10L27 14M28 25V32H35M28 46L32 50L28 54"/><path d="M50 46L54 50L50 54L46 50Z"/></svg><div><b>Confringo</b><span>Right, down-left, then right. Either end can be the start. No mirror image.</span></div></div>
-    <div><svg viewBox="0 0 60 60" role="img" aria-label="Start at the dot. Move right, then down."><circle cx="10" cy="10" r="3"/><path d="M13 10H48V50M28 6L33 10L28 14M43 44L48 50L53 44"/></svg><div><b>Expelliarmus</b><span>Start at the dot. Right, then down. Do not pause at the corner.</span></div></div>
-  </section>
-  <section class="session"><div class="panel-heading"><span>SESSION CHECK</span><span id="saveStatus">No records yet</span></div><div class="counters"><div><b id="attempts">0</b><span>Completed attempts</span></div><div><b id="accepted">0</b><span>Accepted</span></div><div><b id="rejected">0</b><span>Rejected</span></div><div><b id="lost">0</b><span>Tracking lost</span></div><div><b id="accuracy">—</b><span>Expected shape</span></div><div><b id="p90">—</b><span>90% response</span></div></div><p class="hint">Choose a test shape to count correct results. Result cards and control logs save on this laptop. No camera images are saved.</p><ol id="events" class="event-list"><li class="muted">No gestures yet.</li></ol></section>
-  </div>
+  </template>
   <section id="fightView" role="region" aria-label="Fight" hidden>
     <div class="fight-heading">
       <div><p class="fight-kicker">THE TRAINING GROUNDS</p><h2>A place to master your magic.</h2></div>
@@ -120,9 +71,6 @@
     </div>
     <div class="fight-controls" aria-label="Fight camera controls">
       <button id="fightCamera" class="fight-start" type="button">Start camera</button>
-      <label>Drawing hand<select id="fightHand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
-      <label>Track point<select id="fightPoint"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
-      <label class="fight-swap"><input id="fightSwap" type="checkbox"> Swap hand labels</label>
       <button id="fightResetDummy" class="fight-back" type="button">Reset dummy</button>
       <span id="fightCameraState" class="fight-camera-state" role="status">Camera off</span>
     </div>
@@ -176,16 +124,13 @@
     </div>
     </div>
     <div class="fight-bottom">
-      <div class="fight-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>Attack spells fly to the dummy. Protego protects you. All three modes use the same camera controls and settings. Fight and [OLD] Practice also share the practice session. Training keeps separate lesson progress.</p></div></div>
+      <div class="fight-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>Attack spells fly to the dummy. Protego protects you. Fight and Training use the same camera controls and settings. Training keeps separate lesson progress.</p></div></div>
     </div>
   </section>
   <section id="trainingView" role="region" aria-label="Training" hidden>
     <div class="fight-heading"><div><p class="fight-kicker">THE TRAINING GROUNDS</p><h2>Learn a spell.</h2></div><span class="fight-mode"><span aria-hidden="true"></span><output id="trainingLearnedTotal">0 of 4 spells learned</output></span></div>
     <div class="fight-controls" aria-label="Training camera controls">
       <button id="trainingCamera" class="fight-start" type="button">Start camera</button>
-      <label>Drawing hand<select id="trainingHand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
-      <label>Track point<select id="trainingPoint"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
-      <label class="fight-swap"><input id="trainingSwap" type="checkbox"> Swap hand labels</label>
       <span id="trainingCameraState" class="fight-camera-state" role="status">Camera off</span>
     </div>
     <div class="fight-stage">

@@ -1,6 +1,5 @@
 import {checkers} from '../gestures/checkers.js';
 import {effects} from '../combat/effects/index.js';
-import {animations} from '../presentation/animations.js';
 
 export function validateDefinitions(definitions) {
   const ids = new Set(), labels = new Set(), diagnosticKeys = new Set();
@@ -33,7 +32,7 @@ export function validateDefinitions(definitions) {
       if (effect.type === 'disarm' && (!positive(effect.durationMs) || effect.repeat !== 'refresh')) fail('disarm settings');
       if (effect.type === 'shield' && (!positive(effect.durationMs) || effect.repeat !== 'refresh' || effect.target !== 'self')) fail('shield settings');
     }
-    if (!Object.hasOwn(animations, spell.visuals?.cast)) fail('cast animation');
+    if (!['shield', 'dummy-hit'].includes(spell.visuals?.cast)) fail('cast animation');
     if (typeof spell.visuals.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(spell.visuals.color)) fail('spell color');
     if (spell.lesson) {
       if (!Number.isInteger(spell.lesson.requiredCasts) || spell.lesson.requiredCasts < 1) fail('lesson count');

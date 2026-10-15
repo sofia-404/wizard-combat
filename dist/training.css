@@ -1,4 +1,4 @@
-/* Training reuses the Fight layout and the Practice movement diagrams. */
+/* Training reuses the Fight layout and the shared movement diagrams. */
 #trainingView[hidden],#trainingView [hidden]{display:none}
 #trainingDummyActor{transform-box:view-box;transform-origin:1404px 773px}
 #trainingDummyWand{transform-box:view-box;transform-origin:1348px 534px;transform:translate(0,0) rotate(0deg)}
@@ -25,6 +25,5 @@
 #trainingCameraMount .cue{bottom:8px;left:8px;right:8px;padding:9px;gap:8px;min-height:42px}
 #trainingCameraMount .cue strong{font-size:10px}
 #trainingCameraMount .cue span{font-size:8px;min-width:40px}
-#trainingCameraMount .legacy-practice-shield,#trainingCameraMount .legacy-practice-shield-status{display:none}
 @media(max-width:600px){#trainingArenaPhase{min-width:50px;font-size:9px}#trainingArenaResult{font-size:10px}}
 @media(prefers-reduced-motion:reduce){#trainingDummyActor[data-disarmed="true"] #trainingDummyWand{animation:none}}

@@ -82,7 +82,16 @@ components:
 
 Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.
 
-Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. The brandbook, main menu, Options, and Credits use this system. Legacy Practice and the static-dummy Fight keep their current styles until a separate design migration. They do not yet meet all target text-size, control-size, font, and token rules.
+Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. The brandbook, main menu, Options, and Credits use this system. Training and the static-dummy Fight use separate gameplay styles.
+
+Follow the task scope in `AGENTS.md`. Apply target values only within requested visual work. A local visual change does not require a full migration.
+
+| Screen or work | Scope |
+| --- | --- |
+| Main menu, Options, Credits | Preserve the existing design outside the requested change. |
+| Training and Fight | Preserve the existing gameplay styles outside the requested change. |
+| Brandbook | Keep it as a design reference and simulation. Its screen studies do not replace the game screens. |
+| Future migration | Start only on user request. Apply target rules only to the named screens. |
 
 **Key Characteristics:**
 
@@ -185,7 +194,7 @@ Keep the center free for the target and cast. Put current spell and casting stat
 
 ### Don't
 
-- Don't copy Hogwarts crests, houses, castle silhouettes, typography, maps, or interface layouts.
+- Don't copy third-party crests, faction symbols, castle silhouettes, typography, maps, or interface layouts.
 - Don't use cartoon characters, toy-like controls, or ornamental clutter.
 - Don't make cyan decoration compete with the live gesture.
 - Don't hide tracking loss behind a spell-failure message.

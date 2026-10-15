@@ -317,7 +317,7 @@
   ],
   "narrative": {
     "northStar": "Arc & Anchor",
-    "overview": "Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.\n\nNavy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. This is the target system for new UI and the brandbook. Legacy Practice and the static-dummy Fight keep their current styles until a separate design migration. They do not yet meet all target text-size, control-size, font, and token rules.",
+    "overview": "Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.\n\nNavy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. See DESIGN.md for screen-specific design limits and AGENTS.md for work scope.",
     "keyCharacteristics": [
       "Deliberate strokes and open space.",
       "Warm metal against a cool, dark field.",
@@ -344,7 +344,7 @@
       "Do label simulated previews and unimplemented features."
     ],
     "donts": [
-      "Don't copy Hogwarts crests, houses, castle silhouettes, typography, maps, or interface layouts.",
+      "Don't copy third-party crests, faction symbols, castle silhouettes, typography, maps, or interface layouts.",
       "Don't use cartoon characters, toy-like controls, or ornamental clutter.",
       "Don't make cyan decoration compete with the live gesture.",
       "Don't hide tracking loss behind a spell-failure message.",

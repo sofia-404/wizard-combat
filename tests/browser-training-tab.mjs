@@ -7,6 +7,7 @@ import {spawn} from 'node:child_process';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {resample} from '../dist/gesture.js';
+import {openGameMode} from './browser-game-mode.mjs';
 
 const root = path.dirname(fileURLToPath(new URL('../package.json', import.meta.url)));
 const output = path.join(root, '.tmp/browser-check');
@@ -69,16 +70,7 @@ try {
     });
   });
   await page.goto(base);
- const openMode=async(name,target=page)=>{
-  if(await target.locator('#gameView').isVisible())await target.locator('#gameBack').click();
-  assert.equal(await target.locator('#mainMenu').isVisible(),true);
-  assert.equal(await target.locator('#video').evaluate(el=>el.srcObject),null);
-  await target.getByRole('button',{name,exact:true}).click();
-  const selected={'Training':'trainingView','Fight':'fightView','[OLD] Practice':'legacyPracticeView'}[name];
-  for(const id of ['trainingView','fightView','legacyPracticeView'])assert.equal(await target.locator('#'+id).isVisible(),id===selected);
-  assert.equal(await target.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
-  assert.equal(await target.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
- };
+ const openMode=(name,target=page)=>openGameMode(target,name);
 
   assert.equal(await page.locator('#mainMenu').isVisible(), true);
   await page.getByRole('button', {name:'Options',exact:true}).click();
@@ -97,10 +89,10 @@ try {
   await page.locator('#handSetting').selectOption('Left');
   await page.locator('#difficultySetting').selectOption('normal');
   await page.keyboard.press('Escape');
-  for (const [name, id] of [['Training','trainingView'],['Fight','fightView'],['[OLD] Practice','legacyPracticeView']]) {
+  for (const [name, id] of [['Fight','fightView'],['Training','trainingView']]) {
     const trigger=page.getByRole('button',{name,exact:true});
     await trigger.focus();await page.keyboard.press('Enter');
-    for(const other of ['trainingView','fightView','legacyPracticeView'])assert.equal(await page.locator('#'+other).isVisible(),other===id);
+    for(const other of ['trainingView','fightView'])assert.equal(await page.locator('#'+other).isVisible(),other===id);
     assert.equal(await page.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
     assert.equal(await page.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
     assert.equal(await page.locator('#gameView').isVisible(), true);
@@ -126,7 +118,7 @@ try {
       const start = records.length;
       await send(points);
       await page.waitForFunction(() => window.step >= window.steps.length && document.querySelector('#phase').textContent === 'READY');
-      await page.waitForFunction(() => document.querySelector('#saveStatus').textContent === 'Saved on this laptop');
+      await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().saveStatus === 'Saved on this laptop');
       const results = records.slice(start).filter(event => event.source === (source === 'training' ? 'training' : 'camera'));
       const casts = results.filter(event => event.type === 'cast');
       if (!casts.length && results.some(event => event.type === 'cancel' && ['gap_duration','stale_frame','worker_stall'].includes(event.cause)) && attempt < 2) continue;
@@ -135,16 +127,10 @@ try {
       return;
     }
   };
-  await openMode('[OLD] Practice');
-  await page.locator('#lessonStart').click();
-  await send(Array(20).fill(exp[0]));
-  await page.locator('#camera').click();
+  await openMode('Fight');
+  await send(Array(20).fill(exp[0]));await page.locator('#fightCamera').click();
   await page.waitForFunction(() => document.querySelector('#phase').textContent === 'READY');
-  await draw(exp, 'Expelliarmus', 'legacy-practice');
-  assert.equal(await text('lessonCount'), '1 / 3');
-  assert.equal(await text('hits'), '1 hit');
-  const baseline = await page.evaluate(() => ({lesson:document.querySelector('#lessonCount').textContent,
-    hits:document.querySelector('#hits').textContent, dummy:document.querySelector('#fightDummyHealth').value,
+  const baseline = await page.evaluate(() => ({dummy:document.querySelector('#fightDummyHealth').value,
     player:document.querySelector('#fightPlayerHealth').value, fightHits:document.querySelector('#fightHits').textContent}));
   await openMode('Training');
   assert.equal(await page.evaluate(()=>window.cameraStream.getVideoTracks()[0].readyState),'ended');
@@ -155,15 +141,9 @@ try {
   assert.equal(await page.locator('#trainingView .fight-live #trainingCameraMount').count(), 1);
   assert.equal(await page.locator('#trainingView .fight-live #trainingGuide').count(), 1);
   assert.equal(await page.locator('#trainingTokens').count(), 0);
-  assert.equal(await page.evaluate(() => {
-    const legacyPractice = document.querySelector('#legacyPracticeView .lesson-schema').cloneNode(true);
-    const training = document.querySelector('#trainingGuide .lesson-schema').cloneNode(true);
-    for (const svg of [legacyPractice, training]) {
-      svg.removeAttribute('aria-labelledby');
-      for (const node of svg.querySelectorAll('[id]')) node.removeAttribute('id');
-    }
-    return legacyPractice.outerHTML === training.outerHTML;
-  }), true, 'Training must reuse the exact Practice Expelliarmus diagram');
+  assert.equal(await page.locator('#trainingGuide .schema-path').getAttribute('d'), 'M46 54H264V246');
+  assert.equal(await page.locator('#trainingGuide .schema-ring circle').count(), 4);
+  assert.equal(await page.locator('#trainingGuide .schema-end').getAttribute('d'), 'M264 233L280 249L264 265L248 249Z');
   await page.locator('#trainingStart').click();
   await draw(basic, 'Basic Cast');
   await count(0);
@@ -177,7 +157,7 @@ try {
   assert.equal(await page.locator('#trainingShield').evaluate(el => el.classList.contains('shield-active')), true);
   await draw(exp, 'Expelliarmus');
   await count(1);
-  for (const name of ['[OLD] Practice','Fight','Training']) await openMode(name);
+  for (const name of ['Fight','Training']) await openMode(name);
   await count(1);
   assert.deepEqual(await page.evaluate(() => ({cameras:window.cameraCount,workers:window.workerCount,
     stops:window.workerStops,stream:document.querySelector('#video').srcObject,
@@ -213,8 +193,7 @@ try {
   await count(3);
   assert.equal(await page.locator('#trainingCompletion').isVisible(), true);
   assert.equal(await text('trainingArenaResult'), 'Expelliarmus learned. Lesson complete.');
-  assert.deepEqual(await page.evaluate(() => ({lesson:document.querySelector('#lessonCount').textContent,
-    hits:document.querySelector('#hits').textContent,dummy:document.querySelector('#fightDummyHealth').value,
+  assert.deepEqual(await page.evaluate(() => ({dummy:document.querySelector('#fightDummyHealth').value,
     player:document.querySelector('#fightPlayerHealth').value,fightHits:document.querySelector('#fightHits').textContent})), baseline);
   assert.ok(!records.some(event => event.type === 'fight' && event.cause === 'hit'));
   await page.locator('#trainingCamera').click();
@@ -225,13 +204,14 @@ try {
     await page.screenshot({path:path.join(output, `training-tab-${name}.png`),fullPage:true});
   }
   await page.reload();
-  await page.getByRole('button',{name:'Training',exact:true}).click();
+  assert.equal(new URL(page.url()).hash, '#training');
+  assert.equal(await page.locator('#trainingView').isVisible(), true);
   await count(0);
   assert.equal(await text('trainingLearnedTotal'), '0 of 4 spells learned');
   assert.equal(await page.locator('#trainingCompletion').isVisible(), false);
   assert.equal(await text('trainingCamera'), 'Start camera');
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({result:'PASS',checks:'Worker landmark input through detector; three casts; wrong spell effect; Protego shield without projectile; camera release and restart; menu and camera progress; Practice and Fight isolation; keyboard menu routes; no nested tabs; reload reset; desktop and mobile screenshots',records:records.length}));
+  console.log(JSON.stringify({result:'PASS',checks:'Worker landmark input through detector; three casts; wrong spell effect; Protego shield without projectile; camera release and restart; menu and camera progress; Fight isolation; keyboard menu routes; no nested tabs; reload keeps Training and resets progress; desktop and mobile screenshots',records:records.length}));
 } finally {
   await browser?.close();
   if (api && api.exitCode === null && api.signalCode === null) {

@@ -7,6 +7,7 @@ import {spawn} from 'node:child_process';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {resample} from '../dist/gesture.js';
+import {openGameMode} from './browser-game-mode.mjs';
 const root=path.dirname(fileURLToPath(new URL('../package.json',import.meta.url)));
 await mkdir(path.join(root,'.tmp'),{recursive:true});
 const folder=await mkdtemp(path.join(root,'.tmp/browser-server-'));
@@ -29,6 +30,7 @@ try{
  const origin=new URL(base).origin;
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,headless:true,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
  const context=await browser.newContext({viewport:{width:1920,height:1080},permissions:['camera']});
+ context.setDefaultTimeout(20000);
  const page=await context.newPage(),errors=[],records=[];
  let failedHitSaves=0;
  page.on('pageerror',e=>errors.push(e.message));
@@ -43,14 +45,15 @@ try{
   await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});
  });
  await page.addInitScript(()=>{
-  window.steps=[];window.step=0;window.workerStarts=0;window.cameraStarts=0;
+  window.steps=[];window.step=0;window.workerStarts=0;window.cameraStarts=0;window.attackCasts=0;
+  document.addEventListener('wizard:cast', ({detail}) => {if(detail.damage>0)window.attackCasts++;});
   const getUserMedia=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia=(...args)=>{window.cameraStarts++;return getUserMedia(...args);};
   window.Worker=class{
    postMessage(data){
     if(data.type==='init'){window.workerStarts++;setTimeout(()=>this.onmessage({data:{type:'ready'}}),0);return;}
     data.bitmap.close();
-    if(window.followUp&&parseInt(document.querySelector('#hits').textContent)>=window.followUp.afterHits){
+    if(window.followUp&&window.attackCasts>=window.followUp.afterHits){
      window.steps=window.followUp.points;window.step=0;window.followUp=null;
     }
     const s=window.steps[Math.min(window.step++,window.steps.length-1)];
@@ -62,17 +65,16 @@ try{
   };
  });
  await page.goto(base);
- const openMode=async(name,target=page)=>{
-  if(await target.locator('#gameView').isVisible())await target.locator('#gameBack').click();
-  assert.equal(await target.locator('#mainMenu').isVisible(),true);
-  assert.equal(await target.locator('#video').evaluate(el=>el.srcObject),null);
-  await target.getByRole('button',{name,exact:true}).click();
-  const selected={'Training':'trainingView','Fight':'fightView','[OLD] Practice':'legacyPracticeView'}[name];
-  for(const id of ['trainingView','fightView','legacyPracticeView'])assert.equal(await target.locator('#'+id).isVisible(),id===selected);
-  assert.equal(await target.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
-  assert.equal(await target.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
- };
+ const openMode=(name,target=page)=>openGameMode(target,name);
 
+ const setInputOptions=async(hand,point)=>{
+  await page.locator('#gameBack').click();
+  await page.getByRole('button',{name:'Options',exact:true}).click();
+  await page.locator('#handSetting').selectOption(hand);
+  await page.locator('#pointSetting').selectOption(point);
+  await page.keyboard.press('Escape');
+  await openMode('Fight');
+ };
  assert.equal(await page.locator('#mainMenu').isVisible(),true);
  await page.getByRole('button',{name:'Fight',exact:true}).click();
  assert.equal(await page.locator('#fightView').isVisible(),true);
@@ -80,10 +82,10 @@ try{
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('#mainMenu').isVisible(),true);
  assert.equal(await page.locator('[data-view="fight"]').evaluate(el=>el===document.activeElement),true);
- await page.getByRole('button',{name:'[OLD] Practice',exact:true}).click();
+ await openMode('Training');
 
 
- assert.equal(await page.locator('#legacyPracticeView').isVisible(),true);
+ assert.equal(await page.locator('#legacyPracticeView').count(),0);
  await page.evaluate(()=>{
   window.originalViewport=document.querySelector('#viewport');
   window.originalParent=window.originalViewport.parentElement;
@@ -102,10 +104,11 @@ try{
  assert.match(await page.locator('.fight-spell-guide').textContent(),/Confringo/);
  assert.equal(await page.locator('.fight-spell-guide span').filter({hasText:/^Z$/}).count(),0);
  assert.equal(await page.locator('#viewport').evaluate(el=>el===window.originalViewport&&el.parentElement.id==='fightCameraMount'),true);
- await page.locator('#fightHand').selectOption('Right');assert.equal(await page.locator('#hand').inputValue(),'Right');
- await page.locator('#fightPoint').selectOption('grip');assert.equal(await page.locator('#point').inputValue(),'grip');
- await page.locator('#fightSwap').check();assert.equal(await page.locator('#swap').isChecked(),true);
- await page.locator('#fightHand').selectOption('Left');await page.locator('#fightPoint').selectOption('tip');await page.locator('#fightSwap').uncheck();
+ await setInputOptions('Right','grip');
+ assert.equal(await page.locator('#handSetting').inputValue(),'Right');assert.equal(await page.locator('#pointSetting').inputValue(),'grip');
+ assert.equal(await page.locator('#fightHand, #fightPoint').count(),0);
+ assert.equal(await page.locator('#swap, #fightSwap, #trainingSwap').count(),0);
+ await setInputOptions('Left','tip');
  const exp=resample([{x:.25,y:.2},{x:.55,y:.2},{x:.55,y:.5}],40);
  const send=async points=>page.evaluate(steps=>{window.steps=steps;window.step=0;},[...Array(18).fill(points[0]),...points,...Array(22).fill(points.at(-1))]);
  await send(Array(20).fill(exp[0]));await page.locator('#fightCamera').click();
@@ -116,12 +119,12 @@ try{
  assert.equal(await page.locator('#fightCastStatus').textContent(),'Hold still until READY. Draw one shape.');
  await page.evaluate(()=>{window.originalStream=document.querySelector('#video').srcObject;});
  // Return through the menu; release the camera and restore the exact nodes and settings.
- await openMode('[OLD] Practice');
+ await openMode('Training');
  assert.equal(await page.locator('#viewport').evaluate(el=>el===window.originalViewport&&el.parentElement===window.originalParent),true);
- await page.locator('#hand').selectOption('Right');await page.locator('#point').selectOption('grip');
+ await setInputOptions('Right','grip');
  await openMode('Fight');
- assert.equal(await page.locator('#fightHand').inputValue(),'Right');assert.equal(await page.locator('#fightPoint').inputValue(),'grip');
- await page.locator('#fightHand').selectOption('Left');await page.locator('#fightPoint').selectOption('tip');
+ assert.equal(await page.locator('#handSetting').inputValue(),'Right');assert.equal(await page.locator('#pointSetting').inputValue(),'grip');
+ await setInputOptions('Left','tip');
  assert.equal(await page.evaluate(()=>window.originalStream.getVideoTracks()[0].readyState),'ended');
  assert.equal(await page.locator('#fightCamera').textContent(),'Start camera');
  await send(Array(20).fill(exp[0]));await page.locator('#fightCamera').click();
@@ -133,11 +136,11 @@ try{
  assert.equal(await dummyHealth(),200);
  assert.equal(await page.locator('#fightPlayerHealth').evaluate(el=>el.value),200);
  const circle=Array.from({length:50},(_,i)=>({x:.45+.15*Math.cos(i/49*Math.PI*2),y:.35+.15*Math.sin(i/49*Math.PI*2)}));
- const shieldHits=await page.locator('#hits').textContent();
+ const shieldHits=await page.evaluate(()=>window.attackCasts);
  await send(circle);
  await page.waitForFunction(()=>document.querySelector('#fightShield').classList.contains('shield-active'));
- assert.equal(await page.locator('#lastShape').textContent(),'Protego');
- assert.equal(await page.locator('#hits').textContent(),shieldHits);
+ assert.equal(await page.evaluate(async () => (await import('/input-state.js')).getInputState().lastShape),'Protego');
+ assert.equal(await page.evaluate(()=>window.attackCasts),shieldHits);
  assert.equal(await dummyHealth(),200);
  assert.equal(await page.locator('#fightHits').textContent(),'0 hits');
  assert.equal(await page.locator('.fight-spell').count(),0);
@@ -147,7 +150,7 @@ try{
  assert.equal(await page.locator('#fightShieldStatus').textContent(),'Shield inactive');
  for(const [shape,points] of [['Expelliarmus',exp],['Basic Cast',resample([{x:.25,y:.2},{x:.4,y:.5},{x:.6,y:.2}],40)],['Confringo',resample([{x:.25,y:.2},{x:.6,y:.2},{x:.25,y:.45},{x:.6,y:.45}],40)]]){
   await page.locator('#fightResetDummy').click();
-  const oldHits=parseInt(await page.locator('#hits').textContent());
+  const oldHits=await page.evaluate(()=>window.attackCasts);
   const effectStart=await page.evaluate(()=>window.effectLog.length);
   await send(points);
   if(shape==='Expelliarmus'){
@@ -160,14 +163,14 @@ try{
    assert.equal(await page.evaluate(()=>document.querySelector('#fightGesture').toDataURL()===document.querySelector('#overlay').toDataURL()),true);
    await page.screenshot({path:path.join(output,'fight-live-gesture.png'),fullPage:true});
   }
-  await page.waitForFunction(count=>parseInt(document.querySelector('#hits').textContent)===count,oldHits+1);
+  await page.waitForFunction(count=>window.attackCasts===count,oldHits+1);
   await page.waitForFunction(()=>document.querySelector('.fight-spell[data-phase="impact"]'));
   assert.match(await page.locator('#fightCastStatus').textContent(),new RegExp(shape+' hit the dummy'));
   assert.equal(await page.locator('#fightDummyActor').getAttribute('data-pose'),'recoil');
   assert.equal(await page.locator('#fightDummyActor').getAttribute('data-reaction'),shape);
   assert.equal(await page.locator('#fightDummyActor').evaluate(el=>el.getAnimations().length),1);
   assert.equal(await page.locator('#fightHits').textContent(),'1 hit');
-  const score=Number((await page.locator('#score').textContent()).replace('%',''));
+  const score=Number((await page.evaluate(async () => (await import('/input-state.js')).getInputState().score)).replace('%',''));
   assert.equal(await dummyHealth(),200-(score>=88?30:score>=78?25:20));
   if(shape==='Expelliarmus')await page.screenshot({path:path.join(output,'fight-hit.png'),fullPage:true});
   if(shape==='Confringo')await page.screenshot({path:path.join(output,'confringo-impact.png'),fullPage:true});
@@ -196,41 +199,38 @@ try{
   assert.equal(seen[0].health,200,'no damage at launch');
   assert.ok(seen[1].at-seen[0].at<300,'cast-to-hit must stay below 300 ms');
   console.log(`${shape} cast-to-hit: ${Math.round(seen[1].at-seen[0].at)} ms`);
-  assert.equal(parseInt(await page.locator('#hits').textContent()),oldHits+1);
+  assert.equal(await page.evaluate(()=>window.attackCasts),oldHits+1);
  }
  console.log('PASS: three attack spells produce one flight and one impact each; settings preserved and camera restarted through the menu.');
  // Reversed paths and tracking losses never produce an effect.
  const beforeBadHealth=await dummyHealth();
- const badStart=await page.evaluate(()=>window.effectLog.length),badHits=await page.locator('#hits').textContent();
+ const badStart=await page.evaluate(()=>window.effectLog.length),badHits=await page.evaluate(()=>window.attackCasts);
  await send([...exp].reverse());await page.waitForFunction(()=>window.step>=window.steps.length);
  await page.evaluate(points=>{window.steps=[...Array(18).fill(points[0]),...points.slice(0,25),...Array(18).fill({missing:true})];window.step=0;},exp);
  await page.waitForFunction(()=>window.step>=window.steps.length);
  assert.equal(await page.evaluate(()=>window.effectLog.length),badStart);
- assert.equal(await page.locator('#hits').textContent(),badHits);
+ assert.equal(await page.evaluate(()=>window.attackCasts),badHits);
  assert.equal(await dummyHealth(),beforeBadHealth);
  assert.equal(await page.locator('#fightDummyActor').getAttribute('data-pose'),'ready');
- assert.equal(await page.locator('#fightResult').textContent(),await page.locator('#lastReason').textContent());
+ assert.equal(await page.locator('#fightResult').textContent(),await page.evaluate(async () => (await import('/input-state.js')).getInputState().lastReason));
  // Hide in-flight effects on menu return; never replay them on entry.
  await page.evaluate(()=>document.addEventListener('wizard:cast',()=>document.querySelector('#gameBack').click(),{once:true}));
  await send(exp);await page.waitForFunction(()=>!document.querySelector('#mainMenu').hidden);
  assert.equal(await page.evaluate(()=>window.originalStream.getVideoTracks()[0].readyState),'ended');
- await openMode('[OLD] Practice');
- await send(Array(20).fill(exp[0]));await page.locator('#camera').click();
+ await openMode('Training');
+ await send(Array(20).fill(exp[0]));await page.locator('#trainingCamera').click();
  await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
  assert.equal(await page.locator('.fight-spell').count(),0);
- const beforeLegacyPractice=await page.evaluate(()=>window.effectLog.length);
+ const beforeTraining=await page.evaluate(()=>window.effectLog.length);
  await page.waitForFunction(()=>window.step>=window.steps.length);
- const oldHits=parseInt(await page.locator('#hits').textContent());
- await send(circle);await page.waitForFunction(()=>document.querySelector('#lastShape').textContent==='Protego');
- assert.equal(parseInt(await page.locator('#hits').textContent()),oldHits);
+ await send(circle);await page.waitForFunction(()=>document.querySelector('#trainingShield').classList.contains('shield-active'));
  await page.waitForFunction(()=>window.step>=window.steps.length);
- assert.equal(await page.evaluate(()=>window.effectLog.length),beforeLegacyPractice);
+ assert.equal(await page.evaluate(()=>window.effectLog.length),beforeTraining);
  await openMode('Fight');assert.equal(await page.locator('.fight-spell').count(),0);
  await send(Array(20).fill(exp[0]));await page.locator('#fightCamera').click();
  await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
  await page.evaluate(()=>{window.originalStream=document.querySelector('#video').srcObject;});
- assert.equal(await page.locator('#fightCastStatus').textContent(),'Last spell: Protego');
- assert.equal(await dummyHealth(),beforeBadHealth,'Practice casts and cancelled flights do not damage the Fight dummy');
+ assert.equal(await dummyHealth(),beforeBadHealth,'Training casts and cancelled flights do not damage the Fight dummy');
  // Reduced motion keeps a stationary impact and text feedback, without flight.
  await page.emulateMedia({reducedMotion:'reduce'});
  await send(exp);await page.waitForFunction(()=>document.querySelector('.fight-spell[data-phase="impact"]'));
@@ -240,9 +240,9 @@ try{
  await page.waitForFunction(()=>!document.querySelector('.fight-spell'));
  await page.emulateMedia({reducedMotion:'no-preference'});
  // Defeat, reset, and stale flights. Use detected spells rather than synthetic cast events.
- const legacyPracticeBeforeReset=await page.locator('#hits').textContent();
+ const castsBeforeReset=await page.evaluate(()=>window.attackCasts);
  await page.locator('#fightResetDummy').click();
- assert.equal(await page.locator('#hits').textContent(),legacyPracticeBeforeReset);
+ assert.equal(await page.evaluate(()=>window.attackCasts),castsBeforeReset);
  assert.equal(await dummyHealth(),200);
  assert.equal(await page.locator('#video').evaluate(el=>el.srcObject===window.originalStream),true);
  for(const expected of [170,140,110,80,50,20,0]){
@@ -261,7 +261,7 @@ try{
  assert.equal(await page.evaluate(()=>window.effectLog.length),defeatLog);
  assert.equal(await dummyHealth(),0);
  assert.match(await page.locator('#fightCastStatus').textContent(),/Dummy defeated/);
- await openMode('[OLD] Practice');await openMode('Fight');
+ await openMode('Training');await openMode('Fight');
  assert.equal(await page.locator('#fightCamera').textContent(),'Start camera');
  await send(Array(20).fill(exp[0]));await page.locator('#fightCamera').click();
  await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
@@ -275,7 +275,7 @@ try{
  assert.equal(await page.locator('#fightDefeat').isVisible(),false);
  assert.equal(await page.locator('#fightDummyActor').getAttribute('data-pose'),'ready');
  assert.equal(await page.locator('#fightCamera').textContent(),'Stop camera');
- const legacyPracticeBeforeFlight=await page.locator('#hits').textContent();
+ const castsBeforeFlight=await page.evaluate(()=>window.attackCasts);
  await page.evaluate(()=>{window.resetInFlight=false;document.addEventListener('wizard:cast',()=>{document.querySelector('#fightResetDummy').click();window.resetInFlight=true;},{once:true});});
  await send(exp);await page.waitForFunction(()=>window.resetInFlight);
  assert.equal(await dummyHealth(),200);
@@ -284,7 +284,7 @@ try{
  assert.equal(await dummyHealth(),200,'reset cancels pending damage');
  assert.equal(await page.locator('#fightDummyActor').getAttribute('data-pose'),'ready');
  assert.equal(await page.locator('#fightHits').textContent(),'0 hits');
- assert.equal(parseInt(await page.locator('#hits').textContent()),parseInt(legacyPracticeBeforeFlight)+1);
+ assert.equal(await page.evaluate(()=>window.attackCasts),parseInt(castsBeforeFlight)+1);
  await send(exp);await page.waitForFunction(()=>document.querySelector('#fightDummyHealth').value===170);
  await page.waitForFunction(()=>window.step>=window.steps.length&&!document.querySelector('.fight-spell'));
  console.log('PASS: health changes at impact, accuracy damage, defeat, post-defeat blocking, local reset, and stale-flight cancellation.');
@@ -294,21 +294,21 @@ try{
  assert.equal(await page.locator('#video').evaluate(el=>el.srcObject),null);
  await page.waitForFunction(()=>document.querySelector('#fightArenaPhase').textContent==='OFF');
  assert.equal(await page.locator('#fightGesture').evaluate(canvas=>canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data.every(value=>value===0)),true);
- const stoppedHits=await page.locator('#hits').textContent();await send(circle);await page.waitForTimeout(700);
- assert.equal(await page.locator('#hits').textContent(),stoppedHits);
+ const stoppedHits=await page.evaluate(()=>window.attackCasts);await send(circle);await page.waitForTimeout(700);
+ assert.equal(await page.evaluate(()=>window.attackCasts),stoppedHits);
  assert.equal(await page.locator('.fight-spell').count(),0);
  for(const width of [320,390,768,1440]){
   await page.setViewportSize({width,height:1000});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`Fight must fit ${width}px`);
   await page.screenshot({path:path.join(output,`fight-live-${width}.png`),fullPage:true});
  }
- await openMode('[OLD] Practice');
+ await openMode('Training');
  assert.equal(await page.locator('#viewport').evaluate(el=>el.parentElement===window.originalParent),true);
- assert.equal(await page.locator('#camera').textContent(),'Start camera');
- await page.locator('#reset').click();await openMode('Fight');
+ assert.equal(await page.evaluate(async () => (await import('/input-state.js')).getInputState().camera),'Start camera');
+ await page.locator('#trainingStart').click();await page.locator('#trainingStop').click();await openMode('Fight');
  assert.equal(await page.locator('#fightHits').textContent(),'1 hit');
- assert.equal(await dummyHealth(),170,'Practice session reset leaves Fight health unchanged');
- await page.waitForFunction(()=>document.querySelector('#saveStatus').textContent==='Saved on this laptop');
+ assert.equal(await dummyHealth(),170,'Training lesson controls leave Fight health unchanged');
+ await page.waitForFunction(async ()=>(await import('/input-state.js')).getInputState().saveStatus==='Saved on this laptop');
  assert.equal(errors.length,0,errors.join('\n'));
  // Read persisted records, including a hit whose first save failed. Logs must not change gameplay.
  const stored=(await readFile(path.join(folder,'play-data/events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
@@ -340,14 +340,18 @@ try{
  assert.equal(hitRecords.find(e=>e.castId===defeats[0].castId).dummyHealth,0);
  assert.ok(fightRecords.some(e=>e.cause==='reset'&&e.previousDummyHealth===0&&e.dummyHealth===200&&e.hits===0));
  for(const reason of ['tab_change','dummy_reset'])assert.ok(fightRecords.some(e=>e.cause==='cancel'&&e.reason===reason));
- const legacyPracticeCasts=stored.filter(e=>e.type==='cast'&&e.activeTab==='legacy-practice');
- assert.ok(legacyPracticeCasts.length>0);
- for(const cast of legacyPracticeCasts)assert.ok(!launches.some(e=>e.castId===cast.id),'Practice does not launch Fight spells');
- assert.ok(fightRecords.some(e=>e.session!==hitRecords[0].session&&e.cause==='tab_change'&&e.dummyHealth===170),'new session keeps Fight health');
+ const trainingCasts=stored.filter(e=>e.type==='cast'&&e.activeTab==='training');
+ assert.ok(trainingCasts.length>0);
+ for(const cast of trainingCasts)assert.ok(!launches.some(e=>e.castId===cast.id),'Training does not launch Fight spells');
+ assert.ok(!stored.some(e=>e.activeTab==='legacy-practice'));
+ for(const cast of stored.filter(e=>e.type==='cast'&&e.activeTab==='fight')) {
+  assert.ok(cast.resultImage);
+  assert.ok((await readFile(path.join(folder,'play-data',cast.resultImage))).length>0);
+ }
  console.log('PASS: saved Fight route, cast, hit timing, health, defeat, reset, cancellation, session links, and failed-save retry.');
  // Leaving Fight stops its shared camera and preserves target health.
  await page.locator('#fightCamera').click();
- await page.waitForFunction(()=>document.querySelector('#camera').textContent==='Stop camera');
+ await page.waitForFunction(async ()=>(await import('/input-state.js')).getInputState().camera==='Stop camera');
  await page.locator('#gameBack').click();
  assert.equal(await page.locator('#video').evaluate(el=>el.srcObject),null);
  assert.equal(await page.locator('.fight-spell').count(),0);
@@ -450,7 +454,7 @@ try{
    }
   }
   await poses.clock.runFor(1000);await castAtDummy('Protego');
-  await openMode('[OLD] Practice',poses);await poses.clock.runFor(1000);await openMode('Fight',poses);
+  await openMode('Training',poses);await poses.clock.runFor(1000);await openMode('Fight',poses);
   assert.equal(await poses.locator('#fightShield').evaluate(el=>el.classList.contains('shield-active')),true);
   await poses.clock.runFor(1999);
   assert.equal(await poses.locator('#fightShield').evaluate(el=>el.classList.contains('shield-active')),true);
@@ -458,11 +462,9 @@ try{
   assert.equal(await poses.locator('#fightShield').evaluate(el=>el.classList.contains('shield-active')),false);
   await castAtDummy('Protego');await poses.locator('#fightResetDummy').click();
   assert.equal(await poses.locator('#fightShield').evaluate(el=>el.classList.contains('shield-active')),false);
-  await castAtDummy('Protego');await openMode('[OLD] Practice',poses);await poses.locator('#reset').click();await openMode('Fight',poses);
-  assert.equal(await poses.locator('#fightShield').evaluate(el=>el.classList.contains('shield-active')),false);
  }
  await poses.emulateMedia({reducedMotion:'no-preference'});
- console.log('PASS: Protego shield, no damage or strike, repeat cast, expiry, menu routes, both resets, desktop/mobile, and reduced motion.');
+ console.log('PASS: Protego shield, no damage or strike, repeat cast, expiry, menu routes, dummy reset, desktop/mobile, and reduced motion.');
  const isDisarmed=()=>poses.locator('#fightDummyActor').getAttribute('data-disarmed');
  const untilReturn=async()=>{
   const remaining=await poses.evaluate(()=>window.disarmedAt+2000-performance.now());
@@ -527,12 +529,12 @@ try{
  await poses.locator('#fightResetDummy').click();
  assert.equal(await isDisarmed(),'false','dummy reset restores the wand');
  await castAtDummy('Expelliarmus');
- await openMode('[OLD] Practice',poses);await poses.clock.runFor(200);
+ await openMode('Training',poses);await poses.clock.runFor(200);
  await openMode('Fight',poses);
  assert.equal(await isDisarmed(),'false','a canceled flight cannot disarm');
  assert.equal(await poses.locator('#fightDummyHealth').evaluate(el=>el.value),200);
  await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
- await openMode('[OLD] Practice',poses);await poses.clock.runFor(1000);
+ await openMode('Training',poses);await poses.clock.runFor(1000);
  await openMode('Fight',poses);
  assert.equal(await isDisarmed(),'true','menu routes preserve remaining disarm time');
  await poses.clock.runFor(1000);
@@ -565,7 +567,7 @@ try{
  await poses.close();
  console.log('PASS: per-spell recoil, final fall, standing reset, repeated hits, reset during fall, and reduced-motion poses.');
 
- console.log('PASS: rejected paths, tracking loss, stopped camera, permission denial, hidden-tab cleanup, reduced motion, session reset, and responsive layout.');
+ console.log('PASS: rejected paths, tracking loss, stopped camera, permission denial, hidden-tab cleanup, reduced motion, separate lesson controls, and responsive layout.');
 }finally{
  await browser?.close();
  if(api&&api.exitCode===null&&api.signalCode===null){const exited=once(api,'exit');api.kill();await exited;}

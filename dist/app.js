@@ -1,30 +1,21 @@
-import {getSettings,updateSettings} from './settings.js';
+import {getSettings} from './settings.js';
 import {GestureController,bounds} from './gesture.js';
-import {SpellLesson} from './training/lesson.js';
-import {TrainingDummy} from './combat/training-dummy.js';
 import {castDamage} from './combat/cast.js';
-import {spellForShape} from './spells/index.js';
-import {animations} from './presentation/animations.js';
-import {renderSpellChoices} from './presentation/gesture-guide.js';
-import {Shield} from './combat/shield.js';
-import {createShieldView} from './presentation/shield-view.js';
 import {HandInput} from './hand-input.js';
 import {resultCard,resultTitle} from './result-card.js';
+import {updateInputState} from './input-state.js';
 const $=id=>document.getElementById(id);
-renderSpellChoices($('expected'),document.querySelector('.shapes'));
-const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d'),preview=$('pathPreview'),pc=preview.getContext('2d');
+const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d');
+const preview=document.createElement('canvas');preview.width=170;preview.height=140;
+const pc=preview.getContext('2d');
 let stream=null,worker=null,token=0,modelReady=false,busy=false,loading=false,delegate='GPU',recovering=false;
 let lastVideoTime=-1,lastSent=0,lastResult=0,rateStart=0,rateCount=0,hz=0,inference=0,selectedPoints=null,cursor=null;
-let session=crypto.randomUUID(),events=[],hits=0,flashUntil=0,lastPath=[],lastPathUntil=0,lastUI='',saveQueue=[],saving=false;
-$('hand').value=getSettings().hand;
+const session=crypto.randomUUID();
+let lastPath=[],lastPathUntil=0,lastUI='',saveQueue=[],saving=false;
 const controller=new GestureController(onGesture,{difficulty:getSettings().difficulty});
 const handInput=new HandInput();
-const lesson=new SpellLesson();
-const dummy=new TrainingDummy();
-const shield=new Shield();
-const shieldView=createShieldView($('legacyPracticeShield'),$('legacyPracticeShieldStatus'),shield,{cx:320,cy:240,rx:210,ry:220});
 let inputSettings=readSettings(),tracking={},trackingAt=0,trackingFrames=0,noHandFrames=0,labelHoldFrames=0,wrongHandFrames=0,edgeFrames=0,duplicateFrames=0,lastFrameT=null;
-function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value,difficulty:getSettings().difficulty};}
+function readSettings(){const {hand,point,difficulty}=getSettings();return {hand,point,expected:'Any',difficulty};}
 function reportTracking(cause,data={}){
   tracking={...tracking,...data,trackingCause:cause};trackingFrames++;
   if(cause==='no_hand')noHandFrames++;
@@ -39,10 +30,13 @@ function reportTracking(cause,data={}){
   }
 }
 const connections=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
-function set(id,value){if($(id).textContent!==String(value))$(id).textContent=String(value);}
+function set(id,value){
+  if(id==='phase'||id==='instruction'){if($(id).textContent!==String(value))$(id).textContent=String(value);}
+  else updateInputState({[id]:String(value)});
+}
 export function record(data,png=null){
-  const activeTab=$('gameView').hidden?'menu':$('trainingView')?.hidden===false?'training':$('fightView')?.hidden===false?'fight':$('legacyPracticeView').hidden===false?'legacy-practice':'menu';
-  const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:3,...inputSettings,lessonState:lesson.state,lessonCount:lesson.count,activeTab,...data};
+  const activeTab=$('gameView').hidden?'menu':$('trainingView')?.hidden===false?'training':$('fightView')?.hidden===false?'fight':'menu';
+  const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:3,...inputSettings,lessonState:'idle',lessonCount:0,activeTab,...data};
   saveQueue.push({event,png,eventSaved:false});flush();
 }
 async function flush(){
@@ -55,9 +49,9 @@ async function flush(){
       if(item.png)await post('/api/results',{id:item.event.id,png:item.png});
       saveQueue.shift();
     }
-    set('saveStatus','Saved on this laptop');$('saveStatus').classList.remove('bad');
+    set('saveStatus','Saved on this laptop');
   }
-  catch{set('saveStatus','Save failed. Keep this page open.');$('saveStatus').classList.add('bad');}
+  catch{set('saveStatus','Save failed. Keep this page open.');}
   finally{saving=false;}
 }
 setInterval(flush,5000);
@@ -72,7 +66,6 @@ function onGesture(event){
     return;
   }
   if(event.type==='capture'){record({type:'capture',cause:event.cause,...tracking,...event.diagnostics});return;}
-  lesson.update(event);renderLesson();
   const now=performance.now();
   const result={type:event.type,shape:event.shape||'None',score:event.score||0,margin:event.margin||0,latency:Math.round((event.latency||0)+Math.max(0,now-(controller.lastT||now))),duration:Math.round(event.duration||0),reason:event.reason||'',expected:inputSettings.expected,hz:Math.round(hz),inference:Math.round(inference)};
   Object.assign(result,tracking,event.diagnostics||{},{cause:event.cause||'unknown'});
@@ -80,59 +73,12 @@ function onGesture(event){
   lastPath=event.path||[];lastPathUntil=now+3500;drawPreview(lastPath,event.type==='cast');
   Object.assign(result,{id:crypto.randomUUID(),at:new Date().toISOString(),hand:inputSettings.hand,point:inputSettings.point});
   result.resultImage='results/'+result.id+'.png';
-  if(event.type!=='ignored')events.push(result);record(result,resultCard(result,preview));
-  set('lastShape',resultTitle(result));
-  set('lastReason',event.reason);set('resultTag',event.type==='cast'?'CAST':event.type==='cancel'?(result.endRule==='loss'?'LOST':'STOP'):event.type==='ignored'?'MOVE':'RETRY');
-  set('score',event.shape&&event.shape!=='None'?event.score+'%':'—');set('latency',event.type==='cancel'?'—':result.latency+' ms');
-  set('diagnosis',event.type==='cancel'?event.reason:`${result.shape==='None'?'Path':'Closest: '+result.shape} | Size ${Math.round(Math.max(result.width||0,result.height||0)*100)}% | ${result.samples||0} points`);
+  record(result,resultCard(result,preview));
+  updateInputState({lastShape:resultTitle(result),lastReason:event.reason,
+    resultTag:event.type==='cast'?'CAST':event.type==='cancel'?(result.endRule==='loss'?'LOST':'STOP'):event.type==='ignored'?'MOVE':'RETRY',
+    score:event.shape&&event.shape!=='None'?event.score+'%':'—'});
   if(event.type==='cast'){
-    const damage=castDamage(event);
-    const spell=spellForShape(event.shape);
-    if(damage>0){hits++;set('hits',`${hits} ${hits===1?'hit':'hits'}`);}
-    set('impact',damage>0?'+'+damage:'');
-    const protection=spell.effects.find(effect=>effect.type==='shield');
-    set('targetNote',protection?`${event.shape} · Shield for ${protection.durationMs/1000} seconds`:`${event.shape} · ${damage} damage`);
-    animations[spell.visuals.cast]($('targetScene'));flashUntil=now+1100;
-    if($('fightView').hidden&&shield.cast(event,now))shieldView.refresh(spell.visuals.color);
-    if(dummy.cast(event,now)){
-      renderDummy();record({type:'settings',cause:'dummy_disarm',reason:'Dummy disarmed. Wand returns in 2 seconds.'});
-    }
-    document.dispatchEvent(new CustomEvent('wizard:cast',{detail:{id:result.id,shape:event.shape,score:event.score,damage}}));
-  }
-  renderSession();
-}
-function renderDummy(){
-  $('targetScene').classList.toggle('disarmed',dummy.disarmed);
-  set('dummyStatus',dummy.disarmed?'Disarmed · Wand returns in 2 seconds':'Wand ready');
-  $('dummy').setAttribute('aria-label',dummy.disarmed?'Training dummy with dropped wand':'Training dummy holding a wand');
-}
-function renderLesson(){
-  set('lessonCount',`${lesson.count} / ${lesson.requiredCasts}`);$('lessonProgress').max=lesson.requiredCasts;$('lessonProgress').value=lesson.count;
-  const complete=lesson.state==='complete';
-  set('lessonProgress',`${lesson.count} of ${lesson.requiredCasts}`);
-  set('lessonMessage',complete?`Lesson complete: ${lesson.requiredCasts}/${lesson.requiredCasts}.`:lesson.message);
-  $('lessonMessage').classList.toggle('lesson-complete',complete);
-  set('lessonStart',complete?'Practice again':'Start lesson');
-  $('lessonStart').hidden=lesson.state==='active';
-  $('lessonStart').className=complete?'quiet':'primary';
-  set('lessonStop',complete?'Finish lesson':'Stop lesson');
-  $('lessonStop').hidden=lesson.state==='idle';
-  $('lessonStop').className=complete?'primary':'quiet';
-}
-function renderSession(){
-  const completed=events.filter(e=>e.type==='cast'||e.type==='reject');
-  const casts=completed.filter(e=>e.type==='cast'),trials=completed.filter(e=>e.expected!=='Any');
-  set('attempts',completed.length);set('accepted',casts.length);set('rejected',completed.length-casts.length);
-  set('lost',events.filter(e=>e.type==='cancel'&&e.endRule==='loss').length);
-  set('accuracy',trials.length?`${trials.filter(e=>e.type==='cast'&&e.shape===e.expected).length}/${trials.length}`:'—');
-  const times=casts.map(e=>e.latency).sort((a,b)=>a-b);set('p90',times.length?times[Math.max(0,Math.ceil(times.length*.9)-1)]+' ms':'—');
-  $('events').replaceChildren();
-  if(!events.length){const li=document.createElement('li');li.textContent='No gestures yet.';li.className='muted';$('events').append(li);}
-  for(const e of events.slice(-8).reverse()){
-    const li=document.createElement('li'),label=document.createElement('span'),detail=document.createElement('span');
-    label.textContent=e.type==='cast'?`${e.shape} · ${e.score}%`:`${e.type==='cancel'?resultTitle(e):'Rejected'} · ${e.reason}`;
-    detail.textContent=e.expected==='Any'?(e.type==='cast'?e.latency+' ms':''):`Expected ${e.expected}${e.type==='cast'&&e.shape===e.expected?' · correct':' · missed'}`;
-    if(e.type!=='cast')li.className='muted';li.append(label,detail);$('events').append(li);
+    document.dispatchEvent(new CustomEvent('wizard:cast',{detail:{id:result.id,shape:event.shape,score:event.score,damage:castDamage(event)}}));
   }
 }
 function drawPreview(points,accepted){
@@ -150,7 +96,7 @@ function stopCamera(reason='Camera stopped'){
   if(stream){for(const track of stream.getTracks()){track.onended=null;track.stop();}}
   stream=null;video.srcObject=null;selectedPoints=null;cursor=null;lastVideoTime=-1;controller.cancel(reason,'camera_stopped');lastUI='';
   handInput.reset();tracking={};lastFrameT=null;trackingAt=0;trackingFrames=0;noHandFrames=0;labelHoldFrames=0;wrongHandFrames=0;edgeFrames=0;duplicateFrames=0;
-  $('camera').disabled=false;set('camera','Start camera');set('cameraState',reason);set('tracking','Off');set('engine','—');set('hz','—');set('inference','—');set('phase','OFF');set('instruction',reason);$('empty').hidden=false;
+  updateInputState({cameraDisabled:false});set('camera','Start camera');set('cameraState',reason);set('tracking','Off');set('phase','OFF');set('instruction',reason);$('empty').hidden=false;
 }
 async function createTracker(useDelegate,run){
   const w=new Worker('/tracker-worker.js');worker=w;
@@ -171,13 +117,13 @@ async function recover(reason){
   if(recovering||!stream)return;
   if(delegate==='CPU'){stopCamera(reason+'. Restart the camera.');return;}
   recovering=true;modelReady=false;busy=false;record({type:'camera',reason,cause:'worker_error'});controller.cancel('Tracking reset. Start again.','worker_error');handInput.reset();worker?.terminate();set('cameraState','Switching to CPU…');const run=token;
-  try{await createTracker('CPU',run);if(run!==token)return;modelReady=true;recovering=false;lastResult=performance.now();lastVideoTime=-1;set('engine','CPU');set('cameraState','Camera on');}
+  try{await createTracker('CPU',run);if(run!==token)return;modelReady=true;recovering=false;lastResult=performance.now();lastVideoTime=-1;set('cameraState','Camera on');}
   catch{if(run===token)stopCamera('Tracking failed. Restart the camera.');}
 }
-async function startCamera(){
+export async function toggleGameCamera(){
   if(loading)return;
   if(stream){stopCamera();return;}
-  stopCamera('Starting camera…');loading=true;const run=token;$('camera').disabled=true;set('camera','Starting…');set('instruction','Allow camera access. Loading hand tracking.');
+  stopCamera('Starting camera…');loading=true;const run=token;updateInputState({cameraDisabled:true});set('camera','Starting…');set('instruction','Allow camera access. Loading hand tracking.');
   try{
     const media=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:60}},audio:false});
     if(run!==token){media.getTracks().forEach(t=>t.stop());return;}
@@ -188,16 +134,16 @@ async function startCamera(){
     try{await createTracker('GPU',run);}catch{if(run!==token)return;worker?.terminate();await createTracker('CPU',run);}
     if(run!==token)return;
     loading=false;modelReady=true;rateStart=performance.now();rateCount=0;lastResult=performance.now();lastVideoTime=-1;lastSent=0;
-    $('empty').hidden=true;$('camera').disabled=false;set('camera','Stop camera');set('cameraState','Camera on');set('engine',delegate);record({type:'camera',reason:'Started '+delegate});
+    $('empty').hidden=true;updateInputState({cameraDisabled:false});set('camera','Stop camera');set('cameraState','Camera on');record({type:'camera',reason:'Started '+delegate});
   }catch(error){if(run!==token)return;const reason=error.name==='NotAllowedError'?'Camera permission denied. Allow access and retry.':error.name==='NotFoundError'?'No camera found.':error.name==='NotReadableError'?'Camera is busy. Close other camera apps.':'Camera could not start. '+String(error.message).slice(0,100);stopCamera(reason);set('instruction',reason);}
 }
 function receive(data){
   busy=false;const now=performance.now();lastResult=now;inference=data.inference;rateCount++;
-  if(now-rateStart>1000){hz=rateCount*1000/(now-rateStart);rateStart=now;rateCount=0;set('hz',Math.round(hz)+' Hz');}
-  set('inference',Math.round(inference)+' ms');
+  if(now-rateStart>1000){hz=rateCount*1000/(now-rateStart);rateStart=now;rateCount=0;}
+
   const timing={frameAge:Math.round(now-data.t),frameGap:lastFrameT===null?0:Math.round(data.t-lastFrameT),gapMs:controller.lastT===null?0:Math.round(data.t-controller.lastT)};lastFrameT=data.t;
   if(now-data.t>350){reportTracking('stale_frame',timing);controller.cancel('Camera delayed. Start again.','stale_frame');handInput.reset();selectedPoints=null;cursor=null;return;}
-  const selection=handInput.select(data,inputSettings.hand,Boolean(inputSettings.swap),inputSettings.point);
+  const selection=handInput.select(data,inputSettings.hand,inputSettings.point);
   const {points:chosen,cause,...detail}=selection;
   const point=chosen?(inputSettings.point==='grip'?{x:(chosen[5].x+chosen[9].x)/2,y:(chosen[5].y+chosen[9].y)/2}:chosen[8]):null;
   const edge=point&&(point.x<.02||point.x>.98||point.y<.02||point.y>.98);
@@ -214,9 +160,6 @@ function receive(data){
 }
 function animate(now){
   requestAnimationFrame(animate);
-  if(dummy.restore(now)){
-    renderDummy();record({type:'settings',cause:'dummy_return',reason:'Dummy wand returned.'});
-  }
   if(modelReady&&stream){
     if(now-lastResult>300){reportTracking('worker_stall',{frameAge:Math.round(now-lastResult)});controller.cancel('Tracking delayed. Start again.','worker_stall');handInput.reset();selectedPoints=null;cursor=null;set('tracking','Tracking delayed');}
     if(now-lastResult>3500){recover('Tracking stopped');}
@@ -232,27 +175,9 @@ function animate(now){
   const path=controller.state==='drawing'?controller.path:now<lastPathUntil?lastPath:[];
   if(path.length>1){ctx.strokeStyle=controller.state==='drawing'?'#c2f3a0':'#e8bf83';ctx.shadowColor='#8ce67e';ctx.shadowBlur=8;ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();path.forEach((p,i)=>i?ctx.lineTo(p.x*canvas.width,p.y*canvas.width):ctx.moveTo(p.x*canvas.width,p.y*canvas.width));ctx.stroke();ctx.shadowBlur=0;}
   if(cursor){ctx.beginPath();ctx.arc(cursor.x*canvas.width,cursor.y*canvas.width,controller.state==='ready'?10:6,0,Math.PI*2);ctx.fillStyle=controller.state==='ready'?'#c2f3a0':'#ffffff';ctx.fill();ctx.strokeStyle='#29432f';ctx.lineWidth=2;ctx.stroke();}
-  if(flashUntil&&now>flashUntil){$('targetScene').classList.remove('hit');flashUntil=0;}
 }
-$('lessonStart').addEventListener('click',()=>{
-  controller.cancel('Lesson started. Hold still to start.','input_changed');
-  lesson.start();renderLesson();lastPath=[];lastUI='';
-  record({type:'settings',cause:'lesson_start',reason:`${lesson.spell.label} lesson started`});
-});
-$('lessonStop').addEventListener('click',()=>{
-  const finished=lesson.state==='complete';
-  controller.cancel('Lesson stopped. Hold still to start.','input_changed');
-  lesson.stop();renderLesson();lastPath=[];lastUI='';
-  record({type:'settings',cause:finished?'lesson_finish':'lesson_stop',reason:`${lesson.spell.label} lesson ${finished?'finished':'stopped'}`});
-});
-$('camera').addEventListener('click',startCamera);
-for(const id of ['hand','point','swap','expected'])$(id).addEventListener('change',()=>{controller.cancel('Input changed. Hold still to start.','input_changed');inputSettings=readSettings();handInput.reset();tracking={};record({type:'settings',reason:'Input changed'});cursor=null;selectedPoints=null;lastPath=[];lastUI='';});
-$('reset').addEventListener('click',()=>{controller.reset();lesson.stop();renderLesson();dummy.reset();renderDummy();handInput.reset();tracking={};set('diagnosis','No captured shape yet.');events=[];hits=0;session=crypto.randomUUID();lastPath=[];drawPreview([],false);set('hits','0 hits');set('lastShape','—');set('lastReason','Draw, then stop briefly.');set('score','—');set('latency','—');set('resultTag','Waiting');set('targetNote','Attack spells hit the dummy. Protego protects you.');record({type:'reset',reason:'New test session'});renderSession();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(stream||loading))stopCamera('Paused. Start camera to resume.');});
 window.addEventListener('pagehide',()=>stopCamera('Page closed'));
-$('reset').addEventListener('click',()=>shieldView.clear());
-document.addEventListener('visibilitychange',()=>shieldView.refresh());
 requestAnimationFrame(animate);
 
-window.addEventListener('wizard-settings',()=>{const settings=getSettings();if(settings.hand===inputSettings.hand&&settings.difficulty===inputSettings.difficulty)return;controller.cancel('Options changed. Hold still to start.','input_changed');controller.setDifficulty(settings.difficulty);$('hand').value=settings.hand;inputSettings=readSettings();handInput.reset();tracking={};cursor=null;selectedPoints=null;lastPath=[];lastUI='';record({type:'settings',reason:'Drawing options changed'});});
-$('hand').addEventListener('change',()=>updateSettings({hand:$('hand').value}));
+window.addEventListener('wizard-settings',()=>{const settings=getSettings();if(settings.hand===inputSettings.hand&&settings.point===inputSettings.point&&settings.difficulty===inputSettings.difficulty)return;controller.cancel('Options changed. Hold still to start.','input_changed');controller.setDifficulty(settings.difficulty);inputSettings=readSettings();handInput.reset();tracking={};cursor=null;selectedPoints=null;lastPath=[];lastUI='';record({type:'settings',reason:'Drawing options changed'});});

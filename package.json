@@ -9,9 +9,11 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:legacy-practice": "node tests/browser-legacy-practice.mjs",
+    "test:cast-flow": "node tests/browser-cast-flow.mjs",
     "test:fight": "node tests/browser-fight.mjs",
-    "test:training": "node tests/browser-training-tab.mjs"
+    "test:training": "node tests/browser-training-tab.mjs",
+    "test:navigation": "node tests/browser-navigation.mjs",
+    "test:input": "node tests/browser-input-settings.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.63.0"

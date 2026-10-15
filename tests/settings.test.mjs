@@ -2,16 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {loadSettings,saveSettings,normalizeSettings,SETTINGS_KEY} from '../dist/settings.js';
 import {recognize,resample,GestureController} from '../dist/gesture.js';
-test('settings persist independent sound choices and selected hand and difficulty',()=>{
+test('settings persist independent sound choices and selected hand, track point, and difficulty',()=>{
   const store=new Map();const storage={getItem:key=>store.get(key),setItem:(key,value)=>store.set(key,value)};
-  const expected={music:false,sfx:true,muted:true,hand:'Right',difficulty:'hard'};
+  const expected={music:false,sfx:true,muted:true,hand:'Right',point:'grip',difficulty:'hard'};
   assert.equal(saveSettings(storage,expected),true);assert.deepEqual(loadSettings(storage),expected);
+  assert.equal(normalizeSettings({hand:'Right'}).point,'tip');
   storage.setItem(SETTINGS_KEY,'bad JSON');assert.equal(loadSettings(storage).hand,'Left');
 });
 test('unavailable storage and invalid settings safely use defaults',()=>{
   const storage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};
   assert.equal(loadSettings(storage).difficulty,'normal');assert.equal(saveSettings(storage,{}),false);
-  assert.deepEqual(normalizeSettings({music:'false',hand:'Unknown',difficulty:'expert'}),{music:true,sfx:true,muted:false,hand:'Left',difficulty:'normal'});
+  assert.deepEqual(normalizeSettings({music:'false',hand:'Unknown',point:'unknown',difficulty:'expert'}),{music:true,sfx:true,muted:false,hand:'Left',point:'tip',difficulty:'normal'});
 });
 const path=resample([{x:.2,y:.2},{x:.5,y:.2},{x:.5,y:.5}],64);
 test('every difficulty preserves the Expelliarmus direction and minimum size',()=>{

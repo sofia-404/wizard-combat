@@ -1,8 +1,15 @@
-# The brandbook passes its layout and interaction checks.
+# Historical brandbook checks
 
 Checked on 2026-10-15 using Chromium through `playwright-cli`.
 
-These results describe the original brandbook changes at `5015c9d`, before integration with Duel. After rebasing onto `main` at `e5d7bb5`, all 24 existing Node.js tests pass on Node.js 24.11.0, including 137 gesture cases and the consecutive-cast checks. `node --check dist/brand/brandbook.js` also passes. In that brandbook-only comparison, gameplay JavaScript and gameplay HTML/CSS did not differ from the base.
+This record contains past results. It does not verify the current files.
+
+| Check | Revision or base | Recorded result |
+| --- | --- | --- |
+| Brandbook browser checks | `5015c9d` | Results below. |
+| Node.js tests on Node.js 24.11.0 | Base: `e5d7bb5` | All 24 tests passed, including 137 gesture cases and consecutive-cast checks. |
+| `node --check dist/brand/brandbook.js` | Base: `e5d7bb5` | Passed. |
+| Gameplay source comparison | Base: `e5d7bb5` | No changes to gameplay JavaScript, HTML, or CSS in the brandbook changes. |
 
 ## Browser checks
 
@@ -16,18 +23,16 @@ These results describe the original brandbook changes at `5015c9d`, before integ
 - Internal section links resolve. Reduced-motion mode preserves visible content and state changes.
 - Final reload reports no JavaScript page errors.
 
-## Contrast and review
+## Contrast
 
 Normal text colors meet 4.5:1 on the four dark surfaces. The lowest approved normal-text pair is gold on raised teal, about 4.62:1. Essential input and unchecked-switch edges use muted text color rather than the lower-contrast decorative rule color.
 
-The independent finish reviewer requested two small fixes: stronger input boundaries and a space at responsive line breaks. Both were fixed and scored resolved. Final disposition: **ship**. The mechanical Impeccable detector ran once; small tracking and cursor-padding findings were fixed. Remaining literal-size, toggle-radius, and punctuation advisories were judged non-material for this reference page.
-
 ## Preview provenance
 
-`previews/menu.png`, `previews/training.png`, and `previews/fight.png` are browser captures of the screen-study section in `dist/brandbook.html`, rendered at a 1920×1080 browser viewport with reduced motion enabled. They are original repository UI evidence, not generated artwork or screenshots of Hogwarts Legacy. Their labels and states are illustrative. The interactive page is the source of truth.
+The [preview guide](previews/README.md) lists the saved images, their source, and their capture steps. Files with the `brandbook-` prefix show illustrative concepts. Training and Fight images show implemented screens with camera access blocked. These images are maintained separately from the historical results above.
 
-## English copy update
+## English text checks
 
-All static copy, accessible names, placeholders, SVG titles, and dynamic feedback now use English. Preview images were recaptured in English. The English version was checked at 1920×1080 and 390×844: no page errors or horizontal overflow, working keyboard tabs, three-gesture completion and reset, duel feedback, and form-error recovery. A scan of tracked text files found no Cyrillic text. `AGENTS.md` records English as the repository-wide language requirement.
+The English version was checked at 1920×1080 and 390×844. Preview images contain English text. The checks covered page errors, horizontal overflow, keyboard tabs, gesture completion and reset, duel feedback, and form-error recovery. No page errors or horizontal overflow were found. The interaction checks passed. A scan of tracked text files found no Cyrillic text. The revision for these checks was not recorded.
 
 These checks do not validate physical camera play, a complete fight mode, or a migration of the existing gameplay page.

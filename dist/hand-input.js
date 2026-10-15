@@ -6,15 +6,14 @@ const controlPoint=(points,mode)=>mode==='grip'?{x:(points[5].x+points[9].x)/2,y
 export class HandInput {
   constructor(){this.reset();}
   reset(){this.palm=null;this.point=null;this.velocity={x:0,y:0};this.pointVelocity={x:0,y:0};this.lastT=null;this.labelT=null;}
-  select(data,hand,swap=false,mode='tip'){
+  select(data,hand,mode='tip'){
     const dt=this.lastT===null?0:data.t-this.lastT;
     const locked=this.palm&&dt>0&&dt<=260;
     const predicted=locked?{x:this.palm.x+this.velocity.x*dt,y:this.palm.y+this.velocity.y*dt}:null;
     const predictedPoint=locked?{x:this.point.x+this.pointVelocity.x*dt,y:this.point.y+this.pointVelocity.y*dt}:null;
     const candidates=(data.landmarks||[]).map((points,i)=>{
       const info=data.handedness?.[i]?.[0];
-      let label=info?.categoryName||'?';
-      if(swap&&label!=='?')label=label==='Right'?'Left':'Right';
+      const label=info?.categoryName||'?';
       const valid=points.length===21&&points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
       const palm=valid?{x:(points[0].x+points[5].x+points[9].x+points[17].x)/4,y:(points[0].y+points[5].y+points[9].y+points[17].y)/4}:null;
       const size=valid?Math.max(.04,distance(points[5],points[17]),distance(points[0],points[9])):0;

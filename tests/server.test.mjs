@@ -72,6 +72,7 @@ test('local server serves files and validates stored events and result cards', {
   assert.equal((await post('api/events', event)).status, 201);
   assert.equal((await post('api/events', event, 'http://invalid.example')).status, 403);
   assert.equal((await post('api/events', {...event, unexpected: 'value'})).status, 400);
+  assert.equal((await post('api/events', {...event, swap: 1})).status, 400);
   assert.equal((await post('api/events', {...event, reason: 'x'.repeat(201)})).status, 400);
   assert.equal((await post('api/events', {...event, reason: 'x'.repeat(5000)})).status, 413);
   const fight = {id: randomUUID(), type: 'fight', source: 'fight', cause: 'hit', activeTab: 'fight',
