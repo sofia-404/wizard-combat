@@ -1,13 +1,13 @@
 [
   {
     "path": "dist/audio/draw-trail.wav",
-    "bytes": 176444,
-    "sha256": "13c546940eee883b38ea272d340361389394f4b835ab5ae94105e7f17950f935",
-    "duration_seconds": 2.0,
+    "bytes": 396494,
+    "sha256": "1663ac86cc40206cf90f0d3993bfd20910d9d94aca1faa0358d8a82cd0c78479",
+    "duration_seconds": 8.99,
     "streams": [
       {
         "codec_name": "pcm_s16le",
-        "sample_rate": "44100",
+        "sample_rate": "22050",
         "channels": 1
       }
     ]

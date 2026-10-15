@@ -65,7 +65,7 @@ Options save music, sound effects, drawing hand, and difficulty in this browser.
 
 The scale adjusts shape-distance limits, circle radial variation, and V/Z/Expelliarmus bend and straightness tolerances. It does not change spell directions, minimum drawing size, start/end holds, tracking-loss rules, lesson count, or the dummy timer. Normal preserves the original recognition behavior. Easy also uses its wider Expelliarmus tolerance when deciding whether a return move contains a spell corner; Hard keeps that attempt-counting check at Normal tolerance. These profiles are checked with simulated paths; physical difficulty has not been validated.
 
-Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Duel plays separate battle music. Practice has no music. Music pauses when the page is hidden. While a shape is drawn, a soft looping trail sound follows the fingertip speed and stops when the stroke ends. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
+Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Duel plays separate battle music. Practice has no music. Music pauses when the page is hidden. While a shape is drawn, a looping magical hum follows the fingertip speed and stops when the stroke ends. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
 
 ## Expelliarmus and training
 

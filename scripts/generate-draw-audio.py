@@ -1,64 +1,46 @@
 #!/usr/bin/env python3
-"""Create the original looping sound for a spell stroke while it is drawn.
+"""Adapt the CC0 "Magic Object Floating" loop into the spell stroke sound.
 
-Run with Python 3. Only the standard library is required:
+Download the source listed in licenses/audio/NOTICE.md, then run:
 
-    python3 scripts/generate-draw-audio.py
+    python3 scripts/generate-draw-audio.py /path/to/758005_9616576-hq.mp3
+
+Python 3 and FFmpeg are required.
 """
 
-import math
+import argparse
+import hashlib
 from pathlib import Path
-import random
-import struct
-import wave
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'dist' / 'audio' / 'draw-trail.wav'
-RATE = 44100
-LOOP = 2.0  # Every partial and modulation completes whole cycles in this time.
-PEAK = 0.5
-
-
-def cycles(frequency):
-    """Round a frequency to whole cycles per loop so the loop has no seam."""
-    return max(1, round(frequency * LOOP)) / LOOP
+SOURCE_SHA256 = 'a5cfd5bb6adcdca35409eeb34935c820169d7bef60182625bfac8ed2f8f1af18'
+# The source has a one-shot version, a short silence, then the loopable version.
+# These 44.1 kHz sample positions are the first and last audible samples of
+# the loopable version, so the loop wraps without a silent gap.
+LOOP_START, LOOP_END = 793796, 1190212
+# The loop is about -40.8 LUFS. This gain brings it to about -17 LUFS, the
+# level that the stroke volume in dist/draw-audio.js was set for.
+GAIN_DB = 23.8
+# The source has no content above 11 kHz, so 22.05 kHz keeps it unchanged.
+RATE = 22050
 
 
 def main():
-    rng = random.Random(26)
-    count = round(LOOP * RATE)
-    samples = [0.0] * count
-    voices = []
-    # Airy shimmer: many quiet partials make band-limited noise from 2.5 to 8 kHz.
-    for _ in range(160):
-        frequency = cycles(rng.uniform(2500, 8000))
-        voices.append((frequency, 0.012 * math.sqrt(2500 / frequency), rng.uniform(0, math.tau)))
-    # A faint A5 and E6 glow keeps the trail related to the menu tones.
-    voices += [(cycles(880), 0.10, 0.0), (cycles(1318.5), 0.05, 1.3)]
-    for frequency, strength, phase in voices:
-        step = math.tau * frequency / RATE
-        for index in range(count):
-            samples[index] += strength * math.sin(phase + step * index)
-    # Short sparkle pings wrap around the loop end, so they also stay seamless.
-    for _ in range(14):
-        start = rng.randrange(count)
-        frequency = rng.uniform(2200, 4200)
-        for offset in range(round(0.06 * RATE)):
-            t = offset / RATE
-            envelope = min(1.0, t / 0.002) * math.exp(-t / 0.018)
-            samples[(start + offset) % count] += 0.09 * envelope * math.sin(math.tau * frequency * t)
-    # An 8 Hz flutter gives the trail slight movement without a rhythm.
-    flutter = cycles(8)
-    for index in range(count):
-        samples[index] *= 1 - 0.18 * (0.5 + 0.5 * math.sin(math.tau * flutter * index / RATE))
-    scale = PEAK / max(abs(value) for value in samples)
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(OUTPUT), 'wb') as audio:
-        audio.setnchannels(1)
-        audio.setsampwidth(2)
-        audio.setframerate(RATE)
-        audio.writeframes(b''.join(struct.pack('<h', round(value * scale * 32767))
-                                   for value in samples))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('source', type=Path)
+    source = parser.parse_args().source
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    if digest != SOURCE_SHA256:
+        raise SystemExit(f'Unexpected source SHA-256: {digest}')
+    graph = (f'atrim=start_sample={LOOP_START}:end_sample={LOOP_END},'
+             f'pan=mono|c0=0.5*c0+0.5*c1,volume={GAIN_DB}dB,'
+             f'aresample={RATE}:resampler=soxr')
+    subprocess.run([
+        'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', str(source),
+        '-af', graph, '-map_metadata', '-1', '-c:a', 'pcm_s16le', str(OUTPUT),
+    ], check=True)
 
 
 if __name__ == '__main__':

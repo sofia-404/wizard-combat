@@ -80,12 +80,23 @@ CC BY 4.0 requirements above.
 ## Drawing sound
 
 `dist/audio/draw-trail.wav` loops while the player draws a spell shape. It is
-an original procedural sound made for Wizard Combat by
-`scripts/generate-draw-audio.py`. It mixes quiet sine partials from 2.5 to
-8 kHz, faint A5 and E6 tones, short sparkle pings, and an 8 Hz flutter. Every
-part completes whole cycles in the 2-second loop, so the loop has no seam. It
-uses no third-party recordings, sound libraries, or external AI service. It is
-released under CC0 1.0 Universal like the other original interface sounds.
+an adaptation of "Magic Object Floating" by IENBA, released under CC0 1.0
+Universal: https://creativecommons.org/publicdomain/zero/1.0/
+
+No attribution is required. The game credits the author as a courtesy.
+
+- Source: https://freesound.org/people/IENBA/sounds/758005/
+  The sound page lists the license as Creative Commons 0.
+- Retrieved October 15, 2026, as the Freesound high-quality preview
+  `758005_9616576-hq.mp3` (SHA-256
+  a5cfd5bb6adcdca35409eeb34935c820169d7bef60182625bfac8ed2f8f1af18).
+
+The source has a one-shot version, a short silence, and a loopable version.
+The edit uses the loopable version, from its first to its last audible sample
+(44.1 kHz samples 793,796 to 1,190,212, or 18.000 s to 26.989 s). It is mixed
+to mono, raised by 23.8 dB to about -17 LUFS, resampled to 22.05 kHz, and
+stored as 16-bit WAV. The source has no content above 11 kHz, so the lower
+sample rate removes nothing audible. The loop is 8.99 seconds.
 
 The game plays it through Web Audio. Fingertip speed sets its level and a
 small pitch rise. The level is zero below 0.05 screen widths per second and
@@ -95,7 +106,8 @@ in about 60 ms when the stroke ends, tracking is lost, or sound is off.
 ## Reproduction and playback
 
 Run `python3 scripts/generate-menu-audio.py` to regenerate the interface sounds.
-Run `python3 scripts/generate-draw-audio.py` to regenerate the drawing sound.
+To recreate the drawing sound, download its source preview and run
+`python3 scripts/generate-draw-audio.py /path/to/758005_9616576-hq.mp3`.
 To recreate the music edits, download the originals to temporary files and run:
 
 ```sh
@@ -104,7 +116,8 @@ python3 scripts/generate-menu-audio.py --battle-source /path/to/Clash-Defiant.mp
 ```
 
 Python 3 and FFmpeg with `libmp3lame` are required for the music edits.
-The interface and drawing sounds use only Python's standard library.
+The interface sounds use only Python's standard library. The drawing sound
+also requires FFmpeg.
 
 Start music at about 0.25 volume and effects at about 0.35 volume. Keep both
 under the user's sound controls. Start playback after a user gesture. Music
@@ -115,5 +128,5 @@ switching screens or muting. The WAV effects have smooth attacks and tails.
 Throttle repeated hover playback so movement across buttons stays quiet.
 
 `assets.json` records file size, duration, encoding, and SHA-256 hashes.
-The five distributed audio files total about 2.32 MB. The drawing sound is
-about 0.18 MB.
+The five distributed audio files total about 2.54 MB. The drawing sound is
+about 0.40 MB.
