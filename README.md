@@ -50,7 +50,7 @@ Left hand is the default. The path follows the hand, not the physical wand tip. 
 
 Similar palm detections of the same hand are combined, even when finger estimates differ. Selection follows both palm and control-point motion. A short label change can keep the same hand selected for up to 250 ms. Gaps of up to 200 ms can resume within a movement limit based on recent speed. A gap is never counted as an end pause. Longer gaps cancel capture.
 
-Hold for about 0.3 seconds to start or finish. Small point movements are allowed during the hold. Capture starts after 4.5% image-width movement, with recent points kept for the start of the path. Capture stops after six seconds if no end pause is found.
+Hold for about 0.3 seconds to start or finish. After a successful cast, the end hold also prepares the next cast. No extra start hold is needed. Failed gestures, ignored moves, and tracking cancellations still require a new start hold. Small point movements are allowed during the hold. Capture starts after 4.5% image-width movement, with recent points kept for the start of the path. Capture stops after six seconds if no end pause is found.
 
 ## Go/no-go trial
 
@@ -65,7 +65,7 @@ The first useful decision is whether hand tracking and pause-based casting feel 
 ## Records and privacy
 
 - Results, timing, tracking-loss reasons, and input settings save to `play-data/events.jsonl`.
-- Version 2 records include tracking summaries each second: detected labels, label confidence, missing frames, label holds, wrong-hand frames, edge frames, and duplicate detections.
+- Version 3 records include tracking summaries each second: detected labels, label confidence, missing frames, label holds, wrong-hand frames, edge frames, and duplicate detections.
 - Gesture records include the cause, path size, point count, each shape distance, and each shape gate. Each shape has its own limit. Do not compare circle and V/Z distance values. Label confidence measures left/right certainty, not detection quality.
 - Spell records include the Expelliarmus distance, gate, limit, bend, and straightness. Records also include lesson state and count. Lesson controls, wand removal, and wand return save separate events.
 - V/Z records include stroke bend, straightness, fit limits, the V corner turn, Z orientation, and trimmed tail length. A reflected Z has a separate error message. An inward loop turn also has a separate message. Other failed matches show neutral advice. Each shape gate remains in the log.
@@ -115,6 +115,7 @@ Run `npm test`. The tests use Node.js built-in tools and the bundled runtime fil
 
 - Gesture tests check Circle/V/Z, rejected paths, tracking gaps, manual stops, and one cast per gesture.
 - Spell tests check accepted and rejected paths, speed, size, direction, tracking loss, and the narrow-corner Z regression.
+- Cast-flow tests check all 16 shape pairs without an extra start hold, fresh paths, duplicate casts, rejected moves, tracking loss, and control resets.
 - Lesson and dummy tests check the three-cast count, completion, reset, and two-second wand return.
 - Hand-input tests check hand selection, label changes, duplicate detections, and invalid input.
 - Runtime tests check file hashes and the three WASM binaries.
@@ -128,6 +129,6 @@ npx playwright-core install chromium
 npm run test:browser
 ```
 
-To use an existing Chromium browser, set `CHROMIUM_EXECUTABLE` to its executable path. The test starts its own server and uses simulated camera and hand input. It checks spell feedback, lesson controls, wand return, saved records, and desktop/mobile layout. Test records are removed when it finishes. Screenshots are saved in `.tmp/browser-check/`.
+To use an existing Chromium browser, set `CHROMIUM_EXECUTABLE` to its executable path. The test starts its own server and uses simulated camera and hand input. It checks immediate consecutive casts, duplicate casts, spell feedback, lesson controls, wand return, saved records, and desktop/mobile layout. Test records are removed when it finishes. Screenshots are saved in `.tmp/browser-check/`.
 
 All automated tests use simulated input. They do not replace a physical player trial.

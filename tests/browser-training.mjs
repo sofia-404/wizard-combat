@@ -41,7 +41,11 @@ try{
   window.Worker=class{
    postMessage(data){
     if(data.type==='init'){setTimeout(()=>this.onmessage({data:{type:'ready'}}),0);return;}
-    data.bitmap.close();const s=window.steps[Math.min(window.step++,window.steps.length-1)];
+    data.bitmap.close();
+    if(window.followUp&&parseInt(document.querySelector('#hits').textContent)>=window.followUp.afterHits){
+     window.steps=window.followUp.points;window.step=0;window.followUp=null;
+    }
+    const s=window.steps[Math.min(window.step++,window.steps.length-1)];
     let landmarks=s&&!s.missing?[Array.from({length:21},()=>({x:1-s.x,y:s.y/.75,z:0}))]:[];
     if(s?.duplicate&&landmarks.length)landmarks.push(landmarks[0].map(p=>({...p,x:p.x+.003})));
     setTimeout(()=>this.onmessage({data:{type:'result',t:data.t,inference:12,landmarks,handedness:landmarks.map(()=>[{categoryName:s.label||'Left',score:.55}])}}),2);
@@ -94,6 +98,20 @@ try{
  assert.equal(await page.locator('#camera').textContent(),'Start camera');
  await send(Array(20).fill(exp[0]));await page.locator('#camera').click();
  await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
+ // Start the next shape on the first camera frame after the accepted cast.
+ const pairStart=records.length,pairHits=parseInt(await page.locator('#hits').textContent());
+ const nextCircle=Array.from({length:40},(_,i)=>({x:.55+.1*(Math.cos(i/39*2*Math.PI)-1),y:.5+.1*Math.sin(i/39*2*Math.PI)}));
+ await page.evaluate(({exp,nextCircle,afterHits})=>{
+  window.steps=[...Array(18).fill(exp[0]),...exp,...Array(22).fill(exp.at(-1))];window.step=0;
+  window.followUp={afterHits,points:[...nextCircle,...Array(22).fill(nextCircle.at(-1))]};
+ },{exp,nextCircle,afterHits:pairHits+1});
+ await page.waitForFunction(hits=>parseInt(document.querySelector('#hits').textContent)===hits,pairHits+2);
+ await page.waitForFunction(()=>window.step>=window.steps.length&&document.querySelector('#phase').textContent==='READY');await saved();
+ assert.deepEqual(records.slice(pairStart).filter(e=>e.type==='cast').map(e=>e.shape),['Expelliarmus','Circle']);
+ assert.equal(records.slice(pairStart).filter(e=>e.cause==='dummy_disarm').length,1);
+ await expectState('active',1);
+ await page.waitForTimeout(700);assert.equal(parseInt(await page.locator('#hits').textContent()),pairHits+2);
+ await page.locator('#lessonStop').click();await page.locator('#lessonStart').click();await expectState('active',0);
  const circle=Array.from({length:50},(_,i)=>({x:.45+.15*Math.cos(i/49*Math.PI*2),y:.35+.15*Math.sin(i/49*Math.PI*2)}));
  for(const [shape,points] of [['Circle',circle],['V',resample([{x:.25,y:.2},{x:.4,y:.5},{x:.6,y:.2}],40)],['Z',resample([{x:.25,y:.2},{x:.6,y:.2},{x:.25,y:.45},{x:.6,y:.45}],40)]]){
   await draw(points,shape);await expectState('active',0);
@@ -160,9 +178,9 @@ try{
  await page.locator('#camera').click();await saved();
  assert.equal(errors.length,0,errors.join('\n'));
  const stored=(await readFile(path.join(folder,'play-data/events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
- for(const e of records.filter(e=>['dummy_disarm','dummy_return'].includes(e.cause)))assert.ok(stored.some(r=>r.id===e.id&&r.version===2));
- const finish=records.find(e=>e.cause==='lesson_finish');assert.ok(stored.some(e=>e.id===finish.id&&e.version===2));
- console.log(JSON.stringify({result:'PASS',checks:'disarm and two-second return; wand return with camera off; reset clears pending return; false casts and loss cause no disarm; saved dummy events; 3/3 complete stays visible; Finish lesson returns to free practice; Practice again resets; Stop lesson during training; camera controls remain separate; O/V/Z cannot advance; score/dummy unchanged; desktop/mobile; saved finish event',records:records.length}));
+ for(const e of records.filter(e=>['dummy_disarm','dummy_return'].includes(e.cause)))assert.ok(stored.some(r=>r.id===e.id&&r.version===3));
+ const finish=records.find(e=>e.cause==='lesson_finish');assert.ok(stored.some(e=>e.id===finish.id&&e.version===3));
+ console.log(JSON.stringify({result:'PASS',checks:'immediate Expelliarmus-to-Circle without a new hold; no duplicate cast while holding; disarm and two-second return; wand return with camera off; reset clears pending return; false casts and loss cause no disarm; saved dummy events; 3/3 complete stays visible; Finish lesson returns to free practice; Practice again resets; Stop lesson during training; camera controls remain separate; O/V/Z cannot advance; score/dummy unchanged; desktop/mobile; saved finish event',records:records.length}));
 }finally{
  await browser?.close();
  if(api&&api.exitCode===null&&api.signalCode===null){const exited=once(api,'exit');api.kill();await exited;}

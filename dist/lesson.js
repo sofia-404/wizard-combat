@@ -8,7 +8,7 @@ export class ExpelliarmusLesson{
     if(event.type==='cast'&&event.accepted&&event.shape==='Expelliarmus'){
       this.count++;
       if(this.count===3){this.state='complete';this.message='Lesson complete. Three correct Expelliarmus casts.';}
-      else this.message=`Correct. ${this.count} of 3 casts. Hold still, then try again.`;
+      else this.message=`Correct. ${this.count} of 3 casts. Draw the next spell.`;
     }else if(event.type==='cast')this.message=`That was ${event.shape}. Draw Expelliarmus: right, then down.`;
     else if(event.type==='cancel')this.message='No cast. '+event.reason;
     else if(event.type==='reject'||event.type==='ignored')this.message='No cast. Follow the path. Pause only at the end.';

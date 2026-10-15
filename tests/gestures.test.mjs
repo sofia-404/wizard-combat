@@ -55,7 +55,7 @@ test('straight paths, a reflected Z, and a square do not cast', () => {
     assert.equal(casts(capture(points)).length, 0);
   }
 });
-test('a successful cast clears capture and requires a new hold', () => {
+test('a successful cast clears capture and is ready for the next shape', () => {
   const events = [], controller = new GestureController(event => events.push(event));
   let time = 0;
   const put = point => controller.update(point, time += 33);
@@ -63,6 +63,6 @@ test('a successful cast clears capture and requires a new hold', () => {
   shapes.V.forEach(put);
   for (let i = 0; i < 20 && !casts(events).length; i++) put(shapes.V.at(-1));
   assert.equal(casts(events).length, 1);
-  assert.equal(controller.state, 'waiting');
+  assert.equal(controller.state, 'ready');
   assert.equal(controller.path.length, 0);
 });

@@ -127,7 +127,14 @@ export class GestureController{
       ...(timedOut?{reason:'No end pause. Hold still after the shape.',cause:'too_long'}:{}),
       path,duration:Math.round((path.at(-1)?.t||t)-this.startedAt),latency:Math.round(t-(path.at(-1)?.t||t)),
       diagnostics:{...result.diagnostics,...this.diagnostics(endRule,path)}});
+    const nextAnchor=this.recent.at(-1),last=this.last,raw=this.raw.slice();
     this.reset();
+    if(result.accepted&&endRule==='pause'){
+      // The end hold also prepares the next cast. Keep only a fresh start point.
+      this.state='ready';this.anchor={...nextAnchor};this.recent=[{...nextAnchor}];
+      this.raw=raw;this.last=last;this.lastT=t;
+      this.message='Ready. Draw one shape.';
+    }
   }
   update(p,t){
     if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)){this.missing(t);return;}

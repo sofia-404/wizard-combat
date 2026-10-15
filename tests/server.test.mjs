@@ -66,7 +66,7 @@ test('local server serves files and validates stored events and result cards', {
   assert.match(await page.text(), /<title>Wizard Combat<\/title>/);
   assert.equal((await fetch(base + 'api/events')).status, 405);
   assert.equal((await fetch(base + 'server.mjs')).status, 404);
-  const event = {id: randomUUID(), type: 'cast', shape: 'Expelliarmus', score: 90, version: 2,
+  const event = {id: randomUUID(), type: 'cast', shape: 'Expelliarmus', score: 90, version: 3,
     expelliarmusDistance: 0.01, expelliarmusGate: 'ok', expelliarmusLimit: 0.045,
     expelliarmusBend: 0.02, expelliarmusEfficiency: 0.95, lessonState: 'active', lessonCount: 1};
   assert.equal((await post('api/events', event)).status, 201);
