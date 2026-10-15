@@ -4,9 +4,9 @@ import {recognize, resample, GestureController} from '../dist/gesture.js';
 
 const line = pairs => resample(pairs.map(([x, y]) => ({x, y})), 45);
 const shapes = {
-  Circle: Array.from({length: 60}, (_, i) => ({x: .45 + .15 * Math.cos(i / 59 * Math.PI * 2), y: .35 + .15 * Math.sin(i / 59 * Math.PI * 2)})),
-  V: line([[.25, .2], [.4, .5], [.55, .2]]),
-  Z: line([[.25, .2], [.55, .2], [.25, .5], [.55, .5]])
+  Protego: Array.from({length: 60}, (_, i) => ({x: .45 + .15 * Math.cos(i / 59 * Math.PI * 2), y: .35 + .15 * Math.sin(i / 59 * Math.PI * 2)})),
+  'Basic Cast': line([[.25, .2], [.4, .5], [.55, .2]]),
+  Confringo: line([[.25, .2], [.55, .2], [.25, .5], [.55, .5]])
 };
 function capture(points, {step = 33, gapAt = -1, gapFrames = 0, stop = false} = {}) {
   const events = [], controller = new GestureController(event => events.push(event));
@@ -45,10 +45,10 @@ for (const [shape, points] of Object.entries(shapes)) {
     assert.ok(events.some(event => event.type === 'cancel' && event.diagnostics.endRule === 'stop'));
   });
 }
-test('straight paths, a reflected Z, and a square do not cast', () => {
+test('straight paths, a reflected Confringo, and a square do not cast', () => {
   for (const points of [
     line([[.2, .2], [.6, .2]]), line([[.2, .2], [.6, .6]]),
-    shapes.Z.map(point => ({x: 1 - point.x, y: point.y})),
+    shapes.Confringo.map(point => ({x: 1 - point.x, y: point.y})),
     line([[.2, .2], [.5, .2], [.5, .5], [.2, .5], [.2, .2]])
   ]) {
     assert.equal(recognize(points).accepted, false);
@@ -59,9 +59,9 @@ test('a successful cast clears capture and is ready for the next shape', () => {
   const events = [], controller = new GestureController(event => events.push(event));
   let time = 0;
   const put = point => controller.update(point, time += 33);
-  for (let i = 0; i < 20; i++) put(shapes.V[0]);
-  shapes.V.forEach(put);
-  for (let i = 0; i < 20 && !casts(events).length; i++) put(shapes.V.at(-1));
+  for (let i = 0; i < 20; i++) put(shapes['Basic Cast'][0]);
+  shapes['Basic Cast'].forEach(put);
+  for (let i = 0; i < 20 && !casts(events).length; i++) put(shapes['Basic Cast'].at(-1));
   assert.equal(casts(events).length, 1);
   assert.equal(controller.state, 'ready');
   assert.equal(controller.path.length, 0);

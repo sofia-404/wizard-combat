@@ -17,21 +17,22 @@ export const checkers = Object.freeze({
       priority: 2, cause: 'inward_turn', reason: 'Loop turns inward. Draw a round loop.'
     } : null};
   },
-  valley(context) {
+  valley(context, spell) {
     loop(context);
     const fit = {...strokes(context).V};
     const turn = Math.round(fit.cornerTurn || 0);
-    context.diagnostics.vCornerTurn = turn;
+    context.diagnostics[spell.gesture.diagnosticKey+'CornerTurn'] = turn;
     if (fit.gate === 'ok' && context.diagnostics.circleCoverage < 210 && turn < 45) fit.gate = 'rounded_arc';
     return fit;
   },
-  zigzag(context) {
+  zigzag(context, spell) {
     const fit = strokes(context).Z;
+    const key = spell.gesture.diagnosticKey;
     Object.assign(context.diagnostics, {
-      strokeMatcher: 'ordered_segments', zOrientation: fit.orientation || 'unknown', zTrim: +(fit.trim || 0).toFixed(3)
+      strokeMatcher: 'ordered_segments', [key+'Orientation']: fit.orientation || 'unknown', [key+'Trim']: +(fit.trim || 0).toFixed(3)
     });
     return {...fit, failure: fit.gate === 'z_orientation' ? {
-      priority: 1, cause: 'z_orientation', reason: 'Z is reversed. Follow the Z shown.'
+      priority: 1, cause: 'z_orientation', reason: `${spell.label} is mirrored. Follow the shown path.`
     } : null};
   },
   'ordered-corner': context => matchOrderedCorner(context.sample, context.b)

@@ -10,7 +10,7 @@ const cast=shape=>({type:'cast',accepted:true,shape});
 lesson.update(cast('Expelliarmus'));assert.equal(lesson.count,0,'free practice must not count');
 lesson.start();assert.equal(lesson.state,'active');
 lesson.update(cast('Expelliarmus'));assert.equal(lesson.count,1);
-for(const shape of ['Circle','V','Z']){
+for(const shape of ['Protego','Basic Cast','Confringo']){
   lesson.update(cast(shape));assert.equal(lesson.count,1,shape+' must not advance');
 }
 for(const event of [{type:'cast',shape:'Expelliarmus',accepted:false},{type:'reject'},
@@ -20,7 +20,7 @@ for(const event of [{type:'cast',shape:'Expelliarmus',accepted:false},{type:'rej
 lesson.update(cast('Expelliarmus'));assert.equal(lesson.count,2);assert.equal(lesson.state,'active');
 lesson.update(cast('Expelliarmus'));assert.equal(lesson.count,3);assert.equal(lesson.state,'complete');
 const completeMessage=lesson.message;
-for(const shape of ['Expelliarmus','Circle','V','Z'])lesson.update(cast(shape));
+for(const shape of ['Expelliarmus','Protego','Basic Cast','Confringo'])lesson.update(cast(shape));
 assert.equal(lesson.count,3);assert.equal(lesson.message,completeMessage);
 lesson.start();assert.equal(lesson.count,0);assert.equal(lesson.state,'active');
 lesson.stop();lesson.update(cast('Expelliarmus'));assert.equal(lesson.count,0);assert.equal(lesson.state,'idle');

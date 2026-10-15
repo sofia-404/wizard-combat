@@ -1,4 +1,5 @@
 import {spellColor} from './presentation/spell-color.js';
+import {spellForShape} from './spells/index.js';
 
 // Positions use the source artwork coordinates, so effects follow the image at any size.
 const START = {x: 560, y: 374};
@@ -58,6 +59,7 @@ export function createSpellEffects(svg, onImpact) {
 
   return {
     cast(cast) {
+      if (spellForShape(cast.shape)?.visuals.cast === 'shield') return;
       const group = element('g', {'data-spell': cast.shape, 'data-phase': 'flight', class: 'duel-spell'}, svg);
       const color = spellColor(cast.shape);
       const trail = element('line', {x1: START.x, y1: START.y, x2: START.x, y2: START.y, stroke: color, 'stroke-width': 7, 'stroke-linecap': 'round'}, group);

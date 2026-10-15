@@ -8,7 +8,7 @@ test('Disarm timing and gesture integration', () => {
 const dummy=new TrainingDummy(),exp={type:'cast',accepted:true,shape:'Expelliarmus'};
 assert.equal(dummy.disarmed,false);
 for(const event of [
-  ...['Circle','V','Z'].map(shape=>({...exp,shape})),
+  ...['Protego','Basic Cast','Confringo'].map(shape=>({...exp,shape})),
   ...['reject','ignored','cancel','capture'].map(type=>({...exp,type})),
   {...exp,accepted:false}
 ]){
@@ -22,7 +22,7 @@ assert.equal(dummy.restore(2100),true);
 assert.equal(dummy.restore(2101),false,'return occurs once');
 dummy.cast(exp,3000);dummy.cast(exp,4000);
 assert.equal(dummy.restore(5000),false,'another Expelliarmus restarts the wait');
-dummy.cast({...exp,shape:'V'},5500);
+dummy.cast({...exp,shape:'Basic Cast'},5500);
 dummy.cast({...exp,type:'cancel'},5900);
 assert.equal(dummy.restore(6000),true,'other events do not extend the wait');
 dummy.cast(exp,7000);dummy.reset();
@@ -52,5 +52,5 @@ for(const shape of [
 const lost=run(points,true);
 assert.equal(lost.disarms,0);assert.ok(lost.events.some(e=>e.type==='cancel'));
 assert.equal(run(points).disarms,1,'casting recovers after loss');
-console.log('PASS: dummy disarm, two-second return, repeat cast, reset, O/V/Z, false casts, tracking loss, and recovery.');
+console.log('PASS: dummy disarm, two-second return, repeat cast, reset, Protego/Basic Cast/Confringo, false casts, tracking loss, and recovery.');
 });

@@ -14,7 +14,7 @@ Working assumption: one player uses a desktop or laptop camera at home or in a d
 
 ## Product Purpose
 
-Make deliberate hand movements feel like casting spells. The current prototype tests whether tracking and pause-based casting are usable. A successful training lesson is three correct Expelliarmus casts.
+Make deliberate hand movements feel like casting spells. The current prototype tests whether tracking and pause-based casting are usable. A successful lesson is three correct casts of the selected spell. The separate Practice lesson still teaches Expelliarmus.
 
 ## Positioning
 
@@ -32,14 +32,19 @@ Hold -> Ready -> Draw -> Pause -> Match -> Cast
 
 ## Capabilities and Constraints
 
-- Current accepted shapes: Circle, V, Z, and Expelliarmus.
+- Current accepted shapes and spells: Protego, Basic Cast, Confringo, and Expelliarmus.
+- Protego keeps the existing circle gesture in either direction. It causes no damage. A transparent cyan sphere protects the caster for three seconds; another cast restarts the timer. Practice and Duel have separate shield states. Shield damage blocking is implemented and tested, but the static dummy still does not attack.
+- Basic Cast uses the existing down-then-up path. It can start at either end. Its violet color, damage, and flinch stay unchanged. This project defines the movement; it is not a lore-defined spell diagram.
+- Confringo uses the existing three-stroke zigzag: right, diagonally down-left, then right. It can start at either end. Mirrored paths are rejected. Its Duel flight, impact, and hit glow are red (`#ef4444`). Damage and the Duel shake are unchanged.
 - Expelliarmus is right, then down in screen coordinates, with the same direction for either hand. Pause at the end, not at the corner.
-- Training requires three correct Expelliarmus casts. Other casts, rejected paths, and tracking losses do not increase the count.
+- Training is a separate tab with a spell selector, path guide, a progress bar, and a learned message. Each spell has its own lesson and count. Only correct casts of the selected spell increase its active lesson count. Other accepted spells still show their normal effects. Rejected paths and tracking losses do not increase the count.
+- Training reuses the existing spell travel, dummy reactions, two-second wand return, and three-second Protego shield. Protego does not hit the dummy. Training has no health or defeat state. Its progress and learned marks survive spell changes, tab changes, and camera stops. Reloading clears them; there is no saved progress restoration.
 - In Practice, Expelliarmus removes the stationary dummy's wand for two seconds. Another accepted Expelliarmus cast restarts that timer.
+- In Duel, Expelliarmus drops the wand at impact. It returns after two seconds. Another Expelliarmus hit restarts the timer. The timer continues when the camera stops or the view changes. Reset dummy returns the wand at once. Practice behavior stays unchanged.
 - Camera controls and lesson controls work separately. Stopping the camera preserves lesson progress.
 - The current page includes developer diagnostics, timing, result cards, and session counters.
-- Camera images, video, and raw point sequences are not saved. Local records include results, timing, settings, tracking reasons, and drawings of captured paths.
-- Practice and Duel share one camera, detector, input settings, and Practice session, including lesson progress.
+- Camera images, video, and raw point sequences are not saved. Practice and Duel records include results, timing, settings, tracking reasons, and path drawings. Training saves scalar result and lesson-control records without path cards.
+- Practice, Duel, and Training share one camera, detector, and input settings. Practice and Duel share the Practice session and its Expelliarmus lesson. Training has separate lesson progress and does not change Practice counters or Duel health.
 - Duel implements a static target with health, spell travel, hit reactions, defeat, and reset. The dummy does not attack. Health and hit counts are separate from Practice and reset on page reload. See `README.md` for the current rules and `docs/spells.md` for shared spell definitions.
 - Duel events use the existing local record queue. Cast IDs link launches, hits, cancellations, and defeat to the gesture record. There is no database or saved health restoration.
 - Main-menu navigation and a full fight experience remain proposed. Opponent attacks, multiplayer, progression, audio, player defeat, and full-fight win conditions remain undecided.
@@ -56,6 +61,7 @@ The brandbook, reusable design assets, and screen specifications define the targ
 
 - `README.md`: current controls, privacy behavior, test instructions, and limitations.
 - `dist/index.html`, `dist/style.css`, and `dist/app.js`: implemented prototype.
+- `dist/training.js`, `dist/training.css`, and `dist/training/session.js`: separate Training tab, guides, effects, and per-spell progress.
 - `dist/training/lesson.js` and `dist/combat/training-dummy.js`: Practice lesson and target states. Old top-level modules remain compatibility exports.
 - `dist/spells/`, `dist/gestures/`, and `dist/combat/`: shared definitions, recognition checks, and cast effects.
 - `dist/duel.js`, `dist/duel-health.js`, `dist/duel-effects.js`, and `dist/duel-reactions.js`: implemented Duel behavior.

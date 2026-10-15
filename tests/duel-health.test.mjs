@@ -18,6 +18,7 @@ test('Duel uses the registered spell damage and keeps score validation and fallb
       assert.equal(damageForAccuracy(score,spell.label),expected);
       const health = new DuelHealth();
       const shot = health.launch({id:'registered',shape:spell.label,score,damage:999});
+      if(!expected){assert.equal(shot,null);continue;}
       assert.equal(shot.damage,expected,'ignore caller-supplied damage');
       assert.equal(health.hits,0,'launch must not apply damage');
       assert.equal(health.hit(shot).damage,expected);
@@ -34,7 +35,7 @@ test('Duel uses the registered spell damage and keeps score validation and fallb
 
 test('health changes at impact once; the static dummy cannot hurt the player', () => {
   const health = new DuelHealth();
-  const cast = {id:'first',shape:'Circle',score:78,damage:999};
+  const cast = {id:'first',shape:'Basic Cast',score:78,damage:999};
   const shot = health.launch(cast);
   assert.equal(health.dummy,200);
   assert.equal(health.launch(cast),null);

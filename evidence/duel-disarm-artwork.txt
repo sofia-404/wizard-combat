@@ -1,0 +1,10 @@
+Method: built-in image_gen tool. Two edits of dist/assets/duel-dummy.png.
+Character: dist/assets/duel-dummy-unarmed.png. Original canvas and pose, with an empty hand.
+Wand: dist/assets/duel-wand.png. Separate transparent item.
+The original character image is kept. Practice assets are unchanged.
+
+Character prompt:
+Edit this existing game character sprite with one precise change: remove ONLY the wand held in her left-side hand, including the entire wand and grip. Keep the hand in exactly its current position but naturally empty. Preserve the woman's exact face, hair, clothes, boots, pose, lighting, full-body silhouette, exact scale and placement on the 1024x1536 canvas. No cropping, no zoom, no pose change, no new objects. Make outside the character fully transparent with clean alpha edges, no backdrop or shadow halo. This must overlay the existing sprite without character jumps. Output one PNG character without any wand, full original canvas.
+
+Wand prompt:
+Extract ONLY the handheld wand from this game character image into a separate transparent PNG asset. Keep exactly the same wand design, color, texture, lighting, length and angle as reference: slim dark carved wooden grip at upper right pointing diagonally down left to a fine tip. Include full grip normally obscured by the fingers, but absolutely no hand, no fingers, no character, no robes, no scene and no glow. Center the entire wand in a tightly fitted portrait canvas with a small transparent margin. Actual fully transparent background. This is an isolated realistic game item for compositing back into the character's hand.

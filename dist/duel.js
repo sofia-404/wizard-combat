@@ -2,7 +2,10 @@ import {createSpellEffects} from './duel-effects.js';
 import {DuelHealth, MAX_HEALTH} from './duel-health.js';
 import {createDummyReactions} from './duel-reactions.js';
 import {createGestureMirror} from './duel-gesture.js';
-import {record} from './app.js';
+import {createDuelDisarm} from './duel-disarm.js';
+import {record, cancelGestureCapture} from './app.js';
+import {createShieldView} from './presentation/shield-view.js';
+import {spellColor} from './presentation/spell-color.js';
 
 const $ = id => document.getElementById(id);
 const tabs = [...document.querySelectorAll('.view-tab')];
@@ -12,11 +15,34 @@ viewport.before(practiceSlot);
 let lastCastId = null;
 let resetNotice = false;
 const health = new DuelHealth();
+let timeRemaining = 100000;
+let timerDeadline = null;
+let timerTick;
+function renderTimer() {
+  if (timerDeadline !== null) timeRemaining = Math.max(0, timerDeadline - performance.now());
+  const text = String(Math.ceil(timeRemaining / 1000));
+  if ($('duelTimer').textContent !== text) $('duelTimer').textContent = text;
+  if (!timeRemaining) { clearInterval(timerTick); timerDeadline = null; }
+}
+function pauseTimer() {
+  renderTimer();
+  clearInterval(timerTick);
+  timerDeadline = null;
+}
+function syncTimer() {
+  pauseTimer();
+  if (!$('duelView').hidden && !document.hidden && !health.defeated && timeRemaining > 0) {
+    timerDeadline = performance.now() + timeRemaining;
+    timerTick = setInterval(renderTimer, 100);
+  }
+}
+const shieldView = createShieldView($('duelShield'), $('duelShieldStatus'), health.shield, {cx:295, cy:520, rx:260, ry:325});
 function logDuel(cause, data = {}) {
   record({type: 'duel', source: 'duel', cause, playerHealth: health.player,
     dummyHealth: health.dummy, maxHealth: MAX_HEALTH, hits: health.hits, ...data});
 }
 const dummyReactions = createDummyReactions($('duelDummyActor'));
+const dummyDisarm = createDuelDisarm($('duelDummyActor'), $('duelWandStatus'));
 const gestureMirror = createGestureMirror({
   source: $('overlay'), target: $('duelGesture'), video: $('video'), panel: $('duelView'),
   phase: $('phase'), instruction: $('instruction'), result: $('duelCastStatus'),
@@ -27,11 +53,13 @@ const effects = createSpellEffects($('duelEffects'), cast => {
   const castToHitMs = Math.round(performance.now() - cast.launchedAt);
   const hit = health.hit(cast);
   if (!hit) return;
+  dummyDisarm.hit(cast);
   dummyReactions.react(cast.shape, hit.defeated);
   renderHealth();
   logDuel('hit', {castId: cast.id, shape: cast.shape, score: cast.score,
     castToHitMs, damage: hit.damage, previousDummyHealth});
   if (health.defeated) {
+    pauseTimer();
     effects.cancelFlights();
     showDefeat();
     logDuel('defeat', {castId: cast.id});
@@ -68,7 +96,12 @@ $('duelResetDummy').addEventListener('click', () => {
   const previousDummyHealth = health.dummy;
   clearEffects('dummy_reset');
   health.resetDummy();
+  pauseTimer();
+  timeRemaining = 100000;
+  syncTimer();
+  shieldView.refresh();
   dummyReactions.reset();
+  dummyDisarm.reset();
   renderHealth();
   resetNotice = true;
   syncControls();
@@ -77,22 +110,30 @@ $('duelResetDummy').addEventListener('click', () => {
 
 function selectTab(tab, focus = false) {
   const duel = tab.id === 'duelTab';
-  const previousTab = $('duelView').hidden ? 'practice' : 'duel';
+  const training = tab.id === 'trainingTab';
+  const previousTab = tabs.find(item => item.getAttribute('aria-selected') === 'true').id.replace('Tab', '');
+  if (training || previousTab === 'training') cancelGestureCapture('View changed. Hold still to start.');
   // Move the same video and overlay. Keep one stream, worker, and detector.
   if (duel) $('duelCameraMount').append(viewport);
+  else if (training) $('trainingCameraMount').append(viewport);
   else practiceSlot.after(viewport);
   clearEffects('tab_change');
+  dummyDisarm.refresh();
+  shieldView.refresh();
   for (const item of tabs) {
     const selected = item === tab;
     item.setAttribute('aria-selected', String(selected));
     item.tabIndex = selected ? 0 : -1;
     $(item.getAttribute('aria-controls')).hidden = !selected;
   }
-  document.body.classList.toggle('duel-open', duel);
+  document.body.classList.toggle('duel-open', duel || training);
+  syncTimer();
+  document.body.classList.toggle('training-open', training);
+  document.dispatchEvent(new CustomEvent('wizard:view', {detail: {view: training ? 'training' : duel ? 'duel' : 'practice'}}));
   if (duel) gestureMirror.start();
   else gestureMirror.stop();
   syncControls();
-  if (previousTab !== (duel ? 'duel' : 'practice')) logDuel('tab_change', {previousTab});
+  if (previousTab !== (training ? 'training' : duel ? 'duel' : 'practice')) logDuel('tab_change', {previousTab});
   if (focus) tab.focus();
 }
 
@@ -163,6 +204,16 @@ for (const id of ['lastReason', 'lastShape', 'score', 'resultTag']) {
 
 document.addEventListener('wizard:cast', ({detail: cast}) => {
   if ($('duelView').hidden || document.hidden) return;
+  const now = performance.now();
+  if (health.protect(cast, now)) {
+    resetNotice = false;
+    lastCastId = cast.id;
+    shieldView.refresh(spellColor(cast.shape));
+    $('duelCastStatus').textContent = `${cast.shape} cast · ${(health.shield.expiresAt-now)/1000}-second shield`;
+    logDuel('shield', {castId: cast.id, shape: cast.shape, score: cast.score, damage: 0,
+      duration: health.shield.expiresAt-now});
+    return;
+  }
   const shot = health.launch({...cast, launchedAt: performance.now()});
   if (!shot) return;
   resetNotice = false;
@@ -171,12 +222,16 @@ document.addEventListener('wizard:cast', ({detail: cast}) => {
   effects.cast(shot);
   logDuel('cast', {castId: shot.id, shape: shot.shape, score: shot.score, damage: shot.damage});
 });
-$('reset').addEventListener('click', () => clearEffects('practice_reset'));
+$('reset').addEventListener('click', () => { clearEffects('practice_reset'); shieldView.clear(); });
 document.addEventListener('visibilitychange', () => {
+  syncTimer();
+  shieldView.refresh();
+  dummyDisarm.refresh();
   if (document.hidden) { clearEffects('page_hidden'); gestureMirror.stop(); }
   else gestureMirror.start();
 });
-window.addEventListener('pagehide', () => { clearEffects('page_hidden'); gestureMirror.stop(); });
+window.addEventListener('pagehide', () => { pauseTimer(); clearEffects('page_hidden'); gestureMirror.stop(); });
+window.addEventListener('pageshow', () => { syncTimer(); dummyDisarm.refresh(); shieldView.refresh(); });
 renderHealth();
 syncControls();
 logDuel('view_init');

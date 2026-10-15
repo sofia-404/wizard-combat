@@ -10,7 +10,8 @@
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser-training.mjs",
-    "test:duel": "node tests/browser-duel.mjs"
+    "test:duel": "node tests/browser-duel.mjs",
+    "test:training": "node tests/browser-training-tab.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.63.0"

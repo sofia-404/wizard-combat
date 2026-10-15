@@ -79,8 +79,24 @@ test('local server serves files and validates stored events and result cards', {
     dummyHealth: 170, previousDummyHealth: 200, maxHealth: 200, damage: 30, hits: 1};
   assert.equal((await post('api/events', duel)).status, 201);
   assert.equal((await post('api/events', {...duel, unexpected: 'value'})).status, 400);
+  const confringo = {id: randomUUID(), type: 'cast', shape: 'Confringo', expected: 'Confringo', score: 90,
+    matchCandidates: 'Confringo', confringoDistance: .01, confringoGate: 'ok', confringoLimit: .045,
+    confringoBend: .02, confringoEfficiency: .95, confringoOrientation: 'normal', confringoTrim: 0};
+  assert.equal((await post('api/events', confringo)).status, 201);
+  const basiccast = {id: randomUUID(), type: 'cast', shape: 'Basic Cast', expected: 'Basic Cast', score: 90,
+    matchCandidates: 'Basic Cast', basiccastDistance: .01, basiccastGate: 'ok', basiccastLimit: .065,
+    basiccastBend: .02, basiccastEfficiency: .95, basiccastCornerTurn: 125};
+  assert.equal((await post('api/events', basiccast)).status, 201);
+  const legacyV = {id: randomUUID(), type: 'cast', shape: 'V', vDistance: .01, vGate: 'ok', vCornerTurn: 125};
+  assert.equal((await post('api/events', legacyV)).status, 201);
+  const protego = {id: randomUUID(), type: 'cast', shape: 'Protego', expected: 'Protego', score: 90,
+    matchCandidates: 'Protego', protegoDistance: .01, protegoGate: 'ok'};
+  assert.equal((await post('api/events', protego)).status, 201);
+  const shield = {id: randomUUID(), type: 'duel', cause: 'shield', shape: 'Protego',
+    castId: protego.id, damage: 0, duration: 3000, playerHealth: 200, dummyHealth: 200, hits: 0};
+  assert.equal((await post('api/events', shield)).status, 201);
   const records = (await readFile(path.join(folder, 'play-data/events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
-  assert.deepEqual(records, [event, duel]);
+  assert.deepEqual(records, [event, duel, confringo, basiccast, legacyV, protego, shield]);
   const bytes = png(720, 440), card = {id: event.id, png: 'data:image/png;base64,' + bytes.toString('base64')};
   assert.equal((await post('api/results', card)).status, 201);
   assert.deepEqual(await readFile(path.join(folder, 'play-data/results', event.id + '.png')), bytes);

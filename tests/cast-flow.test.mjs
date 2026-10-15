@@ -9,9 +9,9 @@ test('Consecutive casts, fresh paths, and recovery', () => {
 const line=pairs=>resample(pairs.map(([x,y])=>({x,y})),40);
 const shapes={
   Expelliarmus:line([[0,0],[.24,0],[.24,.24]]),
-  V:line([[0,0],[.12,.24],[.24,0]]),
-  Z:line([[0,0],[.24,0],[0,.24],[.24,.24]]),
-  Circle:Array.from({length:50},(_,i)=>({x:.1*(Math.cos(i/49*2*Math.PI)-1),y:.1*Math.sin(i/49*2*Math.PI)}))
+  'Basic Cast':line([[0,0],[.12,.24],[.24,0]]),
+  Confringo:line([[0,0],[.24,0],[0,.24],[.24,.24]]),
+  Protego:Array.from({length:50},(_,i)=>({x:.1*(Math.cos(i/49*2*Math.PI)-1),y:.1*Math.sin(i/49*2*Math.PI)}))
 };
 const place=(points,p)=>points.map(q=>({x:q.x+p.x,y:q.y+p.y}));
 function trial(){

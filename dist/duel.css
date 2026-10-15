@@ -32,9 +32,7 @@ body.duel-open{background:#10181d;color:#ede9df;min-height:100vh;min-height:100s
 .fighter-dummy .fighter-role{color:#ddcbb4}
 .fighter-dummy .fighter-rule{background:linear-gradient(90deg,#e3a66b10,#e3a66b)}
 .fighter-dummy .fighter-detail{color:#ddcbb4}
-.arena-emblem{align-self:start;display:flex;align-items:center;flex-direction:column;gap:8px;color:#ddc494;font-size:7px;letter-spacing:2px;padding-top:4px}
-.arena-emblem>span:first-child{display:grid;place-items:center;border:1px solid #c6a66e77;outline:1px solid #c6a66e33;outline-offset:4px;width:43px;height:43px;transform:rotate(45deg);font-size:24px;background:#10182099}
-.arena-emblem>span:last-child{margin-top:8px}
+.duel-timer{visibility:hidden;align-self:start;justify-self:center;display:grid;place-items:center;width:42px;height:42px;margin-top:36px;border:2px solid #c6a66e;border-radius:50%;background:#101820;color:#ede9df;font-size:14px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
 .arena-caption{position:absolute;bottom:23px;left:32px;right:32px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#d9e0e3;font-size:8px;letter-spacing:2px;font-weight:600}
 .arena-caption>span{display:flex;align-items:center;gap:8px}
 .arena-caption i{width:5px;height:5px;border-radius:50%;background:#91cce9;box-shadow:0 0 10px #91cce970}
@@ -49,7 +47,7 @@ body.duel-open{background:#10181d;color:#ede9df;min-height:100vh;min-height:100s
 .duel-back:hover{background:#ffffff12;border-color:#c5ad7e}
 @media(min-width:1600px){.duel-open main{padding-top:30px}}
 @media(max-width:900px){.duel-hud{padding:22px;gap:18px;grid-template-columns:1fr 65px 1fr}.fighter-card strong{font-size:23px}.duel-heading h2{font-size:25px}.arena-caption{left:22px;right:22px;bottom:18px}.duel-bottom{align-items:flex-start}}
-@media(max-width:600px){.duel-heading{flex-wrap:wrap;gap:14px;margin:21px 0 18px}.duel-heading h2{font-size:25px}.duel-mode{font-size:10px;padding:7px 10px}.duel-hud{grid-template-columns:1fr 1fr;padding:14px 12px;gap:16px}.arena-emblem{display:none}.fighter-role{font-size:6px;letter-spacing:1px}.fighter-card strong{font-size:17px;margin:4px 0 8px}.fighter-detail{display:none}.fighter-rule{height:2px}.arena-caption{bottom:12px;left:12px;right:12px;font-size:6px;letter-spacing:1px}.arena-caption .arena-location{display:none}.arena-caption>span{gap:5px}.duel-bottom{flex-direction:column;gap:16px;padding-top:20px}.duel-note{align-items:flex-start}.duel-back{width:100%;justify-content:center}.view-tab{padding:0 16px}}
+@media(max-width:600px){.duel-heading{flex-wrap:wrap;gap:14px;margin:21px 0 18px}.duel-heading h2{font-size:25px}.duel-mode{font-size:10px;padding:7px 10px}.duel-hud{grid-template-columns:1fr 40px 1fr;padding:14px 12px;gap:8px}.duel-timer{width:40px;height:40px;margin-top:17px;font-size:14px}.fighter-role{font-size:6px;letter-spacing:1px}.fighter-card strong{font-size:17px;margin:4px 0 8px}.fighter-detail{display:none}.fighter-rule{height:2px}.arena-caption{bottom:12px;left:12px;right:12px;font-size:6px;letter-spacing:1px}.arena-caption .arena-location{display:none}.arena-caption>span{gap:5px}.duel-bottom{flex-direction:column;gap:16px;padding-top:20px}.duel-note{align-items:flex-start}.duel-back{width:100%;justify-content:center}.view-tab{padding:0 16px}}
 
 /* Live Duel controls use the existing camera view and input handlers. */
 .duel-controls{display:flex;align-items:end;flex-wrap:wrap;gap:14px;padding:16px;margin-bottom:18px;background:#18242b;border:1px solid #ffffff1c;border-radius:7px}
@@ -101,6 +99,16 @@ body.duel-open{background:#10181d;color:#ede9df;min-height:100vh;min-height:100s
 /* The dummy is a separate transparent image; the arena and player stay still. */
 .duel-actors{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #duelDummyActor{transform-box:view-box;transform-origin:1404px 773px}
+#duelDummyWand{transform-box:view-box;transform-origin:1348px 534px;transform:translate(0,0) rotate(0deg)}
+#duelDummyActor[data-disarmed="true"] #duelDummyWand{transform:translate(-35px,230px) rotate(54deg);animation:duel-wand-drop 520ms ease-out}
+@keyframes duel-wand-drop{
+  0%{transform:translate(0,0) rotate(0deg)}
+  18%{transform:translate(-10px,-6px) rotate(8deg);animation-timing-function:cubic-bezier(.55,0,1,1)}
+  84%{transform:translate(-34px,230px) rotate(54deg);animation-timing-function:ease-out}
+  92%{transform:translate(-35px,225px) rotate(56deg);animation-timing-function:ease-in}
+  100%{transform:translate(-35px,230px) rotate(54deg)}
+}
+@media(prefers-reduced-motion:reduce){#duelDummyActor[data-disarmed="true"] #duelDummyWand{animation:none}}
 .is-defeated .duel-dummy-shadow{transform:translate(-160px,0) scaleX(1.3);transform-box:fill-box;transform-origin:center}
 
 .duel-battlefield{min-width:0}

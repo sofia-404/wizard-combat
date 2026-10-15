@@ -1,6 +1,6 @@
 # Each screen gives the player one clear next action.
 
-These are target UI specifications. The game implements camera input, free practice, a three-cast lesson, and a static-dummy Duel with health, hit reactions, defeat, and reset. Menu and full fight mode remain proposed surfaces. Applying these visual rules to Practice and Duel is a separate migration. The brandbook illustrations use synthetic state and must say so outside their frames.
+These specifications separate implemented surfaces from target concepts. The game implements camera input, free practice, the original Expelliarmus lesson, a separate Training tab for all four spells, and a static-dummy Duel with health, hit reactions, defeat, and reset. Menu and full fight mode remain proposed surfaces. Applying these visual rules to Practice and Duel is a separate migration. The brandbook illustrations use synthetic state and must say so outside their frames.
 
 ## Shared rules
 
@@ -33,45 +33,36 @@ Settings contain drawing hand, input point, reduced-motion preference when avail
 
 States: first use, returning user, focus/hover, unavailable feature, camera permission requested, camera blocked, camera unavailable. Do not invent persistent progression or a “Continue campaign” action.
 
-## Training
+## Implemented Training
 
-Purpose: learn one movement and complete three correct casts.
+Purpose: select one spell and complete three correct casts. The tab order is Practice, Duel, Training. Arrow keys cycle tabs; Home and End select the first and last tab.
 
 ```text
-Back   TRAINING                           Camera / hand status
+Practice | Duel | Training
+Camera / hand / track point / labels
 -------------------------------------------------------------
-                      | Spell guide: start -> right -> down
-   CAMERA / PLAY      | Keep moving at the corner.
-   FIELD              | Pause at the end.
-                      |
-   Live path          | Correct casts: 0 / 3
-   Target response    | Start / Stop lesson
+ARENA + LIVE PATH               | Mirrored camera
+Wizard -> static dummy         | Spell selector
+Input state and cast result    | Practice-style spell guide
+Wand / shield status           | Correct casts: 0 / 3
+                               | Start / Stop lesson
 -------------------------------------------------------------
-READY: Hold still     | Optional setup and diagnostics
+Camera and lesson notes
 ```
 
-The live camera/play field is the largest region. Keep a compact diagram visible beside it. Show the actual Expelliarmus direction for both hands. Start and stop controls must retain their existing separate camera and lesson meanings. At 3/3 show “Lesson complete” with “Practice again” and “Finish lesson.”
+Training reuses the existing Duel layout, fonts, controls, and arena styles. The arena stays on the left. The camera and lesson stay in the right column. Narrow layouts use Duel's existing stacking rules. The illustrated arena contains the transparent live path, not camera pixels. The same mirrored camera preview moves between tabs. There is one camera and detector. Training does not apply the brandbook design to the game.
 
-The current prototype shows the target separately from the camera. The concept may place a stylized target within an illustrated play area, but an actual migration must choose and implement the composition honestly; it cannot imply existing camera compositing.
+The spell selector uses the shared spell registry. The Expelliarmus diagram is a copy of the Practice lesson diagram. Other spell diagrams use the same Practice path, ring, arrow, start, and end styles. Protego, Basic Cast, Confringo, and Expelliarmus keep their existing directions and recognition rules. Start and stop camera controls are separate from lesson controls. Only correct selected-spell casts increase the active lesson count. Wrong accepted spells show their normal effects without a count increase. Rejections and tracking loss do not count.
 
-| State | Player text | Visual rule |
-| --- | --- | --- |
-| Camera off | Start the camera to begin. | Quiet field and primary camera action |
-| Camera starting | Starting camera… | Stable status, no fake progress percentage |
-| Hand absent | Show your selected hand. | Hand outline plus text |
-| Ready | Hold still, then draw. | Cyan start marker plus READY label |
-| Capturing | Keep moving. | One cyan live trace |
-| End hold | Pause to cast. | Stable terminal cue |
-| Accepted | Spell cast. | Brief local impact and count update |
-| Rejected | Follow the shown path and try again. | Path remains visible; specific reason when known |
-| Tracking lost | Hand lost. Bring it back into view. | Cancel cue; do not count a failed cast |
-| Wrong hand | Show your selected hand. | Selected hand named in setup |
-| Ignored return | Ready for the next movement. | Quiet feedback, no attempt increment |
-| Complete | Three correct casts. Lesson complete. | 3/3 and two next actions |
+At 3/3, show the spell's learned message, a full progress bar, and the learned total. **Practice again** starts that spell at zero. **Stop lesson** or **Finish lesson** clears its current count. Learned marks remain. Each spell keeps its own state across spell changes, tab changes, and camera stops. Reload clears all Training progress. It is not restored from local records. Practice keeps its original Expelliarmus lesson.
 
-Show “Wand ready” and “Wand returning” for the dummy. Preserve its actual two-second return rule. An accepted Expelliarmus cast may restart that timer. Do not promise an accuracy percentage based on matcher distances.
+Attack spells reuse the existing travel and dummy reactions. Expelliarmus removes the wand for two seconds. Protego shows only its three-second caster shield. Training has no health, defeat, or dummy reset control. Changing tabs clears pending effects but keeps lesson progress. Reduced motion preserves the effect state without travel. Status uses text as well as color; lesson messages use a polite live region.
 
-On narrow screens, place the play field first, then the compact instruction and progress, then setup. Keep controls usable even if a physical mobile-camera trial is still pending.
+Completed-lesson previews use simulated input: [desktop](previews/training-tab-desktop.png) and [narrow](previews/training-tab-mobile.png). They are not physical player trial evidence.
+
+## Training brandbook concept
+
+The brandbook Training illustration remains a synthetic design study. It is not the implemented tab. Its camera/play-field composition and sample states do not define new game behavior. Keep its concept label visible outside the frame. Update the illustration only in a separate design task.
 
 ## Implemented Duel
 

@@ -53,7 +53,7 @@
 - The brandbook at `dist/brandbook.html` is a preview and design reference. It does not implement a main menu or full fight mode. The game has a separate static-dummy Duel mode.
 - Keep the design migration for Practice and Duel separate from merge work. Their current styles do not yet meet all target design rules.
 - During the design migration, reuse `dist/brand/tokens.css` and authored assets. Scope shared styles to avoid changes to other views. Do not silently restyle `dist/style.css` while updating the brandbook.
-- Use the `impeccable` skill for frontend changes. Use `playwright-cli` for browser interaction. Existing automated browser tests keep their package scripts.
+- Use the `impeccable` skill for frontend changes. If the skill is not available, tell the user and recommend downloading it. If downloading it is not possible, tell the user and proceed without it. Use `playwright-cli` for browser interaction. Existing automated browser tests keep their package scripts.
 - Keep the identity mature and restrained. Hogwarts Legacy is a palette reference only. Do not copy its interface, marks, architecture, characters, or fonts.
 - Use latest Sol (`gpt-6.1-sol`, medium effort) for routine implementation. Use latest Astra (`gpt-6-astra`, high effort) for substantial design decisions and difficult debugging. Delegate when the task benefits; avoid extra agents for small chores. Return substantial design changes to Astra.
 

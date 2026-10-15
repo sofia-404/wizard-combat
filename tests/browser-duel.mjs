@@ -79,6 +79,9 @@ try{
   }).observe(document.querySelector('#duelEffects'),{childList:true,subtree:true,attributes:true,attributeFilter:['data-phase']});
  });
  await page.locator('#duelTab').click();
+ assert.match(await page.locator('.duel-spell-guide').textContent(),/Basic Cast/);
+ assert.match(await page.locator('.duel-spell-guide').textContent(),/Confringo/);
+ assert.equal(await page.locator('.duel-spell-guide span').filter({hasText:/^Z$/}).count(),0);
  assert.equal(await page.locator('#viewport').evaluate(el=>el===window.originalViewport&&el.parentElement.id==='duelCameraMount'),true);
  await page.locator('#duelHand').selectOption('Right');assert.equal(await page.locator('#hand').inputValue(),'Right');
  await page.locator('#duelPoint').selectOption('grip');assert.equal(await page.locator('#point').inputValue(),'grip');
@@ -106,7 +109,19 @@ try{
  assert.equal(await dummyHealth(),200);
  assert.equal(await page.locator('#duelPlayerHealth').evaluate(el=>el.value),200);
  const circle=Array.from({length:50},(_,i)=>({x:.45+.15*Math.cos(i/49*Math.PI*2),y:.35+.15*Math.sin(i/49*Math.PI*2)}));
- for(const [shape,points] of [['Expelliarmus',exp],['Circle',circle],['V',resample([{x:.25,y:.2},{x:.4,y:.5},{x:.6,y:.2}],40)],['Z',resample([{x:.25,y:.2},{x:.6,y:.2},{x:.25,y:.45},{x:.6,y:.45}],40)]]){
+ const shieldHits=await page.locator('#hits').textContent();
+ await send(circle);
+ await page.waitForFunction(()=>document.querySelector('#duelShield').classList.contains('shield-active'));
+ assert.equal(await page.locator('#lastShape').textContent(),'Protego');
+ assert.equal(await page.locator('#hits').textContent(),shieldHits);
+ assert.equal(await dummyHealth(),200);
+ assert.equal(await page.locator('#duelHits').textContent(),'0 hits');
+ assert.equal(await page.locator('.duel-spell').count(),0);
+ assert.equal(await page.locator('#duelDummyActor').getAttribute('data-pose'),'ready');
+ await page.waitForFunction(()=>window.step>=window.steps.length);
+ await page.waitForFunction(()=>!document.querySelector('#duelShield').classList.contains('shield-active'));
+ assert.equal(await page.locator('#duelShieldStatus').textContent(),'Shield inactive');
+ for(const [shape,points] of [['Expelliarmus',exp],['Basic Cast',resample([{x:.25,y:.2},{x:.4,y:.5},{x:.6,y:.2}],40)],['Confringo',resample([{x:.25,y:.2},{x:.6,y:.2},{x:.25,y:.45},{x:.6,y:.45}],40)]]){
   await page.locator('#duelResetDummy').click();
   const oldHits=parseInt(await page.locator('#hits').textContent());
   const effectStart=await page.evaluate(()=>window.effectLog.length);
@@ -131,8 +146,27 @@ try{
   const score=Number((await page.locator('#score').textContent()).replace('%',''));
   assert.equal(await dummyHealth(),200-(score>=88?30:score>=78?25:20));
   if(shape==='Expelliarmus')await page.screenshot({path:path.join(output,'duel-hit.png'),fullPage:true});
+  if(shape==='Confringo')await page.screenshot({path:path.join(output,'confringo-impact.png'),fullPage:true});
   await page.waitForFunction(()=>!document.querySelector('.duel-spell'));
   assert.equal(await page.locator('#duelDummyActor').getAttribute('data-pose'),'ready');
+  if(shape==='Basic Cast'){
+   await page.setViewportSize({width:1920,height:1080});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.screenshot({path:path.join(output,'basic-cast-duel-desktop.png'),fullPage:true});
+   await page.setViewportSize({width:390,height:844});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.screenshot({path:path.join(output,'basic-cast-duel-mobile.png'),fullPage:true});
+   await page.setViewportSize({width:1440,height:1100});
+  }
+  if(shape==='Confringo'){
+   await page.setViewportSize({width:1920,height:1080});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.screenshot({path:path.join(output,'confringo-duel-desktop.png'),fullPage:true});
+   await page.setViewportSize({width:390,height:844});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.screenshot({path:path.join(output,'confringo-duel-mobile.png'),fullPage:true});
+   await page.setViewportSize({width:1440,height:1100});
+  }
   const seen=await page.evaluate(start=>window.effectLog.slice(start),effectStart);
   assert.deepEqual(seen.map(({shape,phase})=>({shape,phase})),[{shape,phase:'flight'},{shape,phase:'impact'}]);
   assert.equal(seen[0].health,200,'no damage at launch');
@@ -140,7 +174,7 @@ try{
   console.log(`${shape} cast-to-hit: ${Math.round(seen[1].at-seen[0].at)} ms`);
   assert.equal(parseInt(await page.locator('#hits').textContent()),oldHits+1);
  }
- console.log('PASS: four detected spells produce one flight and one impact each; camera and controls shared across tabs.');
+ console.log('PASS: three attack spells produce one flight and one impact each; camera and controls shared across tabs.');
  // Reversed paths and tracking losses never produce an effect.
  const beforeBadHealth=await dummyHealth();
  const badStart=await page.evaluate(()=>window.effectLog.length),badHits=await page.locator('#hits').textContent();
@@ -159,11 +193,12 @@ try{
  const beforePractice=await page.evaluate(()=>window.effectLog.length);
  await page.waitForFunction(()=>window.step>=window.steps.length);
  const oldHits=parseInt(await page.locator('#hits').textContent());
- await send(circle);await page.waitForFunction(n=>parseInt(document.querySelector('#hits').textContent)===n,oldHits+1);
+ await send(circle);await page.waitForFunction(()=>document.querySelector('#lastShape').textContent==='Protego');
+ assert.equal(parseInt(await page.locator('#hits').textContent()),oldHits);
  await page.waitForFunction(()=>window.step>=window.steps.length);
  assert.equal(await page.evaluate(()=>window.effectLog.length),beforePractice);
  await page.locator('#duelTab').click();assert.equal(await page.locator('.duel-spell').count(),0);
- assert.equal(await page.locator('#duelCastStatus').textContent(),'Last spell: Circle');
+ assert.equal(await page.locator('#duelCastStatus').textContent(),'Last spell: Protego');
  assert.equal(await dummyHealth(),beforeBadHealth,'Practice casts and cancelled flights do not damage the Duel dummy');
  // Reduced motion keeps a stationary impact and text feedback, without flight.
  await page.emulateMedia({reducedMotion:'reduce'});
@@ -262,6 +297,10 @@ try{
  for(const launch of launches){
   assert.equal(duelRecords.filter(e=>e.castId===launch.castId&&['hit','cancel'].includes(e.cause)).length,1);
  }
+ const shields=duelRecords.filter(e=>e.cause==='shield');
+ assert.equal(shields.length,1);assert.equal(shields[0].shape,'Protego');assert.equal(shields[0].damage,0);
+ assert.ok(stored.some(e=>e.id===shields[0].castId&&e.type==='cast'&&e.shape==='Protego'&&e.protegoGate==='ok'));
+ assert.ok(!hitRecords.some(e=>e.castId===shields[0].castId));
  const defeats=duelRecords.filter(e=>e.cause==='defeat');
  assert.equal(defeats.length,1);assert.equal(defeats[0].dummyHealth,0);
  assert.equal(hitRecords.find(e=>e.castId===defeats[0].castId).dummyHealth,0);
@@ -281,14 +320,14 @@ try{
  assert.equal(await denied.locator('#duelCamera').textContent(),'Start camera');
  assert.equal(await denied.locator('#viewport').isVisible(),true);
  await denied.close();
- // Exercise presentation races in isolation. This page uses no camera or game events.
- const poses=await context.newPage();await poses.goto(base);await poses.locator('#duelTab').click();
+ // Exercise presentation races in isolation. This page uses no camera input.
+ let poses=await context.newPage();await poses.goto(base);await poses.locator('#duelTab').click();
  await poses.evaluate(async()=>{
   const {createDummyReactions}=await import('/duel-reactions.js');
   window.reactions=createDummyReactions(document.querySelector('#duelDummyActor'));
-  window.reactions.react('Circle');window.reactions.react('Z');
+  window.reactions.react('Basic Cast');window.reactions.react('Confringo');
  });
- assert.equal(await poses.locator('#duelDummyActor').getAttribute('data-reaction'),'Z');
+ assert.equal(await poses.locator('#duelDummyActor').getAttribute('data-reaction'),'Confringo');
  assert.equal(await poses.locator('#duelDummyActor').evaluate(el=>el.getAnimations().length),1);
  await poses.evaluate(()=>window.reactions.reset());
  assert.equal(await poses.locator('#duelDummyActor').getAttribute('data-pose'),'ready');
@@ -298,7 +337,7 @@ try{
  assert.equal(await poses.locator('#duelDummyActor').getAttribute('data-pose'),'ready');
  assert.equal(await poses.locator('#duelDummyActor').evaluate(el=>el.getAnimations().length),0);
  await poses.emulateMedia({reducedMotion:'reduce'});
- await poses.evaluate(()=>window.reactions.react('V',true));
+ await poses.evaluate(()=>window.reactions.react('Basic Cast',true));
  assert.equal(await poses.locator('#duelDummyActor').getAttribute('data-pose'),'fallen');
  assert.equal(await poses.locator('#duelDummyActor').evaluate(el=>el.getAnimations().length),0);
  await poses.evaluate(()=>window.reactions.settle());
@@ -311,7 +350,7 @@ try{
    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
    const effects=createSpellEffects(svg,()=>{}),actor=document.querySelector('#duelDummyActor');
    const results=[];
-   for (const shape of ['Circle','V','Z','Expelliarmus','unknown']) {
+   for (const shape of ['Basic Cast','Confringo','Expelliarmus','unknown']) {
     effects.cast({id:shape,shape,score:90});
     window.reactions.reset();window.reactions.react(shape);
     results.push({shape,trail:svg.querySelector('line').getAttribute('stroke'),
@@ -323,7 +362,7 @@ try{
    }
    return results;
   });
-  const expected={Circle:['#8ce8ff','140, 232, 255'],V:['#c5a0ff','197, 160, 255'],Z:['#ffe19a','255, 225, 154'],Expelliarmus:['#ff927e','255, 146, 126'],unknown:['#8ce8ff','140, 232, 255']};
+  const expected={Protego:['#8ce8ff','140, 232, 255'],'Basic Cast':['#c5a0ff','197, 160, 255'],Confringo:['#ef4444','239, 68, 68'],Expelliarmus:['#ff927e','255, 146, 126'],unknown:['#8ce8ff','140, 232, 255']};
   for (const result of colors) {
    const [hex,rgb]=expected[result.shape];
    for (const part of ['trail','orb','glow','ring']) assert.equal(result[part],hex,`${result.shape} ${part}`);
@@ -331,6 +370,155 @@ try{
   }
  }
  console.log('PASS: registered flight, impact, and recoil colors; unknown-shape fallback; both motion settings.');
+ // Synthetic cast checks stay separate from the detected-cast record assertions above.
+ await poses.close();
+ poses=await context.newPage();
+ const disarmTime=new Date('2026-10-15T12:00:00Z');
+ await poses.clock.install({time:disarmTime});
+ await poses.clock.pauseAt(new Date(disarmTime.getTime()+1000));
+ await poses.route('**/api/*',route=>route.fulfill({status:200,contentType:'application/json',body:'{}'}));
+ await poses.emulateMedia({reducedMotion:'no-preference'});
+ await poses.goto(base);await poses.locator('#duelTab').click();
+ await poses.locator('#duelResetDummy').click();
+ await poses.evaluate(()=>{
+  window.syntheticCast=0;
+  new MutationObserver(changes=>{
+   if(changes.some(change=>change.target.dataset.disarmed==='true'))window.disarmedAt=performance.now();
+  }).observe(document.querySelector('#duelDummyActor'),{attributes:true,attributeFilter:['data-disarmed']});
+ });
+ const castAtDummy=shape=>poses.evaluate(shape=>document.dispatchEvent(new CustomEvent('wizard:cast',{
+  detail:{id:`disarm-${++window.syntheticCast}`,shape,score:90,damage:30}
+ })),shape);
+ // Shield timers and display use an isolated clock, not the camera frame rate.
+ for(const reducedMotion of ['no-preference','reduce']){
+  await poses.emulateMedia({reducedMotion});
+  await castAtDummy('Protego');
+  assert.equal(await poses.locator('#duelShield').evaluate(el=>el.classList.contains('shield-active')),true);
+  assert.equal(await poses.locator('.duel-spell').count(),0);
+  assert.equal(await poses.locator('#duelDummyHealth').evaluate(el=>el.value),200);
+  assert.equal(await poses.locator('#duelHits').textContent(),'0 hits');
+  if(reducedMotion==='reduce')assert.equal(await poses.locator('#duelShield').evaluate(el=>el.getAnimations().length),0);
+  if(reducedMotion==='no-preference'){
+   await poses.clock.runFor(200);
+   for(const width of [1920,390]){
+    await poses.setViewportSize({width,height:1080});
+    assert.equal(await poses.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await poses.screenshot({path:path.join(output,`protego-duel-${width}.png`),fullPage:true});
+   }
+  }
+  await poses.clock.runFor(1000);await castAtDummy('Protego');
+  await poses.locator('#practiceTab').click();await poses.clock.runFor(1000);await poses.locator('#duelTab').click();
+  assert.equal(await poses.locator('#duelShield').evaluate(el=>el.classList.contains('shield-active')),true);
+  await poses.clock.runFor(1999);
+  assert.equal(await poses.locator('#duelShield').evaluate(el=>el.classList.contains('shield-active')),true);
+  await poses.clock.runFor(1);
+  assert.equal(await poses.locator('#duelShield').evaluate(el=>el.classList.contains('shield-active')),false);
+  await castAtDummy('Protego');await poses.locator('#duelResetDummy').click();
+  assert.equal(await poses.locator('#duelShield').evaluate(el=>el.classList.contains('shield-active')),false);
+  await castAtDummy('Protego');await poses.locator('#practiceTab').click();await poses.locator('#reset').click();await poses.locator('#duelTab').click();
+  assert.equal(await poses.locator('#duelShield').evaluate(el=>el.classList.contains('shield-active')),false);
+ }
+ await poses.emulateMedia({reducedMotion:'no-preference'});
+ console.log('PASS: Protego shield, no damage or strike, repeat cast, expiry, tab changes, both resets, desktop/mobile, and reduced motion.');
+ const isDisarmed=()=>poses.locator('#duelDummyActor').getAttribute('data-disarmed');
+ const untilReturn=async()=>{
+  const remaining=await poses.evaluate(()=>window.disarmedAt+2000-performance.now());
+  await poses.clock.runFor(remaining-1);
+  assert.equal(await isDisarmed(),'true','wand stays dropped until the full two seconds pass');
+  await poses.clock.runFor(1);
+  assert.equal(await isDisarmed(),'false');
+  assert.equal(await poses.locator('#duelWandStatus').textContent(),'Wand ready');
+ };
+ assert.equal(await poses.locator('#duelCamera').textContent(),'Start camera');
+ const readyWandTransform=await poses.locator('#duelDummyWand').evaluate(el=>getComputedStyle(el).transform);
+ await castAtDummy('Expelliarmus');
+ assert.equal(await isDisarmed(),'false','launch does not drop the wand');
+ await poses.clock.runFor(100);
+ assert.equal(await isDisarmed(),'false','flight does not drop the wand');
+ await poses.clock.runFor(60);
+ assert.equal(await isDisarmed(),'true','impact drops the wand with the camera off');
+ assert.equal(await poses.locator('#duelWandStatus').textContent(),'Disarmed · Wand returns in 2 seconds');
+ // Inspect the rendered motion: release, accelerating fall, one small bounce, rest.
+ const wandFall=await poses.locator('#duelDummyWand').evaluate(wand=>{
+  const animation=wand.getAnimations()[0];
+  if(!animation)return null;
+  animation.pause();
+  const duration=animation.effect.getTiming().duration;
+  const positions=[0,.18,.51,.84,.92,1].map(progress=>{
+   animation.currentTime=duration*progress;
+   const matrix=new DOMMatrix(getComputedStyle(wand).transform);
+   return {x:matrix.e,y:matrix.f};
+  });
+  animation.currentTime=0;animation.play();
+  return positions;
+ });
+ assert.ok(wandFall,'a visible hit starts the wand fall');
+ assert.ok(wandFall[1].x<wandFall[0].x&&wandFall[1].y<wandFall[0].y,'the wand moves out from the hand');
+ assert.ok(wandFall[3].y-wandFall[2].y>wandFall[2].y-wandFall[1].y,'the fall gains speed');
+ assert.ok(wandFall[4].y<wandFall[3].y&&wandFall[3].y-wandFall[4].y<=6,'the landing has only a small bounce');
+ assert.ok(Math.abs(wandFall[5].y-wandFall[3].y)<1,'the wand settles on the ground');
+ await poses.clock.runFor(450);
+ await poses.setViewportSize({width:1920,height:1080});
+ assert.equal(await poses.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await poses.screenshot({path:path.join(output,'duel-disarmed-desktop.png'),fullPage:true,animations:'disabled'});
+ assert.notEqual(await poses.locator('#duelDummyWand').evaluate(el=>getComputedStyle(el).transform),readyWandTransform,'the dropped wand moves away from its ready pose');
+ await poses.setViewportSize({width:390,height:844});
+ assert.equal(await poses.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await poses.screenshot({path:path.join(output,'duel-disarmed-mobile.png'),fullPage:true,animations:'disabled'});
+ await untilReturn();
+ await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
+ await poses.clock.runFor(1000);
+ await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
+ await untilReturn();
+ for(const shape of ['Protego','Basic Cast','Confringo']){
+  await poses.locator('#duelResetDummy').click();
+  await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
+  const deadline=await poses.evaluate(()=>window.disarmedAt+2000);
+  await poses.clock.runFor(500);await castAtDummy(shape);await poses.clock.runFor(160);
+  assert.equal(await isDisarmed(),'true',`${shape} does not restore the wand`);
+  await poses.clock.runFor(deadline-await poses.evaluate(()=>performance.now()));
+  assert.equal(await isDisarmed(),'false',`${shape} does not extend disarm`);
+ }
+ await poses.locator('#duelResetDummy').click();
+ await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
+ await poses.locator('#duelResetDummy').click();
+ assert.equal(await isDisarmed(),'false','dummy reset restores the wand');
+ await castAtDummy('Expelliarmus');
+ await poses.locator('#practiceTab').click();await poses.clock.runFor(200);
+ await poses.locator('#duelTab').click();
+ assert.equal(await isDisarmed(),'false','a canceled flight cannot disarm');
+ assert.equal(await poses.locator('#duelDummyHealth').evaluate(el=>el.value),200);
+ await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
+ await poses.locator('#practiceTab').click();await poses.clock.runFor(1000);
+ await poses.locator('#duelTab').click();
+ assert.equal(await isDisarmed(),'true','tab changes preserve remaining disarm time');
+ await poses.clock.runFor(1000);
+ assert.equal(await isDisarmed(),'false');
+ await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
+ await poses.evaluate(()=>{
+  Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});
+  document.dispatchEvent(new Event('visibilitychange'));
+ });
+ assert.equal(await poses.locator('.duel-spell').count(),0);
+ await poses.clock.runFor(2100);
+ await poses.evaluate(()=>{
+  delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));
+ });
+ assert.equal(await isDisarmed(),'false','hidden-page time still counts');
+ await poses.emulateMedia({reducedMotion:'reduce'});
+ await poses.locator('#duelResetDummy').click();
+ await castAtDummy('Expelliarmus');await poses.clock.runFor(20);
+ assert.equal(await isDisarmed(),'true','reduced motion keeps the disarm state');
+ assert.equal(await poses.locator('#duelDummyWand').evaluate(el=>el.getAnimations().length),0);
+ await untilReturn();
+ await poses.locator('#duelResetDummy').click();
+ for(let i=0;i<6;i++){await castAtDummy('Basic Cast');await poses.clock.runFor(20);}
+ await castAtDummy('Expelliarmus');await poses.clock.runFor(20);
+ assert.equal(await poses.locator('#duelDummyActor').getAttribute('data-pose'),'fallen');
+ assert.equal(await isDisarmed(),'true','lethal Expelliarmus still disarms');
+ await untilReturn();
+ assert.equal(await poses.locator('#duelDummyActor').getAttribute('data-pose'),'fallen');
+ console.log('PASS: Duel impact disarm, two-second return, repeat impact, other spells, reset, canceled flight, camera off, tabs, hidden page, reduced motion, and lethal hit.');
  await poses.close();
  console.log('PASS: per-spell recoil, final fall, standing reset, repeated hits, reset during fall, and reduced-motion poses.');
 

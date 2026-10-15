@@ -31,6 +31,7 @@ export function validateDefinitions(definitions) {
         }
       }
       if (effect.type === 'disarm' && (!positive(effect.durationMs) || effect.repeat !== 'refresh')) fail('disarm settings');
+      if (effect.type === 'shield' && (!positive(effect.durationMs) || effect.repeat !== 'refresh' || effect.target !== 'self')) fail('shield settings');
     }
     if (!Object.hasOwn(animations, spell.visuals?.cast)) fail('cast animation');
     if (typeof spell.visuals.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(spell.visuals.color)) fail('spell color');
