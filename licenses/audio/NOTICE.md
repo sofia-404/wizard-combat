@@ -80,23 +80,23 @@ CC BY 4.0 requirements above.
 ## Drawing sound
 
 `dist/audio/draw-trail.wav` loops while the player draws a spell shape. It is
-an adaptation of "Magic Object Floating" by IENBA, released under CC0 1.0
+an adaptation of "magic loop" by Rising_Moon, released under CC0 1.0
 Universal: https://creativecommons.org/publicdomain/zero/1.0/
 
 No attribution is required. The game credits the author as a courtesy.
 
-- Source: https://freesound.org/people/IENBA/sounds/758005/
+- Source: https://freesound.org/people/Rising_Moon/sounds/711353/
   The sound page lists the license as Creative Commons 0.
 - Retrieved October 15, 2026, as the Freesound high-quality preview
-  `758005_9616576-hq.mp3` (SHA-256
-  a5cfd5bb6adcdca35409eeb34935c820169d7bef60182625bfac8ed2f8f1af18).
+  `711353_15071386-hq.mp3` (SHA-256
+  4448d20ebcadd55e9035e8ad220486a1d79253e6c2e43dcbaf8a99326a1f61cf).
 
-The source has a one-shot version, a short silence, and a loopable version.
-The edit uses the loopable version, from its first to its last audible sample
-(44.1 kHz samples 793,796 to 1,190,212, or 18.000 s to 26.989 s). It is mixed
-to mono, raised by 23.8 dB to about -17 LUFS, resampled to 22.05 kHz, and
-stored as 16-bit WAV. The source has no content above 11 kHz, so the lower
-sample rate removes nothing audible. The loop is 8.99 seconds.
+The source is a 9.85-second loop. Its last and first samples do not join
+smoothly, so the edit starts the loop 0.2 s into the source and crossfades the
+last 0.2 s into the first 0.2 s with an equal-power curve. It is mixed to mono,
+raised by 23.1 dB to about -17 LUFS, resampled to 22.05 kHz, and stored as
+16-bit WAV. Almost all source energy is below 3.4 kHz, so the lower sample
+rate removes nothing audible. The loop is 9.65 seconds.
 
 The game plays it through Web Audio. Fingertip speed sets its level and a
 small pitch rise. The level is zero below 0.05 screen widths per second and
@@ -107,7 +107,7 @@ in about 60 ms when the stroke ends, tracking is lost, or sound is off.
 
 Run `python3 scripts/generate-menu-audio.py` to regenerate the interface sounds.
 To recreate the drawing sound, download its source preview and run
-`python3 scripts/generate-draw-audio.py /path/to/758005_9616576-hq.mp3`.
+`python3 scripts/generate-draw-audio.py /path/to/711353_15071386-hq.mp3`.
 To recreate the music edits, download the originals to temporary files and run:
 
 ```sh
@@ -128,5 +128,5 @@ switching screens or muting. The WAV effects have smooth attacks and tails.
 Throttle repeated hover playback so movement across buttons stays quiet.
 
 `assets.json` records file size, duration, encoding, and SHA-256 hashes.
-The five distributed audio files total about 2.54 MB. The drawing sound is
-about 0.40 MB.
+The five distributed audio files total about 2.57 MB. The drawing sound is
+about 0.43 MB.
