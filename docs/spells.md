@@ -28,6 +28,7 @@ Each definition contains:
 - `guide`: SVG data for the small movement diagram.
 - `effects`: damage, disarm, or shield settings. Shield effects use `target: self`; other effects use the target by default.
 - `visuals`: the shared cast type and spell color (`#RRGGBB`).
+- `sound`: optional cast sound path under `/spells/<id>/`, with a `.wav` or `.mp3` extension. A spell without a sound is silent.
 - `lesson`: lesson count and messages, or `null`.
 
 Definitions are checked and frozen at startup. Player state stays in the dummy, shield, and lesson objects.
@@ -40,7 +41,7 @@ Definitions are checked and frozen at startup. Player state stays in the dummy, 
 4. Add a new shared checker or effect when new behavior is needed.
 5. Test the new movement against every existing shape. Two matches must reject the cast.
 
-Training uses the shared spell registry. Store future image and sound files in the spell folder only when needed.
+Training uses the shared spell registry. Store future image and sound files in the spell folder only when needed. `scripts/generate-spell-audio.py` builds the current cast sounds from their CC0 sources. Fight and Training each play a sound once per accepted cast. Training emits `wizard:training-cast` after its duplicate and acceptance checks, without changing Fight state.
 
 ## Compatibility limits
 

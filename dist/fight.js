@@ -54,6 +54,7 @@ const effects = createSpellEffects($('fightEffects'), cast => {
   const castToHitMs = Math.round(performance.now() - cast.launchedAt);
   const hit = health.hit(cast);
   if (!hit) return;
+  document.dispatchEvent(new CustomEvent('wizard:duel-hit', {detail: {castId: cast.id, shape: cast.shape, ...hit}}));
   dummyDisarm.hit(cast);
   dummyReactions.react(cast.shape, hit.defeated);
   renderHealth();
@@ -63,6 +64,7 @@ const effects = createSpellEffects($('fightEffects'), cast => {
     pauseTimer();
     effects.cancelFlights();
     showDefeat();
+    document.dispatchEvent(new CustomEvent('wizard:duel-defeat'));
     logFight('defeat', {castId: cast.id});
   } else if (cast.id === lastCastId) $('fightCastStatus').textContent = `${cast.shape} hit the dummy · ${hit.damage} damage`;
 });
@@ -104,6 +106,7 @@ $('fightResetDummy').addEventListener('click', () => {
   dummyReactions.reset();
   dummyDisarm.reset();
   renderHealth();
+  document.dispatchEvent(new CustomEvent('wizard:duel-reset'));
   resetNotice = true;
   syncControls();
   logFight('reset', {previousDummyHealth});

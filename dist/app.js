@@ -4,6 +4,7 @@ import {castDamage} from './combat/cast.js';
 import {HandInput} from './hand-input.js';
 import {resultCard,resultTitle} from './result-card.js';
 import {updateInputState} from './input-state.js';
+import {createDrawAudio} from './draw-audio.js';
 const $=id=>document.getElementById(id);
 const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d');
 const preview=document.createElement('canvas');preview.width=170;preview.height=140;
@@ -13,6 +14,7 @@ let lastVideoTime=-1,lastSent=0,lastResult=0,rateStart=0,rateCount=0,hz=0,infere
 const session=crypto.randomUUID();
 let lastPath=[],lastPathUntil=0,lastUI='',saveQueue=[],saving=false;
 const controller=new GestureController(onGesture,{difficulty:getSettings().difficulty});
+const drawAudio=createDrawAudio(getSettings);
 const handInput=new HandInput();
 let inputSettings=readSettings(),tracking={},trackingAt=0,trackingFrames=0,noHandFrames=0,labelHoldFrames=0,wrongHandFrames=0,edgeFrames=0,duplicateFrames=0,lastFrameT=null;
 function readSettings(){const {hand,point,difficulty}=getSettings();return {hand,point,expected:'Any',difficulty};}
@@ -56,6 +58,7 @@ async function flush(){
 }
 setInterval(flush,5000);
 export function cancelGestureCapture(reason){
+  drawAudio.stop();
   controller.cancel(reason,'input_changed');lastPath=[];lastUI='';
 }
 function onGesture(event){
@@ -90,6 +93,7 @@ function drawPreview(points,accepted){
 }
 export function stopGameCamera(){stopCamera('Camera stopped. Lesson progress kept.');}
 function stopCamera(reason='Camera stopped'){
+  drawAudio.stop();
   if(stream)record({type:'camera',reason});
   token++;loading=false;modelReady=false;recovering=false;busy=false;
   worker?.terminate();worker=null;
@@ -170,6 +174,7 @@ function animate(now){
     set('phase',controller.missingCause?'HOLD':controller.state==='waiting'?'HOLD':controller.state.toUpperCase());
     if(controller.message!==lastUI){set('instruction',controller.message);lastUI=controller.message;}
   }
+  drawAudio.update(Boolean(stream)&&controller.state==='drawing'&&!controller.missingCause,controller.speed);
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(selectedPoints){ctx.strokeStyle='#b2d7a777';ctx.lineWidth=1.3;for(const [a,b] of connections){ctx.beginPath();ctx.moveTo((1-selectedPoints[a].x)*canvas.width,selectedPoints[a].y*canvas.height);ctx.lineTo((1-selectedPoints[b].x)*canvas.width,selectedPoints[b].y*canvas.height);ctx.stroke();}}
   const path=controller.state==='drawing'?controller.path:now<lastPathUntil?lastPath:[];

@@ -165,6 +165,7 @@ document.addEventListener('wizard:training-gesture', ({detail: event}) => {
     set('trainingArenaResult', event.reason || 'Follow the path and try again.');
     return;
   }
+  document.dispatchEvent(new CustomEvent('wizard:training-cast', {detail:{id:event.id, shape:event.shape}}));
   if (shield.cast(event, performance.now())) {
     shieldView.refresh(spellForShape(event.shape).visuals.color);
     set('trainingArenaResult', `${event.shape} cast · Shield active`);

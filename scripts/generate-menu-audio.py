@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Create original interface tones and adapt the credited menu music.
+"""Create original interface tones and adapt the credited menu and duel music.
 
-Run with Python 3 and FFmpeg installed. The optional source argument is the
-original Night Vigil MP3 downloaded from the URL in the provenance file.
+Run with Python 3 and FFmpeg installed. The optional source arguments are the
+original Night Vigil and Clash Defiant MP3 files downloaded from the URLs in the
+provenance files.
 """
 
 import argparse
@@ -46,31 +47,46 @@ def tone(name, duration, voices, peak):
                                    for value in samples))
 
 
-def music(source):
-    # Join the closing six seconds to the opening six seconds. The loop starts
-    # at source time 6 s, continues through 94 s, then returns through this join.
+def loop(source, name, title, start, end, fade, curve, gain):
+    # Join the closing fade to the opening fade. The loop starts at source time
+    # start + fade, continues through end - fade, then returns through this join.
+    body_start, tail_start = round(start + fade, 3), round(end - fade, 3)
     graph = (
         '[0:a]asplit=3[head][body][tail];'
-        '[head]atrim=start=0:end=6,asetpts=PTS-STARTPTS[h];'
-        '[body]atrim=start=6:end=94,asetpts=PTS-STARTPTS[b];'
-        '[tail]atrim=start=94:end=100,asetpts=PTS-STARTPTS[t];'
-        '[t][h]acrossfade=d=6:c1=tri:c2=tri[bridge];'
-        '[b][bridge]concat=n=2:v=0:a=1,volume=0.85[out]'
+        f'[head]atrim=start={start}:end={body_start},asetpts=PTS-STARTPTS[h];'
+        f'[body]atrim=start={body_start}:end={tail_start},asetpts=PTS-STARTPTS[b];'
+        f'[tail]atrim=start={tail_start}:end={end},asetpts=PTS-STARTPTS[t];'
+        f'[t][h]acrossfade=d={fade}:c1={curve}:c2={curve}[bridge];'
+        f'[b][bridge]concat=n=2:v=0:a=1,volume={gain}[out]'
     )
     subprocess.run([
         'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', str(source),
         '-filter_complex', graph, '-map', '[out]', '-ar', str(RATE),
         '-c:a', 'libmp3lame', '-b:a', '96k', '-map_metadata', '-1',
-        '-metadata', 'title=Night Vigil — menu loop',
+        '-metadata', f'title={title}',
         '-metadata', 'artist=Kevin MacLeod',
         '-metadata', 'comment=CC BY 4.0; excerpt and loop edit; see licenses/audio',
-        str(OUTPUT / 'menu-night-vigil.mp3'),
+        str(OUTPUT / name),
     ], check=True)
+
+
+def music(source):
+    loop(source, 'menu-night-vigil.mp3', 'Night Vigil — menu loop',
+         0, 100, 6, 'tri', 0.85)
+
+
+def battle(source):
+    # A 56-bar section repeats 79.046 s later. The joins fall on bar starts.
+    # Two bars of equal-power crossfade cover small differences between passes.
+    # The source is about 7 LU louder than the menu loop, so reduce gain more.
+    loop(source, 'duel-clash-defiant.mp3', 'Clash Defiant — duel loop',
+         12.02, 93.889, 2.823, 'qsin', 0.45)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--music-source', type=Path)
+    parser.add_argument('--battle-source', type=Path)
     options = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
     # D and A partials make a soft, brief magical interval without a noise bed.
@@ -81,6 +97,8 @@ def main():
                                 (0.048, 880, 0.30, 0.12)], 0.24)
     if options.music_source:
         music(options.music_source)
+    if options.battle_source:
+        battle(options.battle_source)
 
 
 if __name__ == '__main__':

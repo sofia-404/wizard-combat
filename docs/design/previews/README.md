@@ -16,7 +16,7 @@ Keep one desktop/narrow pair for the shared Training layout. Keep a guide crop f
 
 Game captures use desktop 1920x1080 and narrow 390x844 viewports. Brandbook captures use a 1920x1080 viewport. Image height follows the full page or cropped element. All captures use Chromium, device scale factor 1, reduced motion, and loaded fonts. Browser versions can change pixel output.
 
-The browser test blocks `getUserMedia` and checks that no camera call occurs. Game settings are Drawing hand Left and Track point Index fingertip. The camera stays off; mode navigation produces the message "Camera stopped. Lesson progress kept." Spell guide crops have no live input.
+The browser test blocks `getUserMedia` and checks that no camera call occurs. Game settings are Drawing hand Left and Track point Index fingertip. The game bar includes the shared mute control. Idle motion is disabled for these captures. The camera stays off; mode navigation produces the message "Camera stopped. Lesson progress kept." Spell guide crops have no live input.
 
 ## Capture and review
 

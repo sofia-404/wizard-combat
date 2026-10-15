@@ -65,7 +65,7 @@ try {
   const checkScreen = async name => {
     await page.locator('#' + screens[name]).waitFor({state:'visible'});
     for (const [other, id] of Object.entries(screens)) assert.equal(await page.locator('#' + id).isVisible(), other === name);
-    assert.equal(await page.locator('#legacyPracticeView').count(), 0);
+    assert.deepEqual(await page.locator('#gameView [role="region"]').evaluateAll(nodes => nodes.map(node => node.id)), ['fightView', 'trainingView']);
     const focus = name === 'menu' ? '#mainMenu button' : ['fight','training'].includes(name) ? '#gameBack' : '#' + name + 'Title';
     assert.equal(await page.locator(focus).evaluateAll(elements => elements.includes(document.activeElement)), true);
     if (['fight','training'].includes(name)) {
@@ -90,7 +90,7 @@ try {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     }
   }
-  for (const fragment of ['', '#unknown', '#legacy-practice', '#game', '#constructor', '#%E0%A4%A']) {
+  for (const fragment of ['', '#unknown', '#game', '#constructor', '#%E0%A4%A']) {
     await page.goto(base + fragment);
     await checkScreen('menu');
     assert.equal(new URL(page.url()).hash, fragment ? '#menu' : '');

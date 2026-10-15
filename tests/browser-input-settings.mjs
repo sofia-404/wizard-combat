@@ -31,6 +31,11 @@ try {
   const context = await browser.newContext({permissions:[], reducedMotion:'reduce', viewport:{width:1920,height:1080}});
   await context.addInitScript(() => {
     window.cameraCalls = 0;
+    window.playedAudio = [];
+    HTMLMediaElement.prototype.play = function() {
+      window.playedAudio.push(this.src);
+      return Promise.resolve();
+    };
     navigator.mediaDevices.getUserMedia = async () => {
       window.cameraCalls++;
       throw Error('Camera access is forbidden in this test');
@@ -157,6 +162,37 @@ try {
   assert.ok(records.length > 0);
   assert.ok(records.every(record => !Object.hasOwn(record, 'swap')));
 
+  // Both mute controls keep the menu icon and the saved input choices.
+  await page.locator('#gameSoundToggle').click();
+  assert.equal(await page.locator('#gameSoundToggle').getAttribute('aria-pressed'), 'true');
+  await page.locator('#gameBack').click();
+  assert.equal(await page.locator('#soundToggleLabel').textContent(), 'Unmute sound');
+  assert.equal(await page.locator('#soundToggle svg').count(), 1);
+  await page.locator('#soundToggle').click();
+  await openMode('Training');
+  assert.equal(await page.locator('#gameSoundToggle').getAttribute('aria-pressed'), 'false');
+  // Accepted Training spells play once, including Protego and an unselected spell.
+  await page.evaluate(() => {
+    window.playedAudio = [];
+    for (const shape of ['Protego', 'Basic Cast', 'Confringo', 'Expelliarmus']) {
+      const detail = {id:crypto.randomUUID(), type:'cast', accepted:true, shape, score:95};
+      document.dispatchEvent(new CustomEvent('wizard:training-gesture', {detail}));
+      document.dispatchEvent(new CustomEvent('wizard:training-gesture', {detail}));
+    }
+    for (const type of ['reject', 'cancel']) document.dispatchEvent(new CustomEvent('wizard:training-gesture', {
+      detail:{id:crypto.randomUUID(), type, accepted:false, shape:'Protego'}
+    }));
+  });
+  assert.deepEqual(await page.evaluate(() => playedAudio.filter(url => url.includes('/spells/')).map(url => new URL(url).pathname)),
+    ['/spells/protego/cast.wav', '/spells/basic-cast/cast.wav', '/spells/confringo/cast.wav', '/spells/expelliarmus/cast.wav']);
+  await page.locator('#gameSoundToggle').click();
+  const soundCount = await page.evaluate(() => playedAudio.length);
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:training-gesture', {
+    detail:{id:crypto.randomUUID(), type:'cast', accepted:true, shape:'Protego', score:95}
+  })));
+  assert.equal(await page.evaluate(() => playedAudio.length), soundCount);
+  await page.locator('#gameSoundToggle').click();
+
   await page.setViewportSize({width:1920,height:1080});
   await page.goto(new URL('brandbook.html', base).href);
   await page.evaluate(() => document.fonts.ready);
@@ -166,7 +202,7 @@ try {
   }
   assert.equal(await page.evaluate(() => window.cameraCalls), 0);
   assert.deepEqual(errors, []);
-  console.log('PASS: input controls, shared hand/point settings, saved drawing hand and track point, mirrored preview, records, desktop/narrow layout. No camera access.');
+  console.log('PASS: input settings, mute controls, menu icon, Training spell audio and duplicate checks, mirrored preview, records, desktop/narrow layout. No camera access.');
 } finally {
   await browser?.close();
   if (api && api.exitCode === null && api.signalCode === null) {

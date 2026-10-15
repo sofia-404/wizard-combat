@@ -5,5 +5,6 @@ export default {
   guide: {viewBox: '0 0 60 60', label: 'Protego: draw a circle in either direction, then pause.', elements: [['circle', {cx: 30, cy: 30, r: 21}]]},
   effects: [{type: 'shield', target: 'self', durationMs: 3000, repeat: 'refresh'}],
   visuals: {cast: 'shield', color: '#8ce8ff'},
+  sound: '/spells/protego/cast.wav',
   lesson: null
 };

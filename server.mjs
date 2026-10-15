@@ -33,6 +33,11 @@ const server=http.createServer(async(req,res)=>{
         return reply(201,{saved:true});
       }
       if(!event||Array.isArray(event)||!['cast','reject','cancel','camera','reset','tracking','settings','capture','ignored','fight'].includes(event.type))return reply(400,{error:'Invalid event'});
+      // Older open tabs send this removed setting. Accept only its old values.
+      if(Object.hasOwn(event,'swap')){
+        if(event.swap!==0&&event.swap!==1)return reply(400,{error:'Invalid field'});
+        delete event.swap;
+      }
       for(const [key,value] of Object.entries(event))if(!fields.has(key)||!['string','number'].includes(typeof value)||(typeof value==='string'&&value.length>200)||(typeof value==='number'&&!Number.isFinite(value)))return reply(400,{error:'Invalid field'});
       const save=writes.then(async()=>{await mkdir(path.join(root,'play-data'),{recursive:true});await appendFile(path.join(root,'play-data/events.jsonl'),JSON.stringify(event)+'\n',{mode:0o600});});
       writes=save.catch(()=>{});await save;return reply(201,{saved:true});

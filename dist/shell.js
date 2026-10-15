@@ -9,7 +9,19 @@ const views={menu:$('mainMenu'),options:$('optionsView'),credits:$('creditsView'
 const routes=['menu','training','fight','options','credits'];
 let current=null,returnFocus=null;
 const help={easy:'9 seconds to draw. More forgiving shape tolerance.',normal:'6 seconds to draw. Standard shape tolerance.',hard:'3.5 seconds to draw. Tighter shape tolerance.'};
-function renderSettings(){const settings=getSettings();$('musicSetting').checked=settings.music;$('sfxSetting').checked=settings.sfx;$('handSetting').value=settings.hand;$('pointSetting').value=settings.point;$('difficultySetting').value=settings.difficulty;$('difficultyHelp').textContent=help[settings.difficulty];$('soundToggleLabel').textContent=settings.muted?'Unmute sound':'Mute sound';$('soundToggle').setAttribute('aria-pressed',String(settings.muted));$('soundToggle').setAttribute('aria-label',settings.muted?'Unmute sound':'Mute sound');audio.sync();}
+function renderSettings(){
+  const settings=getSettings();
+  $('musicSetting').checked=settings.music;$('sfxSetting').checked=settings.sfx;
+  $('handSetting').value=settings.hand;$('pointSetting').value=settings.point;
+  $('difficultySetting').value=settings.difficulty;$('difficultyHelp').textContent=help[settings.difficulty];
+  const label=settings.muted?'Unmute sound':'Mute sound';
+  $('soundToggleLabel').textContent=label;$('gameSoundToggle').textContent=label;
+  for(const id of ['soundToggle','gameSoundToggle']){
+    $(id).setAttribute('aria-pressed',String(settings.muted));$(id).setAttribute('aria-label',label);
+  }
+  audio.sync();
+}
+const music={fight:'duel',training:null};
 function show(name,trigger){
   if(!routes.includes(name)||name===current)return;
   const game=['training','fight'].includes(name);
@@ -20,7 +32,7 @@ function show(name,trigger){
   $('menuShell').hidden=game;
   current=name;
   if(game)selectGameView(name);
-  audio.setMenuVisible(!game);window.scrollTo(0,0);
+  audio.setScene(game?music[name]:'menu');window.scrollTo(0,0);
   if(name==='menu')(returnFocus||document.querySelector('[data-view="training"]')).focus();
   else if(game)$('gameBack').focus();
   else views[name].querySelector('h2').focus();
@@ -43,7 +55,14 @@ $('gameBack').addEventListener('click',()=>navigate('menu'));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&current!=='menu'){event.preventDefault();navigate('menu');}});
 $('optionsForm').addEventListener('submit',event=>event.preventDefault());
 for(const [id,key] of [['musicSetting','music'],['sfxSetting','sfx'],['handSetting','hand'],['pointSetting','point'],['difficultySetting','difficulty']])$(id).addEventListener('change',event=>updateSettings({[key]:event.target.type==='checkbox'?event.target.checked:event.target.value}));
-$('soundToggle').addEventListener('click',()=>updateSettings({muted:!getSettings().muted}));
+for(const id of ['soundToggle','gameSoundToggle'])$(id).addEventListener('click',()=>updateSettings({muted:!getSettings().muted}));
+document.addEventListener('wizard:cast',event=>audio.play(event.detail.shape));
+document.addEventListener('wizard:training-cast',event=>audio.play(event.detail.shape));
+document.addEventListener('wizard:duel-defeat',()=>audio.setDefeated(true));
+document.addEventListener('wizard:duel-reset',()=>audio.setDefeated(false));
+document.addEventListener('wizard:duel-hit',()=>audio.play('hit'));
+window.addEventListener('pagehide',()=>audio.stop());
+window.addEventListener('pageshow',()=>audio.sync());
 document.addEventListener('pointerdown',()=>audio.unlock(),{once:true});document.addEventListener('keydown',()=>audio.unlock(),{once:true});
 for(const button of document.querySelectorAll('#menuShell button,#menuShell select')){button.addEventListener('pointerenter',()=>audio.play('hover'));button.addEventListener('focus',()=>audio.play('hover'));button.addEventListener('click',()=>audio.play('click'));}
 window.addEventListener('wizard-settings',renderSettings);document.addEventListener('visibilitychange',()=>audio.sync());renderSettings();

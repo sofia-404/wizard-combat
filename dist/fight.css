@@ -107,6 +107,26 @@ body.fight-open{background:#10181d;color:#ede9df;min-height:100vh;min-height:100
   100%{transform:translate(-35px,230px) rotate(54deg)}
 }
 @media(prefers-reduced-motion:reduce){#fightDummyActor[data-disarmed="true"] #fightDummyWand{animation:none}}
+/* Idle motion. The figures breathe and sway on planted feet, and their wands
+   drift. Origins are arena pixels at the feet, a shoulder, or a wand grip. The
+   wizard layers cover the wizard painted into the arena art with the same pixels. */
+.idle{transform-box:view-box}
+.player-breathe{transform-origin:240px 776px;animation:player-breathe 2s ease-in-out infinite alternate}
+.player-sway{transform-origin:240px 776px;animation:player-sway 3.4s ease-in-out -1.2s infinite alternate}
+.player-wand-arm{transform-origin:318px 380px;animation:player-wand-arm 2s ease-in-out -.3s infinite alternate}
+.player-back-arm{transform-origin:206px 368px;animation:player-back-arm 3.4s ease-in-out -2.9s infinite alternate}
+.dummy-breathe{transform-origin:1450px 754px;animation:dummy-breathe 2.4s ease-in-out -.9s infinite alternate}
+.dummy-sway{transform-origin:1450px 754px;animation:dummy-sway 4.1s ease-in-out -3s infinite alternate}
+.dummy-wand{transform-origin:1348px 534px;animation:dummy-wand 2.8s ease-in-out -1.6s infinite alternate}
+@keyframes player-breathe{to{transform:scale(1.002,1.008)}}
+@keyframes player-sway{from{transform:skewX(-.45deg)}to{transform:skewX(.45deg)}}
+@keyframes player-wand-arm{from{transform:rotate(.8deg)}to{transform:rotate(-1deg)}}
+@keyframes player-back-arm{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+@keyframes dummy-breathe{to{transform:scale(1.002,1.007)}}
+@keyframes dummy-sway{from{transform:skewX(.3deg)}to{transform:skewX(-.3deg)}}
+@keyframes dummy-wand{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+[data-pose="falling"] .idle,[data-pose="fallen"] .idle,[data-disarmed="true"] .dummy-wand{animation:none}
+@media(prefers-reduced-motion:reduce){.idle{animation:none}}
 .is-defeated .fight-dummy-shadow{transform:translate(-160px,0) scaleX(1.3);transform-box:fill-box;transform-origin:center}
 
 .fight-battlefield{min-width:0}
