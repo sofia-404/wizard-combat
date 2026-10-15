@@ -1,6 +1,7 @@
 # Preserve the game rules while building the new visual system.
 
 - Read `PRODUCT.md` for product truth and `DESIGN.md` for the target UI system.
+- Keep `README.md` focused on the game. Put internal design standards and development guidance in `DESIGN.md`, `docs/design/`, and this file.
 - Read `docs/design/screen-specs.md` before changing the menu, training, or fight UI.
 - Use the `impeccable` skill for every frontend change.
 - Use `playwright-cli` for browser interaction. Inspect desktop at 1920×1080; add a narrow viewport for responsive checks.
