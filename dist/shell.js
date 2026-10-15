@@ -33,6 +33,10 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&current!=='
 $('optionsForm').addEventListener('submit',event=>event.preventDefault());
 for(const [id,key] of [['musicSetting','music'],['sfxSetting','sfx'],['handSetting','hand'],['difficultySetting','difficulty']])$(id).addEventListener('change',event=>updateSettings({[key]:event.target.type==='checkbox'?event.target.checked:event.target.value}));
 for(const id of ['soundToggle','gameSoundToggle'])$(id).addEventListener('click',()=>updateSettings({muted:!getSettings().muted}));
+document.addEventListener('wizard:cast',event=>audio.play(event.detail.shape));
+document.addEventListener('wizard:duel-defeat',()=>audio.setDefeated(true));
+document.addEventListener('wizard:duel-reset',()=>audio.setDefeated(false));
+document.addEventListener('wizard:duel-hit',()=>audio.play('hit'));
 document.addEventListener('pointerdown',()=>audio.unlock(),{once:true});document.addEventListener('keydown',()=>audio.unlock(),{once:true});
 for(const button of document.querySelectorAll('#menuShell button,#menuShell select')){button.addEventListener('pointerenter',()=>audio.play('hover'));button.addEventListener('focus',()=>audio.play('hover'));button.addEventListener('click',()=>audio.play('click'));}
 window.addEventListener('wizard-settings',renderSettings);document.addEventListener('visibilitychange',()=>audio.sync());renderSettings();

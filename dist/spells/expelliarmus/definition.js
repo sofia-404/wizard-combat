@@ -11,6 +11,7 @@ export default {
     {type: 'disarm', durationMs: 2000, repeat: 'refresh'}
   ],
   visuals: {cast: 'dummy-hit', color: '#ff927e'},
+  sound: '/spells/expelliarmus/cast.wav',
   lesson: {
     requiredCasts: 3,
     start: 'Hold still. Draw right, then down. Pause at the end.',

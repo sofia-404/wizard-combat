@@ -85,7 +85,7 @@ Options save music, sound effects, drawing hand, and difficulty in this browser.
 
 The scale adjusts shape-distance limits, circle radial variation, and Basic Cast/Confringo/Expelliarmus bend and straightness tolerances. It does not change spell directions, minimum drawing size, start/end holds, tracking-loss rules, lesson count, or the dummy timer. Normal preserves the original recognition behavior. Easy also uses its wider Expelliarmus tolerance when deciding whether a return move contains a spell corner; Hard keeps that attempt-counting check at Normal tolerance. These profiles are checked with simulated paths; physical difficulty has not been validated.
 
-Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Fight plays separate battle music. Training and [OLD] Practice have no music. Music pauses when the page is hidden. While a shape is drawn, a looping magic sound follows the fingertip speed and stops when the stroke ends. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
+Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Fight plays separate battle music. Training and [OLD] Practice have no music. Music pauses when the page is hidden. While a shape is drawn, a looping magic sound follows the fingertip speed and stops when the stroke ends. The Sound effects switch controls menu focus, hover, and click sounds, and the spell sounds, independently from music. Each accepted cast plays its spell sound: ice for Protego, a falling energy drain with a punch for Basic Cast, lightning for Confringo, and fire with a metal clink for Expelliarmus. In Fight, the main hit of each sound lands when the spell reaches the dummy. Each hit that deals damage also plays a short punch impact. When the dummy is defeated, the battle music stops and a short brass fanfare plays once. The battle music starts again from the beginning after **Reset dummy**. The Sound effects switch controls the punch and the fanfare too. Credits link to the music source and license.
 
 ## Expelliarmus and the legacy Practice lesson
 
@@ -152,7 +152,7 @@ See [Spell files](docs/spells.md) for the registry, definition fields, and steps
 
 - `dist/shell.js` and `dist/menu.css`: main menu, view navigation, and responsive shell.
 - `dist/settings.js`: saved sound, hand, and difficulty options.
-- `dist/menu-audio.js`: local menu and Fight music and interface sounds.
+- `dist/menu-audio.js`: local menu and Fight music, interface sounds, spell sounds, and the Fight damage and victory sounds.
 - `dist/draw-audio.js`: looping trail sound while a shape is drawn.
 - `dist/app.js`: camera lifecycle, hand selection, display, and local records.
 - `dist/hand-input.js`: hand selection and short label-change handling.
@@ -178,7 +178,7 @@ See [Spell files](docs/spells.md) for the registry, definition fields, and steps
 
 MediaPipe and the $P recognizer retain their copyright and license terms in `licenses/`. The bundled MediaPipe runtime includes local modifications.
 
-The menu uses “Night Vigil” and Fight uses “Clash Defiant”, both by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 and edited for length and looping. Original interface sounds use CC0. See [audio credits and source details](licenses/audio/NOTICE.md). Local fonts use the SIL Open Font License.
+The menu uses “Night Vigil” and Fight uses “Clash Defiant”, both by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 and edited for length and looping. Original interface sounds use CC0. Spell sounds are adapted from CC0 packs by Lentikula, rubberduck, qubodup, and Kenney. The Fight damage sound is adapted from a CC0 pack by Kenney. The Fight victory fanfare is adapted from a CC0 recording by Spring Spring. See [audio credits and source details](licenses/audio/NOTICE.md). Local fonts use the SIL Open Font License.
 
 `evidence/runtime-integrity.json` lists SHA-256 hashes for bundled runtime files and license files.
 

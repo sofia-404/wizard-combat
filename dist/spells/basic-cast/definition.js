@@ -13,5 +13,6 @@ export default {
   },
   effects: [{type: 'damage', tiers: [{minScore: 88, value: 30}, {minScore: 78, value: 25}, {minScore: 0, value: 20}]}],
   visuals: {cast: 'dummy-hit', color: '#c5a0ff'},
+  sound: '/spells/basic-cast/cast.wav',
   lesson: null
 };

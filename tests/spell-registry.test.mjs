@@ -44,6 +44,9 @@ test('invalid definitions fail before a spell can enter play', () => {
     list => { delete list[0].visuals.color; },
     list => { list[0].visuals.color = '#nothex'; },
     list => { list[0].visuals.color = null; },
+    list => { list[0].sound = '/audio/menu-click.wav'; },
+    list => { list[0].sound = '/spells/circle/../../server.mjs'; },
+    list => { list[0].sound = null; },
     list => { list[3].lesson.requiredCasts = 0; }
   ]) {
     const definitions = structuredClone(spellList);
@@ -151,5 +154,13 @@ test('Basic Cast keeps its movement, effects, and bidirectional recognition', ()
     assert.equal(result.diagnostics.basiccastGate, 'ok');
     assert.ok(result.diagnostics.basiccastCornerTurn >= 45);
     assert.equal(Object.keys(result.diagnostics).some(key => /^v[A-Z]/.test(key)), false);
+  }
+});
+
+test('every registered spell sound exists in its spell folder', async () => {
+  const {access} = await import('node:fs/promises');
+  for (const spell of spellList.filter(spell => spell.sound !== undefined)) {
+    assert.match(spell.sound, new RegExp(`^/spells/${spell.id}/`));
+    await access(new URL(`../dist${spell.sound}`, import.meta.url));
   }
 });
