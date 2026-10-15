@@ -46,10 +46,11 @@ Hold -> Ready -> Draw -> Pause -> Match -> Cast
 - Camera images, video, and raw point sequences are not saved. Legacy Practice and Fight records include results, timing, settings, tracking reasons, and path drawings. Training saves scalar result and lesson-control records without path cards.
 - legacy Practice, Fight, and Training share one camera, detector, and input settings. Legacy Practice and Fight share the legacy Practice session and its Expelliarmus lesson. Training has separate lesson progress and does not change legacy Practice counters or Fight health.
 - The root opens a main menu with Fight, Training, [OLD] Practice, Options, and Credits. Fight opens the static dummy. Training opens the separate four-spell lessons. [OLD] Practice opens the original practice view and its Expelliarmus lesson. Each entry shows only its own screen, without an internal mode tab bar. No entry starts the camera. Back or Escape stops the camera and preserves the current lesson until reload.
-- Music, sound effects, master mute, drawing hand, and difficulty persist in browser storage when available. Left hand and Normal are defaults. Menu music starts after user interaction and pauses in all game modes or a hidden page.
+- Music, sound effects, master mute, drawing hand, and difficulty persist in browser storage when available. Left hand and Normal are defaults. Music starts after user interaction. Menu screens play menu music, Fight plays battle music, and Training and [OLD] Practice have no music. Music pauses on a hidden page. A drawing sound follows fingertip speed while a shape is drawn and respects the effects preference and master mute. A sound control in the game bar uses the same master mute. Each accepted cast plays the sound of its spell in all game views. Each Fight hit that deals damage also plays a damage sound. A defeat stops the battle music and plays a victory fanfare once; the battle music starts again after Reset dummy. The Sound effects setting and master mute control these sounds.
 - Difficulty changes draw timeout and selected recognition tolerances: Easy uses 9 seconds and scale 1.35; Normal uses 6 seconds and scale 1; Hard uses 3.5 seconds and scale 0.7. Normal preserves earlier behavior. Directions, holds, tracking-loss rules, three-cast count, and two-second dummy response stay the same. See README.md for the affected checks. Physical difficulty has not been validated.
-- Credits identify the creators, local fonts, CC BY 4.0 music, and original CC0 interface sounds.
+- Credits identify the creators, local fonts, CC BY 4.0 menu and Fight music, original CC0 interface sounds, the CC0 drawing sound, and CC0 spell, damage, and victory sound sources.
 - Fight implements a static target with health, spell travel, hit reactions, defeat, and reset. The dummy does not attack. Health and hit counts are separate from legacy Practice and reset on page reload. See `README.md` for the current rules and `docs/spells.md` for shared spell definitions.
+- In Fight and Training, the wizard and the dummy idle at rest. They breathe, sway slightly, and move their wands a little. A falling or defeated dummy and a dropped wand stay still. Reduced motion turns this motion off.
 - Fight events use the existing local record queue. Cast IDs link launches, hits, cancellations, and defeat to the gesture record. There is no database or saved health restoration. No database migration is needed.
 - Opponent attacks, multiplayer, progression, player defeat, and full-fight win conditions remain undecided.
 
@@ -71,7 +72,7 @@ The repository includes a brandbook, reusable design assets, and screen specific
 - `dist/fight.js`, `dist/fight-health.js`, `dist/fight-effects.js`, and `dist/fight-reactions.js`: implemented Fight behavior.
 - `tests/`: simulated-input checks. These do not replace physical player trials.
 
-Fight uses local arena and dummy artwork in `dist/assets/`; its source prompts are in `evidence/fight-artwork.txt` and `evidence/fight-reaction-artwork.txt`. A full combat system is not implemented. Brandbook previews must label illustrative states and future screens clearly.
+Fight uses local arena and dummy artwork in `dist/assets/`; its source prompts are in `evidence/fight-artwork.txt` and `evidence/fight-reaction-artwork.txt`. The idle wizard layers come from the arena image; see `evidence/fight-idle-artwork.txt`. A full combat system is not implemented. Brandbook previews must label illustrative states and future screens clearly.
 The menu uses a supplied wizard image.
 
 ## Product Principles

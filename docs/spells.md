@@ -28,6 +28,7 @@ Each definition contains:
 - `guide`: SVG data for the small movement diagram.
 - `effects`: damage, disarm, or shield settings. Shield effects use `target: self`; other effects use the target by default.
 - `visuals`: the shared legacy Practice animation and the Fight spell color (`#RRGGBB`).
+- `sound`: optional cast sound path, such as `/spells/<id>/cast.wav`. The file must be in the spell folder. A spell without a sound is silent.
 - `lesson`: lesson count and messages, or `null`.
 
 Definitions are checked and frozen at startup. Player state stays in the dummy, shield, and lesson objects.
@@ -40,7 +41,7 @@ Definitions are checked and frozen at startup. Player state stays in the dummy, 
 4. Add a new shared checker or effect when new behavior is needed.
 5. Test the new movement against every existing shape. Two matches must reject the cast.
 
-The legacy Practice shape list and small guides use the registry. Store future image and sound files in the spell folder only when needed.
+The legacy Practice shape list and small guides use the registry. Store future image and sound files in the spell folder only when needed. `scripts/generate-spell-audio.py` makes the current cast sounds from their CC0 sources. Each main hit lands about 120 ms after the start, when the Fight flight reaches the dummy.
 
 ## Compatibility limits
 

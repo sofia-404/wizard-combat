@@ -112,6 +112,9 @@ try {
   }
   await page.getByRole('button',{name:'Training',exact:true}).click();
   await page.waitForFunction(() => document.querySelector('#trainingSpell').options.length === 4);
+  // Training shows the same idle wizard and dummy as Fight.
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#trainingView .idle')].map(group => group.getAnimations().map(animation => animation.animationName).join())),
+    ['player-breathe', 'player-sway', 'player-back-arm', 'player-wand-arm', 'dummy-breathe', 'dummy-sway', 'dummy-wand']);
   const text = id => page.locator('#' + id).textContent();
   const count = async value => assert.equal(await text('trainingCount'), `${value} / 3`);
   const exp = resample([{x:.25,y:.2},{x:.55,y:.2},{x:.55,y:.5}], 40);

@@ -36,15 +36,15 @@ Fight opens the existing static-dummy fight without starting the camera. Each me
 
 ### Options and sound
 
-Options use labeled switches for Music and Sound effects, plus native selectors for Drawing hand and Difficulty. Left hand and Normal are the defaults. The separate sound control mutes all menu audio without clearing the music/effects preferences. These values save in browser storage when available.
+Options use labeled switches for Music and Sound effects, plus native selectors for Drawing hand and Difficulty. Left hand and Normal are the defaults. The separate sound control mutes all game audio without clearing the music/effects preferences. The game views repeat this control at the right end of their top bar. These values save in browser storage when available.
 
 Easy allows 9 seconds to draw with tolerance scale 1.35. Normal allows 6 seconds with scale 1 and preserves earlier behavior. Hard allows 3.5 seconds with scale 0.7. The scale changes shape-distance limits, circle radial variation, and Basic Cast/Confringo/Expelliarmus bend and straightness checks. Easy also widens the Expelliarmus corner check used to identify an attempt; Hard leaves that check at Normal tolerance. Directions, minimum size, holds, tracking-loss rules, lesson count, and dummy response are unchanged. These are implementation values, not validated physical-player difficulty claims.
 
-Music begins after a pointer or keyboard action. It pauses in all game modes and when the page is hidden. Focus, hover, and click effects respect the effects preference and master mute. Essential state remains readable without audio.
+Music begins after a pointer or keyboard action. Menu screens play menu music. Fight plays battle music. Training and [OLD] Practice have no music. Each track pauses when its view closes or the page is hidden. A spell with a cast sound plays it on each accepted cast in every game view. A Fight defeat stops the battle music and plays a victory fanfare once. The battle music starts again from the beginning after Reset dummy. Leaving Fight stops the fanfare. Focus, hover, click, and spell effects respect the effects preference and master mute. Essential state remains readable without audio.
 
 ### Credits and responsive behavior
 
-Credits identify Emil Vakhitov and Sofia, link to “Night Vigil” by Kevin MacLeod and CC BY 4.0, disclose the music edit, and identify the original CC0 interface sounds and local SIL Open Font License fonts. Recording disclosures remain visible in the game views and Credits.
+Credits identify Emil Vakhitov and Sofia, link to “Night Vigil” and “Clash Defiant” by Kevin MacLeod and CC BY 4.0, disclose the music edits, and identify the original CC0 interface sounds, the CC0 spell, damage, and victory sound sources, and local SIL Open Font License fonts. Recording disclosures remain visible in the game views and Credits.
 
 At narrow widths, text and controls fill the viewport while the image dims behind them. Detail views use a dark reading field. Reduced motion removes scene drift, view entrance, and hover travel. Inspect at 1920x1080 and a narrow viewport. Mobile camera play remains unvalidated.
 
@@ -83,7 +83,7 @@ The brandbook Training illustration remains a synthetic design study. It is not 
 
 ## Implemented Fight
 
-Fight shares the legacy Practice camera and detector. It shows the same transparent hand/path overlay on an illustrated arena, without camera pixels in the arena. Target health changes at impact. Reset restores the target; mode changes preserve health and cancel pending flights. The player stays at full health because the dummy does not attack. `README.md` defines the current values and state rules.
+Fight shares the legacy Practice camera and detector. It shows the same transparent hand/path overlay on an illustrated arena, without camera pixels in the arena. Both figures idle at rest with small breathing, sway, and wand motion. Reduced motion turns the idle motion off. Target health changes at impact. Reset restores the target; mode changes preserve health and cancel pending flights. The player stays at full health because the dummy does not attack. `README.md` defines the current values and state rules.
 
 Keep these mechanics during the separate design migration. The future fight study below does not replace them.
 

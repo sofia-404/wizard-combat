@@ -1,5 +1,57 @@
 [
   {
+    "path": "dist/audio/draw-trail.wav",
+    "bytes": 425682,
+    "sha256": "a6f43d703fc05194af69583d5f6b355733a69ab44e9b71a08b03d476c3503e1c",
+    "duration_seconds": 9.65,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "22050",
+        "channels": 1
+      }
+    ]
+  },
+  {
+    "path": "dist/audio/duel-clash-defiant.mp3",
+    "bytes": 949365,
+    "sha256": "48e8c134aecd4d66fea6d76ef8fc8fba82c62c1628be21b9ff626068312ec206",
+    "duration_seconds": 79.05,
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 2
+      }
+    ]
+  },
+  {
+    "path": "dist/audio/duel-hit.wav",
+    "bytes": 38052,
+    "sha256": "709659bc96a7b672fdde70433926eb751a95b717aefef30ea28ce006489eb8eb",
+    "duration_seconds": 0.43,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
+      }
+    ]
+  },
+  {
+    "path": "dist/audio/duel-victory.mp3",
+    "bytes": 120871,
+    "sha256": "e2b37e74994155138ac27bc2c0223285eaa5db1a84414c74f93430eaf9199b80",
+    "duration_seconds": 10.0,
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 2
+      }
+    ]
+  },
+  {
     "path": "dist/audio/menu-click.wav",
     "bytes": 40616,
     "sha256": "08974c864c1c87b2931c969f9aaf325247dd941c5f125f28774e079b0eaeed80",
@@ -35,6 +87,58 @@
         "codec_name": "mp3",
         "sample_rate": "44100",
         "channels": 2
+      }
+    ]
+  },
+  {
+    "path": "dist/spells/protego/cast.wav",
+    "bytes": 86514,
+    "sha256": "df19547d65ff9cd4f6b2bb8a508dbd556422cbfdb4982d396b48ae6c8dc919d5",
+    "duration_seconds": 0.98,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
+      }
+    ]
+  },
+  {
+    "path": "dist/spells/expelliarmus/cast.wav",
+    "bytes": 118266,
+    "sha256": "63205a6daf874e5f4b273afcf3fce7e6c67158ec662791e822b12192c14d1022",
+    "duration_seconds": 1.34,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
+      }
+    ]
+  },
+  {
+    "path": "dist/spells/basic-cast/cast.wav",
+    "bytes": 123558,
+    "sha256": "27809bc0ee526e28112d8a454f82ba39104ffd3749306610cf24047b0251f934",
+    "duration_seconds": 1.4,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
+      }
+    ]
+  },
+  {
+    "path": "dist/spells/confringo/cast.wav",
+    "bytes": 132378,
+    "sha256": "7b6905abd98a95e24815806bbdc6d34e87df081c9977db0a84072a8e58f31dce",
+    "duration_seconds": 1.5,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
       }
     ]
   }

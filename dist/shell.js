@@ -8,7 +8,9 @@ const audio=createMenuAudio(getSettings);
 const views={menu:$('mainMenu'),options:$('optionsView'),credits:$('creditsView'),game:$('gameView')};
 let current='menu',returnFocus=null;
 const help={easy:'9 seconds to draw. More forgiving shape tolerance.',normal:'6 seconds to draw. Standard shape tolerance.',hard:'3.5 seconds to draw. Tighter shape tolerance.'};
-function renderSettings(){const settings=getSettings();$('musicSetting').checked=settings.music;$('sfxSetting').checked=settings.sfx;$('handSetting').value=settings.hand;$('difficultySetting').value=settings.difficulty;$('difficultyHelp').textContent=help[settings.difficulty];$('soundToggle').textContent=settings.muted?'Unmute sound':'Mute sound';$('soundToggle').setAttribute('aria-pressed',String(settings.muted));$('soundToggle').setAttribute('aria-label',settings.muted?'Unmute sound':'Mute sound');audio.sync();}
+function renderSettings(){const settings=getSettings();$('musicSetting').checked=settings.music;$('sfxSetting').checked=settings.sfx;$('handSetting').value=settings.hand;$('difficultySetting').value=settings.difficulty;$('difficultyHelp').textContent=help[settings.difficulty];for(const toggle of [$('soundToggle'),$('gameSoundToggle')]){toggle.textContent=settings.muted?'Unmute sound':'Mute sound';toggle.setAttribute('aria-pressed',String(settings.muted));toggle.setAttribute('aria-label',settings.muted?'Unmute sound':'Mute sound');}audio.sync();}
+// Menu screens use menu music. Fight uses battle music. Training and practice stay quiet.
+const music={fight:'duel',training:null,'legacy-practice':null};
 function show(name,trigger){
   const game=['training','fight','legacy-practice'].includes(name);
   const viewName=game?'game':name;
@@ -19,7 +21,7 @@ function show(name,trigger){
   $('menuShell').hidden=game;
   current=viewName;
   if(game)selectGameView(name);
-  audio.setMenuVisible(!game);window.scrollTo(0,0);
+  audio.setScene(game?music[name]:'menu');window.scrollTo(0,0);
   if(name==='menu')(returnFocus||document.querySelector('[data-view="training"]')).focus();
   else if(game)$('gameBack').focus();
   else views[name].querySelector('h2').focus();
@@ -30,7 +32,11 @@ $('gameBack').addEventListener('click',()=>show('menu'));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&current!=='menu'){event.preventDefault();show('menu');}});
 $('optionsForm').addEventListener('submit',event=>event.preventDefault());
 for(const [id,key] of [['musicSetting','music'],['sfxSetting','sfx'],['handSetting','hand'],['difficultySetting','difficulty']])$(id).addEventListener('change',event=>updateSettings({[key]:event.target.type==='checkbox'?event.target.checked:event.target.value}));
-$('soundToggle').addEventListener('click',()=>updateSettings({muted:!getSettings().muted}));
+for(const id of ['soundToggle','gameSoundToggle'])$(id).addEventListener('click',()=>updateSettings({muted:!getSettings().muted}));
+document.addEventListener('wizard:cast',event=>audio.play(event.detail.shape));
+document.addEventListener('wizard:duel-defeat',()=>audio.setDefeated(true));
+document.addEventListener('wizard:duel-reset',()=>audio.setDefeated(false));
+document.addEventListener('wizard:duel-hit',()=>audio.play('hit'));
 document.addEventListener('pointerdown',()=>audio.unlock(),{once:true});document.addEventListener('keydown',()=>audio.unlock(),{once:true});
 for(const button of document.querySelectorAll('#menuShell button,#menuShell select')){button.addEventListener('pointerenter',()=>audio.play('hover'));button.addEventListener('focus',()=>audio.play('hover'));button.addEventListener('click',()=>audio.play('click'));}
 window.addEventListener('wizard-settings',renderSettings);document.addEventListener('visibilitychange',()=>audio.sync());renderSettings();

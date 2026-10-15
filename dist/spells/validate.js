@@ -35,6 +35,8 @@ export function validateDefinitions(definitions) {
     }
     if (!Object.hasOwn(animations, spell.visuals?.cast)) fail('cast animation');
     if (typeof spell.visuals.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(spell.visuals.color)) fail('spell color');
+    // Sound files stay in the spell folder. A spell without a sound plays silently.
+    if (spell.sound !== undefined && !new RegExp(`^/spells/${spell.id}/[a-z0-9-]+\\.(wav|mp3)$`).test(spell.sound)) fail('sound path');
     if (spell.lesson) {
       if (!Number.isInteger(spell.lesson.requiredCasts) || spell.lesson.requiredCasts < 1) fail('lesson count');
       for (const field of ['start', 'idle', 'complete', 'correction']) if (typeof spell.lesson[field] !== 'string') fail('lesson message');

@@ -30,15 +30,15 @@
   <section id="creditsView" class="menu-screen detail-view credits-view" hidden aria-labelledby="creditsTitle">
     <button type="button" class="menu-back" data-back>Back to menu</button>
     <h2 id="creditsTitle" tabindex="-1">Credits</h2><p>Wizard Combat</p><p>A local camera game built around deliberate hand movements.</p>
-    <h3>Created by</h3><p>Emil Vakhitov and Sofia</p><h3>Music</h3><p><a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1900047" target="_blank" rel="noopener">“Night Vigil” by Kevin MacLeod</a> (incompetech.com), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Edited for length and looping.</p>
-    <h3>Sound &amp; type</h3><p>Original menu sound effects, released under CC0. Cormorant Garamond and Source Sans 3, licensed under the SIL Open Font License.</p>
+    <h3>Created by</h3><p>Emil Vakhitov and Sofia</p><h3>Music</h3><p><a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1900047" target="_blank" rel="noopener">“Night Vigil” by Kevin MacLeod</a> (incompetech.com), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Edited for length and looping.</p><p><a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1600003" target="_blank" rel="noopener">“Clash Defiant” by Kevin MacLeod</a> (incompetech.com), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Edited for length and looping.</p>
+    <h3>Sound &amp; type</h3><p>Original menu sound effects, released under CC0. Drawing sound adapted from a CC0 recording by Rising_Moon. Spell sounds adapted from CC0 packs by Lentikula, rubberduck, qubodup, and Kenney. Damage sound adapted from a CC0 pack by Kenney. Victory fanfare adapted from a CC0 recording by Spring Spring. Cormorant Garamond and Source Sans 3, licensed under the SIL Open Font License.</p>
     <h3>Thanks &amp; licenses</h3>
     <p>Hand tracking by <a href="/licenses/MediaPipe-Apache-2.0.txt" target="_blank" rel="noopener">MediaPipe (Apache 2.0)</a>. Gesture recognition includes the <a href="/licenses/PDollar-BSD.txt" target="_blank" rel="noopener">$P recognizer (BSD)</a>.</p>
     <p>Font notices: <a href="/licenses/fonts/CormorantGaramond-OFL.txt" target="_blank" rel="noopener">Cormorant Garamond</a> and <a href="/licenses/fonts/SourceSans3-OFL.txt" target="_blank" rel="noopener">Source Sans 3</a>.</p>
     <p class="setting-note">Camera images and video are not saved. Training saves result and lesson records. Fight and [OLD] Practice also save captured path drawings.</p>
   </section>
 </div>
-<div id="gameView" hidden><div class="game-navigation"><button id="gameBack" type="button">Back to menu</button><span id="gameViewName">Training</span></div>
+<div id="gameView" hidden><div class="game-navigation"><button id="gameBack" type="button">Back to menu</button><span id="gameViewName">Training</span><button id="gameSoundToggle" class="game-sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">Mute sound</button></div>
 <main>
   <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
   <div id="legacyPracticeView" role="region" aria-label="[OLD] Practice" hidden>
@@ -131,12 +131,22 @@
     <div class="fight-arena">
       <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard in blue robes stands on the left of a stone floor in a moonlit ruined castle." loading="lazy">
       <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
+        <g class="fight-player" aria-hidden="true">
+          <image href="/assets/fight-player-plate.png" x="0" y="240" width="660" height="570"/>
+          <g class="idle player-breathe"><g class="idle player-sway">
+            <image href="/assets/fight-player-body.png" x="0" y="240" width="660" height="570"/>
+            <g class="idle player-back-arm"><image href="/assets/fight-player-back-arm.png" x="0" y="240" width="660" height="570"/></g>
+            <g class="idle player-wand-arm"><image href="/assets/fight-player-wand-arm.png" x="0" y="240" width="660" height="570"/></g>
+          </g></g>
+        </g>
         <ellipse class="fight-dummy-shadow" cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
         <g id="fightDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
-          <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
-          <g id="fightDummyWand" aria-hidden="true">
-            <image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/>
-          </g>
+          <g class="idle dummy-breathe"><g class="idle dummy-sway">
+            <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+            <g id="fightDummyWand" aria-hidden="true">
+              <g class="idle dummy-wand"><image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/></g>
+            </g>
+          </g></g>
         </g>
       </svg>
       <div class="arena-shade" aria-hidden="true"></div>
@@ -193,10 +203,20 @@
         <div class="fight-arena">
           <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard faces a stationary training dummy in the moonlit arena." loading="lazy">
           <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
+            <g class="fight-player" aria-hidden="true">
+              <image href="/assets/fight-player-plate.png" x="0" y="240" width="660" height="570"/>
+              <g class="idle player-breathe"><g class="idle player-sway">
+                <image href="/assets/fight-player-body.png" x="0" y="240" width="660" height="570"/>
+                <g class="idle player-back-arm"><image href="/assets/fight-player-back-arm.png" x="0" y="240" width="660" height="570"/></g>
+                <g class="idle player-wand-arm"><image href="/assets/fight-player-wand-arm.png" x="0" y="240" width="660" height="570"/></g>
+              </g></g>
+            </g>
             <ellipse cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
             <g id="trainingDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
-              <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
-              <g id="trainingDummyWand" aria-hidden="true"><image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/></g>
+              <g class="idle dummy-breathe"><g class="idle dummy-sway">
+                <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+                <g id="trainingDummyWand" aria-hidden="true"><g class="idle dummy-wand"><image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/></g></g>
+              </g></g>
             </g>
           </svg>
           <div class="arena-shade" aria-hidden="true"></div>

@@ -22,7 +22,9 @@ The battlefield also shows the live hand path, cursor, READY/DRAWING instruction
 
 All three modes use one camera controller, detector, settings, and local record queue. Legacy Practice and Fight also share the legacy Practice session and its lesson progress. Training has its own lesson progress. The same camera video and path overlay move to the selected screen. Returning to the menu stops the camera and keeps lesson progress. Each screen opens with the camera off. The original practice controls and behavior remain in place.
 
-Attack effects play only in the visible Fight screen and clear when you leave it or hide the page. The dummy is a separate image. Each spell hit moves it: Basic Cast gives a flinch, Confringo gives a short shake, and Expelliarmus pushes it back. The player and arena stay still.
+Attack effects play only in the visible Fight screen and clear when you leave it or hide the page. The dummy is a separate image. Each spell hit moves it: Basic Cast gives a flinch, Confringo gives a short shake, and Expelliarmus pushes it back. The arena stays still.
+
+Between hits, the wizard and the dummy idle. They breathe, sway a little on planted feet, and move their wands slightly. The wizard's free arm also swings a little. Training shows the same motion. A falling or defeated dummy and a dropped wand stay still. Reduced motion turns the idle motion off.
 
 In Fight, Expelliarmus also drops the dummy's wand at impact. The wand returns two seconds after the hit. Another Expelliarmus hit restarts that timer. Other spells do not change it. The timer continues with the camera off or another mode open. **Reset dummy** returns the wand at once. Reduced motion shows the dropped wand without travel. A lethal Expelliarmus hit follows the same timer; the dummy stays defeated.
 
@@ -34,7 +36,7 @@ Both Fight health bars start at 200. The player stays at full health because the
 
 Training uses the same spell effects and artwork with its own target state. Navigation and Fight arena styles are in `dist/fight.js` and `dist/fight.css`. Spell flight and hit effects are in `dist/fight-effects.js`; health state and damage timing are in `dist/fight-health.js`. Damage tiers and spell colors come from `dist/spells/`. All three views use `dist/combat/cast.js` for damage values. Dummy poses and reactions are in `dist/fight-reactions.js`. The battlefield path display is in `dist/fight-gesture.js`.
 
-The current artwork uses `dist/assets/fight-arena-background.jpg`, `dist/assets/fight-dummy-unarmed.png`, and a separate `dist/assets/fight-wand.png`. The edit prompts are in `evidence/fight-reaction-artwork.txt` and `evidence/fight-disarm-artwork.txt`. The original character and arena images are kept. `dist/fight-disarm.js` uses the shared dummy state for the wand timer.
+The current artwork uses `dist/assets/fight-arena-background.jpg`, `dist/assets/fight-dummy-unarmed.png`, and a separate `dist/assets/fight-wand.png`. The edit prompts are in `evidence/fight-reaction-artwork.txt` and `evidence/fight-disarm-artwork.txt`. The original character and arena images are kept. `dist/fight-disarm.js` uses the shared dummy state for the wand timer. The wizard is part of the arena image. For the idle motion, `dist/assets/fight-player-*.png` cover the wizard with a body layer and two arm layers. At rest these layers show the same pixels as the arena image. `scripts/generate-fight-idle-art.py` makes them, and `evidence/fight-idle-artwork.txt` describes the method.
 
 ## Use
 
@@ -75,7 +77,7 @@ The mirrored camera preview sits in the right column, above the lesson. Narrow l
 
 The menu lists **Fight**, **Training**, **[OLD] Practice**, **Options**, and **Credits**. These open the static-dummy fight, separate four-spell lessons, original practice view, sound/input settings, and credits. **Back to menu** or Escape leaves a game mode, stops the camera, and cancels pending Fight flights while keeping lesson progress and dummy health. Returning to a game mode requires starting the camera again. Lesson progress is not saved across page reloads.
 
-Options save music, sound effects, drawing hand, and difficulty in this browser. Left hand and Normal difficulty are the defaults. The top-right sound control saves a separate master mute setting. If browser storage is unavailable, settings still work for the open page.
+Options save music, sound effects, drawing hand, and difficulty in this browser. Left hand and Normal difficulty are the defaults. The top-right sound control in the menu, and the sound control in the game bar, save a separate master mute setting. If browser storage is unavailable, settings still work for the open page.
 
 | Difficulty | Maximum draw time | Shape tolerance scale |
 | --- | --- | --- |
@@ -85,7 +87,7 @@ Options save music, sound effects, drawing hand, and difficulty in this browser.
 
 The scale adjusts shape-distance limits, circle radial variation, and Basic Cast/Confringo/Expelliarmus bend and straightness tolerances. It does not change spell directions, minimum drawing size, start/end holds, tracking-loss rules, lesson count, or the dummy timer. Normal preserves the original recognition behavior. Easy also uses its wider Expelliarmus tolerance when deciding whether a return move contains a spell corner; Hard keeps that attempt-counting check at Normal tolerance. These profiles are checked with simulated paths; physical difficulty has not been validated.
 
-Music starts after a pointer or keyboard action. It pauses in all game modes and when the page is hidden. The Sound effects switch controls menu focus, hover, and click sounds independently from music. Credits link to the music source and license.
+Music starts after a pointer or keyboard action. The menu, Options, and Credits play the menu music. Fight plays separate battle music. Training and [OLD] Practice have no music. Music pauses when the page is hidden. While a shape is drawn, a looping magic sound follows the fingertip speed and stops when the stroke ends. The Sound effects switch controls menu focus, hover, and click sounds, and the spell sounds, independently from music. Each accepted cast plays its spell sound: ice for Protego, a falling energy drain with a punch for Basic Cast, lightning for Confringo, and fire with a metal clink for Expelliarmus. In Fight, the main hit of each sound lands when the spell reaches the dummy. Each hit that deals damage also plays a short punch impact. When the dummy is defeated, the battle music stops and a short brass fanfare plays once. The battle music starts again from the beginning after **Reset dummy**. The Sound effects switch controls the punch and the fanfare too. Credits link to the music source and license.
 
 ## Expelliarmus and the legacy Practice lesson
 
@@ -152,7 +154,8 @@ See [Spell files](docs/spells.md) for the registry, definition fields, and steps
 
 - `dist/shell.js` and `dist/menu.css`: main menu, view navigation, and responsive shell.
 - `dist/settings.js`: saved sound, hand, and difficulty options.
-- `dist/menu-audio.js`: local menu music and interface sounds.
+- `dist/menu-audio.js`: local menu and Fight music, interface sounds, spell sounds, and the Fight damage and victory sounds.
+- `dist/draw-audio.js`: looping trail sound while a shape is drawn.
 - `dist/app.js`: camera lifecycle, hand selection, display, and local records.
 - `dist/hand-input.js`: hand selection and short label-change handling.
 - `dist/tracker-worker.js`: MediaPipe Hand Landmarker in a worker, with GPU/CPU fallback.
@@ -177,7 +180,7 @@ See [Spell files](docs/spells.md) for the registry, definition fields, and steps
 
 MediaPipe and the $P recognizer retain their copyright and license terms in `licenses/`. The bundled MediaPipe runtime includes local modifications.
 
-The menu uses “Night Vigil” by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 and edited for length and looping. Original interface sounds use CC0. See [audio credits and source details](licenses/audio/NOTICE.md). Local fonts use the SIL Open Font License.
+The menu uses “Night Vigil” and Fight uses “Clash Defiant”, both by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 and edited for length and looping. Original interface sounds use CC0. Spell sounds are adapted from CC0 packs by Lentikula, rubberduck, qubodup, and Kenney. The Fight damage sound is adapted from a CC0 pack by Kenney. The Fight victory fanfare is adapted from a CC0 recording by Spring Spring. See [audio credits and source details](licenses/audio/NOTICE.md). Local fonts use the SIL Open Font License.
 
 `evidence/runtime-integrity.json` lists SHA-256 hashes for bundled runtime files and license files.
 
@@ -205,8 +208,8 @@ npm run test:legacy-practice
 
 To use an existing Chromium browser, set `CHROMIUM_EXECUTABLE` to its executable path. The test starts its own server and uses simulated camera and hand input. It checks menu navigation, options, camera boundaries, immediate consecutive casts, duplicate casts, spell feedback, lesson controls, wand return, saved records, and desktop/mobile layout. Test records are removed when it finishes. Screenshots are saved in `.tmp/browser-check/`.
 
-Run `npm run test:fight` for the Fight browser checks, using the same Playwright setup. They check shared camera controls, the battlefield path and instructions, cast-to-hit time, casts and hits for all four spells, health at impact, hit reactions, falling, reset during a fall, repeated hits, cancelled-flight damage, separate legacy Practice state, rejected input, tracking loss, mode changes, stopped camera, denied permission, reduced motion, and desktop/mobile layout. Wand checks cover disarm at impact, return after two seconds, repeat hits, reset, other spells, cancelled flights, hidden views, and lethal hits. Unit tests also check damage boundaries, duplicate hits, and late hits after reset.
+Run `npm run test:fight` for the Fight browser checks, using the same Playwright setup. They check shared camera controls, the battlefield path and instructions, cast-to-hit time, casts and hits for all four spells, health at impact, hit reactions, falling, reset during a fall, repeated hits, cancelled-flight damage, separate legacy Practice state, rejected input, tracking loss, mode changes, stopped camera, denied permission, reduced motion, idle motion, and desktop/mobile layout. Wand checks cover disarm at impact, return after two seconds, repeat hits, reset, other spells, cancelled flights, hidden views, and lethal hits. Unit tests also check damage boundaries, duplicate hits, and late hits after reset.
 
-Run `npm run test:training` for the Training screen checks, with the same Playwright setup. `CHROMIUM_EXECUTABLE` is supported. The checks cover shared camera use, keyboard menu navigation, selected-spell counts, effects, completion, per-spell progress, camera stops, reload reset, scalar records, and desktop/narrow layout. Screenshots are saved in `.tmp/browser-check/`.
+Run `npm run test:training` for the Training screen checks, with the same Playwright setup. `CHROMIUM_EXECUTABLE` is supported. The checks cover shared camera use, keyboard menu navigation, selected-spell counts, effects, completion, per-spell progress, camera stops, reload reset, scalar records, idle motion, and desktop/narrow layout. Screenshots are saved in `.tmp/browser-check/`.
 
 All automated tests use simulated input. They do not replace a physical player trial.
