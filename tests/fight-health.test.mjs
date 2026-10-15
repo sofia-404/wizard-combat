@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {DuelHealth, damageForAccuracy} from '../dist/duel-health.js';
+import {FightHealth, damageForAccuracy} from '../dist/fight-health.js';
 import {spellList} from '../dist/spells/index.js';
 import {castDamage} from '../dist/combat/cast.js';
 
@@ -11,12 +11,12 @@ test('accuracy bands match current damage, including boundaries', () => {
   for (const score of [-1,101,NaN,Infinity,undefined,'90']) assert.equal(damageForAccuracy(score),0);
 });
 
-test('Duel uses the registered spell damage and keeps score validation and fallback behavior', () => {
+test('Fight uses the registered spell damage and keeps score validation and fallback behavior', () => {
   for (const spell of spellList) {
     for (const score of [0,77.99,78,87.99,88,100]) {
       const expected = castDamage({type:'cast',accepted:true,shape:spell.label,score});
       assert.equal(damageForAccuracy(score,spell.label),expected);
-      const health = new DuelHealth();
+      const health = new FightHealth();
       const shot = health.launch({id:'registered',shape:spell.label,score,damage:999});
       if(!expected){assert.equal(shot,null);continue;}
       assert.equal(shot.damage,expected,'ignore caller-supplied damage');
@@ -25,7 +25,7 @@ test('Duel uses the registered spell damage and keeps score validation and fallb
     }
     for (const score of [-1,101,NaN,Infinity,undefined,'90']) {
       assert.equal(damageForAccuracy(score,spell.label),0);
-      assert.equal(new DuelHealth().launch({id:'invalid',shape:spell.label,score}),null);
+      assert.equal(new FightHealth().launch({id:'invalid',shape:spell.label,score}),null);
     }
   }
   for (const shape of [undefined,null,'unknown']) {
@@ -34,7 +34,7 @@ test('Duel uses the registered spell damage and keeps score validation and fallb
 });
 
 test('health changes at impact once; the static dummy cannot hurt the player', () => {
-  const health = new DuelHealth();
+  const health = new FightHealth();
   const cast = {id:'first',shape:'Basic Cast',score:78,damage:999};
   const shot = health.launch(cast);
   assert.equal(health.dummy,200);
@@ -46,7 +46,7 @@ test('health changes at impact once; the static dummy cannot hurt the player', (
 });
 
 test('lethal damage clamps at zero and blocks all further hits until reset', () => {
-  const health = new DuelHealth();
+  const health = new FightHealth();
   const shots = Array.from({length:8},(_,i)=>health.launch({id:String(i),score:100}));
   assert.deepEqual(shots.slice(0,7).map(shot=>health.hit(shot).damage),[30,30,30,30,30,30,20]);
   assert.equal(health.dummy,0);
@@ -63,7 +63,7 @@ test('lethal damage clamps at zero and blocks all further hits until reset', () 
 });
 
 test('reset and leaving the view cancel pending damage without healing prior hits', () => {
-  const health = new DuelHealth();
+  const health = new FightHealth();
   health.hit(health.launch({id:'hit',score:80}));
   const cancelled = health.launch({id:'cancelled',score:100});
   health.cancelFlights();

@@ -1,0 +1,11 @@
+Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1900047
+Retrieved: 2026-10-15
+
+Verbatim attribution template from source page:
+<b>Attribution Code</b><br>
+                                        <tt>
+                                            "${escapeHtml(p.title || '')}" Kevin MacLeod (incompetech.com)<br>
+                                            Licensed under Creative Commons: By Attribution 4.0 License<br>
+                                            http://creativecommons.org/licenses/by/4.0/
+                                        </tt>
+                                    

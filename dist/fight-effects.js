@@ -60,7 +60,7 @@ export function createSpellEffects(svg, onImpact) {
   return {
     cast(cast) {
       if (spellForShape(cast.shape)?.visuals.cast === 'shield') return;
-      const group = element('g', {'data-spell': cast.shape, 'data-phase': 'flight', class: 'duel-spell'}, svg);
+      const group = element('g', {'data-spell': cast.shape, 'data-phase': 'flight', class: 'fight-spell'}, svg);
       const color = spellColor(cast.shape);
       const trail = element('line', {x1: START.x, y1: START.y, x2: START.x, y2: START.y, stroke: color, 'stroke-width': 7, 'stroke-linecap': 'round'}, group);
       const orb = element('circle', {cx: START.x, cy: START.y, r: 9, fill: '#fff', stroke: color, 'stroke-width': 4}, group);

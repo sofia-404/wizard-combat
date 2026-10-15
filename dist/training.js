@@ -1,9 +1,9 @@
 import {TrainingSession} from './training/session.js';
 import {spellList, spellForShape} from './spells/index.js';
-import {createSpellEffects} from './duel-effects.js';
-import {createDummyReactions} from './duel-reactions.js';
-import {createDuelDisarm} from './duel-disarm.js';
-import {createGestureMirror} from './duel-gesture.js';
+import {createSpellEffects} from './fight-effects.js';
+import {createDummyReactions} from './fight-reactions.js';
+import {createFightDisarm} from './fight-disarm.js';
+import {createGestureMirror} from './fight-gesture.js';
 import {Shield} from './combat/shield.js';
 import {castDamage} from './combat/cast.js';
 import {createShieldView} from './presentation/shield-view.js';
@@ -15,7 +15,7 @@ const seen = new Set();
 const shield = new Shield();
 const shieldView = createShieldView($('trainingShield'), $('trainingShieldStatus'), shield, {cx:295, cy:520, rx:260, ry:325});
 const reactions = createDummyReactions($('trainingDummyActor'));
-const disarm = createDuelDisarm($('trainingDummyActor'), $('trainingWandStatus'));
+const disarm = createFightDisarm($('trainingDummyActor'), $('trainingWandStatus'));
 const effects = createSpellEffects($('trainingEffects'), cast => {
   disarm.hit(cast);
   reactions.react(cast.shape);
@@ -48,7 +48,7 @@ function renderGuide() {
       : 'This spell hits the dummy. Only the selected spell counts toward the lesson.');
   let svg;
   if (spell.id === 'expelliarmus') {
-    svg = document.querySelector('#practiceView .lesson-schema').cloneNode(true);
+    svg = document.querySelector('#legacyPracticeView .lesson-schema').cloneNode(true);
     for (const node of svg.querySelectorAll('[id]')) node.id = 'training' + node.id;
     svg.setAttribute('aria-labelledby', 'traininglessonDiagramTitle traininglessonDiagramDesc');
   } else {

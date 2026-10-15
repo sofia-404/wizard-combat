@@ -1,6 +1,6 @@
-Method: built-in image_gen tool. Two edits of dist/assets/duel-arena.jpg.
-Background: dist/assets/duel-arena-background.jpg (JPEG quality 87 via macOS sips).
-Dummy cutout: dist/assets/duel-dummy.png (original PNG with alpha).
+Method: built-in image_gen tool. Two edits of dist/assets/fight-arena.jpg.
+Background: dist/assets/fight-arena-background.jpg (JPEG quality 87 via macOS sips).
+Dummy cutout: dist/assets/fight-dummy.png (original PNG with alpha).
 The original arena image is kept.
 
 Background prompt:

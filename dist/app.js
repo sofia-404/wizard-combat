@@ -1,3 +1,4 @@
+import {getSettings,updateSettings} from './settings.js';
 import {GestureController,bounds} from './gesture.js';
 import {SpellLesson} from './training/lesson.js';
 import {TrainingDummy} from './combat/training-dummy.js';
@@ -15,14 +16,15 @@ const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d'),preview=$
 let stream=null,worker=null,token=0,modelReady=false,busy=false,loading=false,delegate='GPU',recovering=false;
 let lastVideoTime=-1,lastSent=0,lastResult=0,rateStart=0,rateCount=0,hz=0,inference=0,selectedPoints=null,cursor=null;
 let session=crypto.randomUUID(),events=[],hits=0,flashUntil=0,lastPath=[],lastPathUntil=0,lastUI='',saveQueue=[],saving=false;
-const controller=new GestureController(onGesture);
+$('hand').value=getSettings().hand;
+const controller=new GestureController(onGesture,{difficulty:getSettings().difficulty});
 const handInput=new HandInput();
 const lesson=new SpellLesson();
 const dummy=new TrainingDummy();
 const shield=new Shield();
-const shieldView=createShieldView($('practiceShield'),$('practiceShieldStatus'),shield,{cx:320,cy:240,rx:210,ry:220});
+const shieldView=createShieldView($('legacyPracticeShield'),$('legacyPracticeShieldStatus'),shield,{cx:320,cy:240,rx:210,ry:220});
 let inputSettings=readSettings(),tracking={},trackingAt=0,trackingFrames=0,noHandFrames=0,labelHoldFrames=0,wrongHandFrames=0,edgeFrames=0,duplicateFrames=0,lastFrameT=null;
-function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value};}
+function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value,difficulty:getSettings().difficulty};}
 function reportTracking(cause,data={}){
   tracking={...tracking,...data,trackingCause:cause};trackingFrames++;
   if(cause==='no_hand')noHandFrames++;
@@ -39,7 +41,7 @@ function reportTracking(cause,data={}){
 const connections=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
 function set(id,value){if($(id).textContent!==String(value))$(id).textContent=String(value);}
 export function record(data,png=null){
-  const activeTab=$('trainingView')?.hidden===false?'training':$('duelView')?.hidden===false?'duel':'practice';
+  const activeTab=$('gameView').hidden?'menu':$('trainingView')?.hidden===false?'training':$('fightView')?.hidden===false?'fight':$('legacyPracticeView').hidden===false?'legacy-practice':'menu';
   const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:3,...inputSettings,lessonState:lesson.state,lessonCount:lesson.count,activeTab,...data};
   saveQueue.push({event,png,eventSaved:false});flush();
 }
@@ -63,6 +65,7 @@ export function cancelGestureCapture(reason){
   controller.cancel(reason,'input_changed');lastPath=[];lastUI='';
 }
 function onGesture(event){
+  if($('gameView').hidden)return;
   if($('trainingView')?.hidden===false){
     lastPath=event.path||[];lastPathUntil=performance.now()+3500;
     document.dispatchEvent(new CustomEvent('wizard:training-gesture',{detail:{...event,id:crypto.randomUUID()}}));
@@ -90,7 +93,7 @@ function onGesture(event){
     const protection=spell.effects.find(effect=>effect.type==='shield');
     set('targetNote',protection?`${event.shape} · Shield for ${protection.durationMs/1000} seconds`:`${event.shape} · ${damage} damage`);
     animations[spell.visuals.cast]($('targetScene'));flashUntil=now+1100;
-    if($('duelView').hidden&&shield.cast(event,now))shieldView.refresh(spell.visuals.color);
+    if($('fightView').hidden&&shield.cast(event,now))shieldView.refresh(spell.visuals.color);
     if(dummy.cast(event,now)){
       renderDummy();record({type:'settings',cause:'dummy_disarm',reason:'Dummy disarmed. Wand returns in 2 seconds.'});
     }
@@ -139,6 +142,7 @@ function drawPreview(points,accepted){
   pc.beginPath();points.forEach((p,i)=>{const a=map(p);i?pc.lineTo(a.x,a.y):pc.moveTo(a.x,a.y);});pc.strokeStyle=accepted?'#2f7251':'#b77748';pc.lineWidth=3;pc.lineCap='round';pc.lineJoin='round';pc.stroke();
   const first=map(points[0]);pc.beginPath();pc.arc(first.x,first.y,4,0,Math.PI*2);pc.fillStyle='#b77748';pc.fill();
 }
+export function stopGameCamera(){stopCamera('Camera stopped. Lesson progress kept.');}
 function stopCamera(reason='Camera stopped'){
   if(stream)record({type:'camera',reason});
   token++;loading=false;modelReady=false;recovering=false;busy=false;
@@ -249,3 +253,6 @@ window.addEventListener('pagehide',()=>stopCamera('Page closed'));
 $('reset').addEventListener('click',()=>shieldView.clear());
 document.addEventListener('visibilitychange',()=>shieldView.refresh());
 requestAnimationFrame(animate);
+
+window.addEventListener('wizard-settings',()=>{const settings=getSettings();if(settings.hand===inputSettings.hand&&settings.difficulty===inputSettings.difficulty)return;controller.cancel('Options changed. Hold still to start.','input_changed');controller.setDifficulty(settings.difficulty);$('hand').value=settings.hand;inputSettings=readSettings();handInput.reset();tracking={};cursor=null;selectedPoints=null;lastPath=[];lastUI='';record({type:'settings',reason:'Drawing options changed'});});
+$('hand').addEventListener('change',()=>updateSettings({hand:$('hand').value}));

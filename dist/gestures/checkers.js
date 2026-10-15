@@ -6,7 +6,7 @@ function loop(context) {
   return context.loop ||= matchLoop(context);
 }
 function strokes(context) {
-  return context.strokes ||= matchStrokes(context.sample, context.b);
+  return context.strokes ||= matchStrokes(context.sample, context.b, context.precisionScale);
 }
 
 // Types describe geometry, not spell names. Keep the proven fit algorithms.
@@ -35,5 +35,5 @@ export const checkers = Object.freeze({
       priority: 1, cause: 'z_orientation', reason: `${spell.label} is mirrored. Follow the shown path.`
     } : null};
   },
-  'ordered-corner': context => matchOrderedCorner(context.sample, context.b)
+  'ordered-corner': context => matchOrderedCorner(context.sample, context.b, context.precisionScale)
 });

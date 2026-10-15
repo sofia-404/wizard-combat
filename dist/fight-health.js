@@ -11,7 +11,7 @@ export function damageForAccuracy(score, shape) {
   return castDamage({type: 'cast', accepted: true, shape: spell.label, score});
 }
 
-export class DuelHealth {
+export class FightHealth {
   constructor() {
     this.player = MAX_HEALTH; // The static dummy does not attack.
     this.shield = new Shield();

@@ -12,7 +12,7 @@ export function resample(points,n=64){
   let j=1;return Array.from({length:n},(_,i)=>{const target=total*i/(n-1);while(j<lengths.length-1&&lengths[j]<target)j++;const span=lengths[j]-lengths[j-1],r=span?(target-lengths[j-1])/span:0;return {x:points[j-1].x+(points[j].x-points[j-1].x)*r,y:points[j-1].y+(points[j].y-points[j-1].y)*r};});
 }
 // This implementation keeps image proportions and also handles a straight return path.
-export function movementIntent(points){
+export function movementIntent(points,precisionScale=1){
   if(points.length<3)return {intent:false,lineDeviation:0};
   const b=bounds(points),diag=Math.hypot(b.width,b.height);
   const a=points[0],far=points.reduce((best,p)=>distance(a,p)>distance(a,best)?p:best,a);
@@ -32,18 +32,20 @@ export function movementIntent(points){
   const zigzag=reversals>=2&&Math.abs(end.y-a.y)>=b.height*.50;
   const loop=distance(a,end)<diag*.65&&length>diag*1.7;
   const corner=!loop&&!zigzag&&!valley&&Math.max(b.width,b.height)>=.10&&deviation>=.12
-    ?matchesIntentCorner(resample(points),b):false;
+    ?matchesIntentCorner(resample(points),b,precisionScale):false;
   const motionForm=loop?'loop':zigzag?'zigzag':valley?'valley':corner?'spell_corner':'move';
   return {intent:Math.max(b.width,b.height)>=.10&&deviation>=.12&&motionForm!=='move',lineDeviation:+deviation.toFixed(4),motionForm};
 }
-export function recognize(points){
+export const DIFFICULTY_PROFILES=Object.freeze({easy:{limitFactor:1.35,captureMs:9000},normal:{limitFactor:1,captureMs:6000},hard:{limitFactor:.7,captureMs:3500}});
+export function recognize(points,difficulty='normal'){
+  const profile=DIFFICULTY_PROFILES[difficulty]||DIFFICULTY_PROFILES.normal;
   const b=points.length?bounds(points):{width:0,height:0};
   const diagnostics={samples:points.length,width:+b.width.toFixed(4),height:+b.height.toFixed(4),minSize:.10};
   const empty=(reason,cause)=>({accepted:false,shape:'None',score:0,margin:0,reason,cause,diagnostics});
   if(points.length<5)return empty('Too few points','too_few_points');
   if(Math.max(b.width,b.height)<.10)return empty('Draw a larger shape','too_small');
   const sample=resample(points);if(!sample.length)return empty('No movement','no_movement');
-  const fits=matchGestures(points,sample,b,diagnostics);
+  const fits=matchGestures(points,sample,b,diagnostics,profile.limitFactor);
   const matches=[];
   for(const candidate of fits){
     const {spell,fit}=candidate,key=spell.gesture.diagnosticKey;
@@ -64,13 +66,14 @@ export function recognize(points){
     reason:accepted?'Shape accepted':matches.length>1?'Shape unclear. Draw one clear shape.':failure?.reason||'No match. Follow one of the shapes shown.',diagnostics};
 }
 
-function movementDiagnostics(path){const {lineDeviation,motionForm}=movementIntent(path);return {lineDeviation,motionForm:motionForm||'move'};}
+function movementDiagnostics(path,precisionScale=1){const {lineDeviation,motionForm}=movementIntent(path,precisionScale);return {lineDeviation,motionForm:motionForm||'move'};}
 
 // All distances use image width. Holds use a time window, not a moving anchor.
 const HOLD_MS=260,HOLD_SPAN=.025,START_SPAN=.045,MAX_GAP_MS=200;
 const median=values=>[...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
 export class GestureController{
-  constructor(onEvent=()=>{}){this.onEvent=onEvent;this.captureNo=0;this.reset();}
+  constructor(onEvent=()=>{},options={}){this.onEvent=onEvent;this.captureNo=0;this.setDifficulty(options.difficulty);this.reset();}
+  setDifficulty(value){this.difficulty=Object.hasOwn(DIFFICULTY_PROFILES,value)?value:'normal';}
   reset(){
     this.state='waiting';this.path=[];this.intent=false;this.recent=[];this.raw=[];this.anchor=null;
     this.last=null;this.lastT=null;this.speed=0;this.startedAt=0;this.missingCause=null;
@@ -80,7 +83,7 @@ export class GestureController{
   }
   diagnostics(endRule,path=this.path){
     let pathLength=0;for(let i=1;i<path.length;i++)pathLength+=distance(path[i-1],path[i]);
-    return {captureNo:this.captureNo,endRule,...movementDiagnostics(path),startSpan:+this.startSpan.toFixed(4),holdSpan:+this.holdSpan.toFixed(4),holdMs:Math.round(this.holdMs),gapCause:this.gapCause,gaps:this.gaps,gapResumes:this.gapResumes,maxGapMs:Math.ceil(this.maxGapMs),gapDistance:+this.gapDistance.toFixed(4),gapAllowed:+this.gapAllowed.toFixed(4),pathLength:+pathLength.toFixed(4)};
+    return {captureNo:this.captureNo,endRule,...movementDiagnostics(path,Math.max(1,DIFFICULTY_PROFILES[this.difficulty].limitFactor)),startSpan:+this.startSpan.toFixed(4),holdSpan:+this.holdSpan.toFixed(4),holdMs:Math.round(this.holdMs),gapCause:this.gapCause,gaps:this.gaps,gapResumes:this.gapResumes,maxGapMs:Math.ceil(this.maxGapMs),gapDistance:+this.gapDistance.toFixed(4),gapAllowed:+this.gapAllowed.toFixed(4),pathLength:+pathLength.toFixed(4)};
   }
   cancel(reason='Tracking lost',cause='tracking_lost'){
     if(this.state==='drawing'){
@@ -97,12 +100,12 @@ export class GestureController{
     if(this.lastT===null||gap>MAX_GAP_MS)this.cancel(reason,cause);
   }
   finish(path,t,endRule){
-    if(endRule==='timeout'&&!movementIntent(path).intent){this.cancel('No end pause. Start again.','too_long');return;}
-    if(!movementIntent(path).intent){
+    if(endRule==='timeout'&&!movementIntent(path,Math.max(1,DIFFICULTY_PROFILES[this.difficulty].limitFactor)).intent){this.cancel('No end pause. Start again.','too_long');return;}
+    if(!movementIntent(path,Math.max(1,DIFFICULTY_PROFILES[this.difficulty].limitFactor)).intent){
       this.onEvent({type:'ignored',shape:'None',reason:'Repositioning move ignored',cause:'reposition',path,duration:Math.round(t-this.startedAt),latency:0,diagnostics:this.diagnostics(endRule,path)});
       this.reset();return;
     }
-    const result=recognize(path),timedOut=endRule==='timeout';
+    const result=recognize(path,this.difficulty),timedOut=endRule==='timeout';
     this.onEvent({...result,accepted:timedOut?false:result.accepted,type:!timedOut&&result.accepted?'cast':'reject',
       ...(timedOut?{reason:'No end pause. Hold still after the shape.',cause:'too_long'}:{}),
       path,duration:Math.round((path.at(-1)?.t||t)-this.startedAt),latency:Math.round(t-(path.at(-1)?.t||t)),
@@ -157,7 +160,7 @@ export class GestureController{
       return;
     }
     if(!this.path.length||distance(q,this.path.at(-1))>.0035)this.path.push(q);
-    if(!this.intent&&movementIntent(this.path).intent){
+    if(!this.intent&&movementIntent(this.path,Math.max(1,DIFFICULTY_PROFILES[this.difficulty].limitFactor)).intent){
       this.intent=true;this.onEvent({type:'capture',cause:'shape_start',reason:'Shape started',diagnostics:this.diagnostics('start')});
     }
     if(quiet){
@@ -167,6 +170,6 @@ export class GestureController{
       const path=this.path.filter(v=>v.t<endT);path.push(end);
       this.finish(path,t,'pause');return;
     }
-    if(t-this.startedAt>6000)this.finish(this.path.slice(),t,'timeout');
+    if(t-this.startedAt>DIFFICULTY_PROFILES[this.difficulty].captureMs)this.finish(this.path.slice(),t,'timeout');
   }
 }

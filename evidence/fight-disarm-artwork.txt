@@ -1,6 +1,6 @@
-Method: built-in image_gen tool. Two edits of dist/assets/duel-dummy.png.
-Character: dist/assets/duel-dummy-unarmed.png. Original canvas and pose, with an empty hand.
-Wand: dist/assets/duel-wand.png. Separate transparent item.
+Method: built-in image_gen tool. Two edits of dist/assets/fight-dummy.png.
+Character: dist/assets/fight-dummy-unarmed.png. Original canvas and pose, with an empty hand.
+Wand: dist/assets/fight-wand.png. Separate transparent item.
 The original character image is kept. Practice assets are unchanged.
 
 Character prompt:

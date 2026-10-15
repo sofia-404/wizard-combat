@@ -13,6 +13,7 @@
 - Treat a design proposal as a proposal until the user requests implementation.
 - Do not commit, push, publish, or deploy unless the user requests that action.
 - Continue work that the user has authorized. Do not request the same approval again.
+- Never activate the user's real camera or microphone without explicit permission. Use simulated input for tests. If real camera or microphone access is needed, ask explicitly and wait for permission before activating it. A request to test the app or its camera controls does not grant this permission.
 
 ## Communication
 
@@ -50,8 +51,8 @@
 
 ## Design and tools
 
-- The brandbook at `dist/brandbook.html` is a preview and design reference. It does not implement a main menu or full fight mode. The game has a separate static-dummy Duel mode.
-- Keep the design migration for Practice and Duel separate from merge work. Their current styles do not yet meet all target design rules.
+- The brandbook at `dist/brandbook.html` is a preview and design reference. It does not implement a main menu or full fight mode. The game has a separate static-dummy Fight mode.
+- Keep the design migration for legacy Practice and Fight separate from merge work. Their current styles do not yet meet all target design rules.
 - During the design migration, reuse `dist/brand/tokens.css` and authored assets. Scope shared styles to avoid changes to other views. Do not silently restyle `dist/style.css` while updating the brandbook.
 - Use the `impeccable` skill for frontend changes. If the skill is not available, tell the user and recommend downloading it. If downloading it is not possible, tell the user and proceed without it. Use `playwright-cli` for browser interaction. Existing automated browser tests keep their package scripts.
 - Keep the identity mature and restrained. Hogwarts Legacy is a palette reference only. Do not copy its interface, marks, architecture, characters, or fonts.

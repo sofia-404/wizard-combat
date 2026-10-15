@@ -69,6 +69,48 @@ try {
     });
   });
   await page.goto(base);
+ const openMode=async(name,target=page)=>{
+  if(await target.locator('#gameView').isVisible())await target.locator('#gameBack').click();
+  assert.equal(await target.locator('#mainMenu').isVisible(),true);
+  assert.equal(await target.locator('#video').evaluate(el=>el.srcObject),null);
+  await target.getByRole('button',{name,exact:true}).click();
+  const selected={'Training':'trainingView','Fight':'fightView','[OLD] Practice':'legacyPracticeView'}[name];
+  for(const id of ['trainingView','fightView','legacyPracticeView'])assert.equal(await target.locator('#'+id).isVisible(),id===selected);
+  assert.equal(await target.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
+  assert.equal(await target.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
+ };
+
+  assert.equal(await page.locator('#mainMenu').isVisible(), true);
+  await page.getByRole('button', {name:'Options',exact:true}).click();
+  await page.locator('#musicSetting').uncheck();
+  await page.locator('#sfxSetting').uncheck();
+  await page.locator('#handSetting').selectOption('Right');
+  await page.locator('#difficultySetting').selectOption('hard');
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await page.getByRole('button', {name:'Options',exact:true}).click();
+  assert.equal(await page.locator('#musicSetting').isChecked(), false);
+  assert.equal(await page.locator('#sfxSetting').isChecked(), false);
+  assert.equal(await page.locator('#handSetting').inputValue(), 'Right');
+  assert.equal(await page.locator('#difficultySetting').inputValue(), 'hard');
+  assert.match(await page.locator('#difficultyHelp').textContent(), /3.5 seconds/);
+  await page.locator('#handSetting').selectOption('Left');
+  await page.locator('#difficultySetting').selectOption('normal');
+  await page.keyboard.press('Escape');
+  for (const [name, id] of [['Training','trainingView'],['Fight','fightView'],['[OLD] Practice','legacyPracticeView']]) {
+    const trigger=page.getByRole('button',{name,exact:true});
+    await trigger.focus();await page.keyboard.press('Enter');
+    for(const other of ['trainingView','fightView','legacyPracticeView'])assert.equal(await page.locator('#'+other).isVisible(),other===id);
+    assert.equal(await page.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
+    assert.equal(await page.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
+    assert.equal(await page.locator('#gameView').isVisible(), true);
+    assert.equal(await page.locator('#' + id).isVisible(), true);
+    assert.equal(await page.evaluate(() => window.cameraCount), 0);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#mainMenu').isVisible(), true);
+    assert.equal(await page.getByRole('button', {name,exact:true}).evaluate(el => el === document.activeElement), true);
+  }
+  await page.getByRole('button',{name:'Training',exact:true}).click();
   await page.waitForFunction(() => document.querySelector('#trainingSpell').options.length === 4);
   const text = id => page.locator('#' + id).textContent();
   const count = async value => assert.equal(await text('trainingCount'), `${value} / 3`);
@@ -93,38 +135,34 @@ try {
       return;
     }
   };
-  await page.locator('#practiceTab').focus();
-  for (const [key, id] of [['ArrowRight','duelTab'],['ArrowRight','trainingTab'],['ArrowRight','practiceTab'],
-    ['ArrowLeft','trainingTab'],['Home','practiceTab'],['End','trainingTab']]) {
-    await page.keyboard.press(key);
-    assert.equal(await page.locator('#' + id).getAttribute('aria-selected'), 'true');
-    assert.equal(await page.evaluate(() => document.activeElement.id), id);
-    assert.equal(await page.locator('.view-tab[tabindex="0"]').count(), 1);
-  }
-  await page.locator('#practiceTab').click();
+  await openMode('[OLD] Practice');
   await page.locator('#lessonStart').click();
   await send(Array(20).fill(exp[0]));
   await page.locator('#camera').click();
   await page.waitForFunction(() => document.querySelector('#phase').textContent === 'READY');
-  await draw(exp, 'Expelliarmus', 'practice');
+  await draw(exp, 'Expelliarmus', 'legacy-practice');
   assert.equal(await text('lessonCount'), '1 / 3');
   assert.equal(await text('hits'), '1 hit');
   const baseline = await page.evaluate(() => ({lesson:document.querySelector('#lessonCount').textContent,
-    hits:document.querySelector('#hits').textContent, dummy:document.querySelector('#duelDummyHealth').value,
-    player:document.querySelector('#duelPlayerHealth').value, duelHits:document.querySelector('#duelHits').textContent}));
-  await page.locator('#trainingTab').click();
-  assert.equal(await page.locator('#trainingView .duel-stage').count(), 1);
-  assert.equal(await page.locator('#trainingView .duel-live #trainingCameraMount').count(), 1);
-  assert.equal(await page.locator('#trainingView .duel-live #trainingGuide').count(), 1);
+    hits:document.querySelector('#hits').textContent, dummy:document.querySelector('#fightDummyHealth').value,
+    player:document.querySelector('#fightPlayerHealth').value, fightHits:document.querySelector('#fightHits').textContent}));
+  await openMode('Training');
+  assert.equal(await page.evaluate(()=>window.cameraStream.getVideoTracks()[0].readyState),'ended');
+  assert.equal(await text('trainingCamera'),'Start camera');
+  await send(Array(20).fill(exp[0]));await page.locator('#trainingCamera').click();
+  await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
+  assert.equal(await page.locator('#trainingView .fight-stage').count(), 1);
+  assert.equal(await page.locator('#trainingView .fight-live #trainingCameraMount').count(), 1);
+  assert.equal(await page.locator('#trainingView .fight-live #trainingGuide').count(), 1);
   assert.equal(await page.locator('#trainingTokens').count(), 0);
   assert.equal(await page.evaluate(() => {
-    const practice = document.querySelector('#practiceView .lesson-schema').cloneNode(true);
+    const legacyPractice = document.querySelector('#legacyPracticeView .lesson-schema').cloneNode(true);
     const training = document.querySelector('#trainingGuide .lesson-schema').cloneNode(true);
-    for (const svg of [practice, training]) {
+    for (const svg of [legacyPractice, training]) {
       svg.removeAttribute('aria-labelledby');
       for (const node of svg.querySelectorAll('[id]')) node.removeAttribute('id');
     }
-    return practice.outerHTML === training.outerHTML;
+    return legacyPractice.outerHTML === training.outerHTML;
   }), true, 'Training must reuse the exact Practice Expelliarmus diagram');
   await page.locator('#trainingStart').click();
   await draw(basic, 'Basic Cast');
@@ -139,17 +177,27 @@ try {
   assert.equal(await page.locator('#trainingShield').evaluate(el => el.classList.contains('shield-active')), true);
   await draw(exp, 'Expelliarmus');
   await count(1);
-  for (const id of ['practiceTab','duelTab','trainingTab']) await page.locator('#' + id).click();
+  for (const name of ['[OLD] Practice','Fight','Training']) await openMode(name);
   await count(1);
   assert.deepEqual(await page.evaluate(() => ({cameras:window.cameraCount,workers:window.workerCount,
-    stops:window.workerStops,sameStream:document.querySelector('#video').srcObject === window.cameraStream,
+    stops:window.workerStops,stream:document.querySelector('#video').srcObject,
     mount:document.querySelector('#viewport').parentElement.id})),
-  {cameras:1,workers:1,stops:0,sameStream:true,mount:'trainingCameraMount'});
+  {cameras:2,workers:2,stops:2,stream:null,mount:'trainingCameraMount'});
+  await send(Array(20).fill(exp[0]));await page.locator('#trainingCamera').click();
+  await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
   await draw(exp, 'Expelliarmus');
   await count(2);
-  await page.locator('#trainingCamera').click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#mainMenu').isVisible(), true);
+  assert.equal(await page.locator('#video').evaluate(el => el.srcObject), null);
+  assert.equal(await page.evaluate(() => window.cameraStream.getVideoTracks()[0].readyState), 'ended');
+  await page.getByRole('button', {name:'Training',exact:true}).click();
   await count(2);
   assert.equal(await text('trainingCamera'), 'Start camera');
+  await page.locator('#gameBack').click();
+  assert.equal(await page.locator('#mainMenu').isVisible(), true);
+  await page.getByRole('button', {name:'Training',exact:true}).click();
+  await count(2);
   await send(Array(20).fill(exp[0]));
   await page.locator('#trainingCamera').click();
   await page.waitForFunction(() => document.querySelector('#phase').textContent === 'READY');
@@ -166,9 +214,9 @@ try {
   assert.equal(await page.locator('#trainingCompletion').isVisible(), true);
   assert.equal(await text('trainingArenaResult'), 'Expelliarmus learned. Lesson complete.');
   assert.deepEqual(await page.evaluate(() => ({lesson:document.querySelector('#lessonCount').textContent,
-    hits:document.querySelector('#hits').textContent,dummy:document.querySelector('#duelDummyHealth').value,
-    player:document.querySelector('#duelPlayerHealth').value,duelHits:document.querySelector('#duelHits').textContent})), baseline);
-  assert.ok(!records.some(event => event.type === 'duel' && event.cause === 'hit'));
+    hits:document.querySelector('#hits').textContent,dummy:document.querySelector('#fightDummyHealth').value,
+    player:document.querySelector('#fightPlayerHealth').value,fightHits:document.querySelector('#fightHits').textContent})), baseline);
+  assert.ok(!records.some(event => event.type === 'fight' && event.cause === 'hit'));
   await page.locator('#trainingCamera').click();
   for (const [name, width, height] of [['desktop',1920,1080],['mobile',390,844]]) {
     await page.setViewportSize({width,height});
@@ -177,13 +225,13 @@ try {
     await page.screenshot({path:path.join(output, `training-tab-${name}.png`),fullPage:true});
   }
   await page.reload();
-  await page.locator('#trainingTab').click();
+  await page.getByRole('button',{name:'Training',exact:true}).click();
   await count(0);
   assert.equal(await text('trainingLearnedTotal'), '0 of 4 spells learned');
   assert.equal(await page.locator('#trainingCompletion').isVisible(), false);
   assert.equal(await text('trainingCamera'), 'Start camera');
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({result:'PASS',checks:'Worker landmark input through detector; three casts; wrong spell effect; Protego shield without projectile; shared camera and worker; tab and camera progress; Practice and Duel isolation; keyboard tabs; reload reset; desktop and mobile screenshots',records:records.length}));
+  console.log(JSON.stringify({result:'PASS',checks:'Worker landmark input through detector; three casts; wrong spell effect; Protego shield without projectile; camera release and restart; menu and camera progress; Practice and Fight isolation; keyboard menu routes; no nested tabs; reload reset; desktop and mobile screenshots',records:records.length}));
 } finally {
   await browser?.close();
   if (api && api.exitCode === null && api.signalCode === null) {

@@ -1,6 +1,6 @@
-// Fit an ordered right-then-down corner in screen coordinates.
-export function matchOrderedCorner(points,b){
-  const missing={distance:1,gate:'ordered_corner',bend:0,efficiency:0,limit:.045};
+// Spell path: right, then down in screen coordinates.
+export function matchOrderedCorner(points,b,precisionScale=1){
+  const missing={distance:1,gate:'ordered_corner',bend:0,efficiency:0,limit:.045*precisionScale};
   const n=points.length,diag=Math.hypot(b.width,b.height);
   if(n<12||Math.min(b.width,b.height)<.05||b.width/b.height<.4||b.width/b.height>2.5)return missing;
   const segment=(start,end)=>{
@@ -22,8 +22,8 @@ export function matchOrderedCorner(points,b){
     const ux=p.x-before.x,uy=p.y-before.y,vx=after.x-p.x,vy=after.y-p.y;
     const turn=Math.atan2(ux*vy-uy*vx,ux*vx+uy*vy)*180/Math.PI;
     const bend=Math.max(a.bend,z.bend),efficiency=Math.min(a.efficiency,z.efficiency);
-    const gate=turn<55?'rounded_corner':bend>.18||efficiency<.88?'curved_strokes':'ok';
-    const candidate={distance:(a.error+z.error)/2,gate,bend,efficiency,limit:.045};
+    const gate=turn<55?'rounded_corner':bend>.18*precisionScale||efficiency<1-(1-.88)*precisionScale?'curved_strokes':'ok';
+    const candidate={distance:(a.error+z.error)/2,gate,bend,efficiency,limit:.045*precisionScale};
     if((gate==='ok'&&best.gate!=='ok')||(gate===best.gate&&candidate.distance<best.distance)||best===missing)best=candidate;
   }
   return best;

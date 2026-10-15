@@ -2,8 +2,8 @@ import {matchCircle} from './circle-cloud.js';
 import {loopTurns} from './path-turns.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 
-// Keep the existing loop measurements and gates unchanged.
-export function matchLoop({points,sample,b,diagnostics}){
+// Difficulty scales distance and radial variation; direction gates stay fixed.
+export function matchLoop({points,sample,b,diagnostics,precisionScale=1}){
   const ratio=b.width/Math.max(b.height,1e-6),diag=Math.hypot(b.width,b.height);
   const closure=distance(points[0],points.at(-1))/diag;
   let winding=0;const center={x:(b.minX+b.maxX)/2,y:(b.minY+b.maxY)/2};
@@ -16,7 +16,7 @@ export function matchLoop({points,sample,b,diagnostics}){
   const circle=matchCircle(points),turns=loopTurns(sample,b);
   Object.assign(diagnostics,turns);
   Object.assign(diagnostics,{circleMatcher:'$P',circleCoverage:Math.round((2*Math.PI-maxAngularGap)*180/Math.PI),circleTurns:+(Math.abs(winding)/(2*Math.PI)).toFixed(2),radialSpread:+radialSpread.toFixed(3),circleOtherDistance:+circle.otherDistance.toFixed(4),circleLimit:.12});
-  const gate=ratio<.5||ratio>2?'aspect_ratio':Math.abs(winding)<4.7||maxAngularGap>Math.PI/3?'partial_loop':radialSpread>.35?'uneven_loop':turns.circleIndent>.08&&turns.circleReverseTurn>45&&turns.pathReverseTurn>45?'inward_turn':circle.otherDistance+.02<circle.distance?'non_circle':'ok';
+  const gate=ratio<.5||ratio>2?'aspect_ratio':Math.abs(winding)<4.7||maxAngularGap>Math.PI/3?'partial_loop':radialSpread>.35*precisionScale?'uneven_loop':turns.circleIndent>.08&&turns.circleReverseTurn>45&&turns.pathReverseTurn>45?'inward_turn':circle.otherDistance+.02<circle.distance?'non_circle':'ok';
   Object.assign(diagnostics,{circleIndentLimit:.08,circleCornerMargin:.02,closure:+closure.toFixed(3),winding:+winding.toFixed(3)});
-  return {distance:circle.distance,gate,limit:.12};
+  return {distance:circle.distance,gate,limit:.12*precisionScale};
 }

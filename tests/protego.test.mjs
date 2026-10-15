@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Shield} from '../dist/combat/shield.js';
-import {DuelHealth} from '../dist/duel-health.js';
+import {FightHealth} from '../dist/fight-health.js';
 import {TrainingDummy} from '../dist/combat/training-dummy.js';
 import {castDamage} from '../dist/combat/cast.js';
 import {spells, spellForShape} from '../dist/spells/index.js';
@@ -44,8 +44,8 @@ test('shield blocks damage for three seconds; repeat casts refresh without stack
   for(const amount of [NaN,Infinity,-1,'30'])assert.equal(shield.damage(amount,3001),0);
 });
 
-test('Duel shield has no hit or projectile, blocks incoming damage, and resets', () => {
-  const health=new DuelHealth();
+test('Fight shield has no hit or projectile, blocks incoming damage, and resets', () => {
+  const health=new FightHealth();
   assert.equal(health.protect(cast,100),true);
   assert.equal(health.protect(cast,200),false,'duplicate cast cannot extend protection');
   assert.equal(health.shield.expiresAt,3100);

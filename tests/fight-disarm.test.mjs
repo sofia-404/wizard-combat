@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createDuelDisarm} from '../dist/duel-disarm.js';
-import {DuelHealth} from '../dist/duel-health.js';
+import {createFightDisarm} from '../dist/fight-disarm.js';
+import {FightHealth} from '../dist/fight-health.js';
 
 function fixture() {
   let time = 1000, next = 0;
   const timers = new Map();
   const actor = {dataset: {}}, status = {textContent: ''};
-  const disarm = createDuelDisarm(actor, status, {
+  const disarm = createFightDisarm(actor, status, {
     now: () => time,
     schedule: (callback, delay) => { timers.set(++next, {callback, at: time + delay}); return next; },
     cancel: id => timers.delete(id)
@@ -23,7 +23,7 @@ function fixture() {
 }
 const cast = (shape = 'Expelliarmus') => ({type: 'cast', accepted: true, shape, score: 90});
 
-test('Duel wand returns two seconds after an impact', () => {
+test('Fight wand returns two seconds after an impact', () => {
   const f = fixture();
   assert.equal(f.actor.dataset.disarmed, 'false');
   assert.equal(f.status.textContent, 'Wand ready');
@@ -63,9 +63,9 @@ test('other spells do not restore or extend disarm', () => {
   assert.equal(f.actor.dataset.disarmed, 'false');
 });
 
-test('Duel launch and impact payloads apply disarm without recognition event fields', () => {
-  const f = fixture(), health = new DuelHealth();
-  const shot = health.launch({id: 'actual-duel-payload', shape: 'Expelliarmus', score: 90, damage: 30});
+test('Fight launch and impact payloads apply disarm without recognition event fields', () => {
+  const f = fixture(), health = new FightHealth();
+  const shot = health.launch({id: 'actual-fight-payload', shape: 'Expelliarmus', score: 90, damage: 30});
   assert.equal(shot.type, undefined);
   assert.equal(shot.accepted, undefined);
   assert.equal(f.actor.dataset.disarmed, 'false');

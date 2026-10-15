@@ -108,13 +108,13 @@ test('select resumes each lesson and start or stop resets only the selected atte
 
 test('Training progress stays separate from Practice and other Training sessions', () => {
   const session = new TrainingSession();
-  const practice = new SpellLesson();
-  practice.start();
-  practice.update(cast(spells.expelliarmus));
+  const legacyPractice = new SpellLesson();
+  legacyPractice.start();
+  legacyPractice.update(cast(spells.expelliarmus));
   session.start();
   for (let i = 0; i < 3; i++) session.update(cast(session.spell));
-  assert.equal(practice.count, 1);
-  assert.equal(practice.state, 'active');
+  assert.equal(legacyPractice.count, 1);
+  assert.equal(legacyPractice.state, 'active');
   const fresh = new TrainingSession();
   assert.equal(fresh.count, 0);
   assert.equal(fresh.learned.size, 0);

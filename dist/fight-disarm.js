@@ -1,6 +1,6 @@
 import {TrainingDummy} from './combat/training-dummy.js';
 
-export function createDuelDisarm(actor, status, {
+export function createFightDisarm(actor, status, {
   now = () => performance.now(), schedule = setTimeout, cancel = clearTimeout
 } = {}) {
   const dummy = new TrainingDummy();
@@ -23,7 +23,7 @@ export function createDuelDisarm(actor, status, {
   render();
   return {
     hit(cast) {
-      // Duel calls this only after health.hit accepts the shot.
+      // Fight calls this only after health.hit accepts the shot.
       if (dummy.cast({...cast, type: 'cast', accepted: true}, now())) refresh();
     },
     reset() {

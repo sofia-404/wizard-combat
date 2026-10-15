@@ -1,0 +1,41 @@
+[
+  {
+    "path": "dist/audio/menu-click.wav",
+    "bytes": 40616,
+    "sha256": "08974c864c1c87b2931c969f9aaf325247dd941c5f125f28774e079b0eaeed80",
+    "duration_seconds": 0.46,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
+      }
+    ]
+  },
+  {
+    "path": "dist/audio/menu-hover.wav",
+    "bytes": 22976,
+    "sha256": "b7ee092279a464164ad138771f20cca12fe2f7d6d446f1105e5c66a78872a3c9",
+    "duration_seconds": 0.26,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "sample_rate": "44100",
+        "channels": 1
+      }
+    ]
+  },
+  {
+    "path": "dist/audio/menu-night-vigil.mp3",
+    "bytes": 1128981,
+    "sha256": "736ed33a3a12882046b9eea3183c6de454c90833c08ff97736f38acfcafa2760",
+    "duration_seconds": 94.0,
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 2
+      }
+    ]
+  }
+]

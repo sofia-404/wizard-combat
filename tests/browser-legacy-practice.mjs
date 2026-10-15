@@ -1,6 +1,5 @@
 import {chromium} from 'playwright-core';
 import {readFile,mkdir,mkdtemp,cp,copyFile,rm} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {randomInt} from 'node:crypto';
 import {once} from 'node:events';
@@ -9,7 +8,8 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {resample} from '../dist/gesture.js';
 const root=path.dirname(fileURLToPath(new URL('../package.json',import.meta.url)));
-const folder=await mkdtemp(path.join(tmpdir(),'wizard-combat-browser-'));
+await mkdir(path.join(root,'.tmp'),{recursive:true});
+const folder=await mkdtemp(path.join(root,'.tmp/browser-server-'));
 const output=path.join(root,'.tmp/browser-check');
 await mkdir(output,{recursive:true});
 await cp(path.join(root,'dist'),path.join(folder,'dist'),{recursive:true});
@@ -28,7 +28,7 @@ try{
  });
  const origin=new URL(base).origin;
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,headless:true,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
- const context=await browser.newContext({viewport:{width:1440,height:1100},permissions:['camera']});
+ const context=await browser.newContext({viewport:{width:1920,height:1080},permissions:['camera']});
  const page=await context.newPage(),errors=[],records=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/api/*',async route=>{
@@ -54,6 +54,18 @@ try{
   };
  });
  await page.goto(base);
+ const openMode=async(name,target=page)=>{
+  if(await target.locator('#gameView').isVisible())await target.locator('#gameBack').click();
+  assert.equal(await target.locator('#mainMenu').isVisible(),true);
+  assert.equal(await target.locator('#video').evaluate(el=>el.srcObject),null);
+  await target.getByRole('button',{name,exact:true}).click();
+  const selected={'Training':'trainingView','Fight':'fightView','[OLD] Practice':'legacyPracticeView'}[name];
+  for(const id of ['trainingView','fightView','legacyPracticeView'])assert.equal(await target.locator('#'+id).isVisible(),id===selected);
+  assert.equal(await target.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
+  assert.equal(await target.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
+ };
+
+ await openMode('[OLD] Practice');
 
  assert.equal(await page.title(),'Wizard Combat');
  assert.deepEqual(await page.locator('#expected option').allTextContents(),['Any shape','Protego','Basic Cast','Confringo','Expelliarmus']);
@@ -127,17 +139,17 @@ try{
    assert.equal(await page.locator('#targetScene').evaluate(el=>el.classList.contains('hit')),false);
    assert.equal(await page.locator('#impact').textContent(),'');
    assert.match(await page.locator('#targetNote').textContent(),/Protego.*Shield for 3 seconds/);
-   assert.equal(await page.locator('#practiceShield').evaluate(el=>el.classList.contains('shield-active')),true);
+   assert.equal(await page.locator('#legacyPracticeShield').evaluate(el=>el.classList.contains('shield-active')),true);
    const result=records.findLast(e=>e.type==='cast');
    assert.equal(result.shape,'Protego');assert.equal(result.protegoGate,'ok');
    await page.setViewportSize({width:1920,height:1080});
-   await page.screenshot({path:path.join(output,'protego-practice-desktop.png'),fullPage:true});
+   await page.screenshot({path:path.join(output,'protego-legacy-practice-desktop.png'),fullPage:true});
    await page.setViewportSize({width:390,height:844});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-   await page.screenshot({path:path.join(output,'protego-practice-mobile.png'),fullPage:true});
+   await page.screenshot({path:path.join(output,'protego-legacy-practice-mobile.png'),fullPage:true});
    await page.setViewportSize({width:1440,height:1100});
-   await page.waitForFunction(()=>!document.querySelector('#practiceShield').classList.contains('shield-active'));
-   assert.equal(await page.locator('#practiceShieldStatus').textContent(),'Shield inactive');
+   await page.waitForFunction(()=>!document.querySelector('#legacyPracticeShield').classList.contains('shield-active'));
+   assert.equal(await page.locator('#legacyPracticeShieldStatus').textContent(),'Shield inactive');
   }
   if(shape==='Basic Cast'){
    const result=records.findLast(e=>e.type==='cast');
@@ -199,7 +211,7 @@ try{
  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await page.screenshot({path:path.join(output,'mobile.png'),fullPage:true});
- await page.setViewportSize({width:1440,height:1100});
+ await page.setViewportSize({width:1920,height:1080});
  await page.locator('#lessonStart').click();await expectState('active',0);
  assert.equal(await page.locator('#camera').textContent(),'Stop camera');
  for(let i=1;i<=3;i++)await draw(exp,'Expelliarmus');
@@ -226,7 +238,14 @@ try{
  await page.waitForTimeout(2200);await saved();
  assert.ok(!records.slice(resetStart).some(e=>e.cause==='dummy_return'));
  assert.equal(await page.locator('#hits').textContent(),'0 hits');
- await page.locator('#camera').click();await saved();
+ await page.evaluate(()=>{window.lastStream=document.querySelector('#video').srcObject;});
+ await page.locator('#gameBack').click();
+ assert.equal(await page.locator('#mainMenu').isVisible(),true);
+ assert.equal(await page.getByRole('button',{name:'[OLD] Practice',exact:true}).evaluate(el=>el===document.activeElement),true);
+ assert.equal(await page.evaluate(()=>window.lastStream.getVideoTracks()[0].readyState),'ended');
+ await openMode('[OLD] Practice');
+ assert.equal(await page.locator('#camera').textContent(),'Start camera');
+ await expectState('idle',0);await saved();
  assert.equal(errors.length,0,errors.join('\n'));
  const stored=(await readFile(path.join(folder,'play-data/events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
  for(const e of records.filter(e=>['dummy_disarm','dummy_return'].includes(e.cause)))assert.ok(stored.some(r=>r.id===e.id&&r.version===3));
