@@ -2,6 +2,18 @@
 
 Local camera game for one player and a stationary target.
 
+## UI brandbook
+
+The UI standard is **Arc & Anchor**: midnight blue, aged brass, and a precise cyan gesture trace.
+
+Run `npm start`, then open `/brandbook.html` on the printed local URL. It includes interactive menu, training, and fight design studies, typography, colors, control states, and cursor samples. These are design examples, not new game modes.
+
+Read [DESIGN.md](DESIGN.md) before changing UI. [PRODUCT.md](PRODUCT.md) records current game capabilities; [AGENTS.md](AGENTS.md) tells future contributors how to apply the standard. Reusable styles and original SVG assets live in `dist/brand/`. Fonts are bundled locally with licenses in `licenses/fonts/`.
+
+The current gameplay screen retains its existing appearance until a separate screen migration applies the new components.
+
+Preview images: [menu](docs/design/previews/menu.png), [training](docs/design/previews/training.png), [fight](docs/design/previews/fight.png). See [verification notes](docs/design/verification.md) for checks and limitations.
+
 ## Run
 
 Use Node.js 24 or later. No package installation is needed to play or run the unit tests.

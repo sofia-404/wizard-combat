@@ -1,0 +1,63 @@
+@font-face {
+  font-family: "Cormorant Garamond";
+  src: url("./fonts/cormorant-garamond.ttf") format("truetype");
+  font-display: swap;
+  font-weight: 300 700;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("./fonts/source-sans-3.ttf") format("truetype");
+  font-display: swap;
+  font-weight: 200 900;
+}
+:root {
+  color-scheme: dark;
+  --wc-ink: #081821;
+  --wc-deep: #0d222d;
+  --wc-surface: #12313b;
+  --wc-surface-raised: #1a414a;
+  --wc-line: #49656a;
+  --wc-gold: #c4a363;
+  --wc-gold-bright: #e5c98c;
+  --wc-cyan: #82e7ec;
+  --wc-text: #f1e8d5;
+  --wc-muted: #aac0c1;
+  --wc-danger: #ef9b8d;
+  --wc-success: #a8d5b5;
+  --wc-gold-pressed: #ac884e;
+  --wc-danger-line: #93645f;
+  --wc-success-line: #60806b;
+  --ink: var(--wc-ink);
+  --deep: var(--wc-deep);
+  --raised: var(--wc-surface);
+  --line: var(--wc-line);
+  --gold: var(--wc-gold);
+  --gold-light: var(--wc-gold-bright);
+  --gold-ink: var(--wc-ink);
+  --magic: var(--wc-cyan);
+  --paper: var(--wc-text);
+  --muted: var(--wc-muted);
+  --danger: var(--wc-danger);
+  --success: var(--wc-success);
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Source Sans 3", sans-serif;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --display: clamp(3.8rem, 7vw, 6rem);
+  --h1: clamp(2.7rem, 4vw, 4.5rem);
+  --h2: clamp(2.2rem, 3vw, 3.25rem);
+  --h3: 1.85rem;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --radius: 2px;
+  --duration: 180ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}

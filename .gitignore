@@ -5,3 +5,5 @@ play-data/
 .DS_Store
 .env
 .env.*
+.playwright-cli/
+.impeccable/review/

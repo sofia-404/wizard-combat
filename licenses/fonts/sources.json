@@ -1,0 +1,18 @@
+[
+  {
+    "file": "dist/brand/fonts/cormorant-garamond.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf",
+    "retrieved": "2026-10-15",
+    "license": "licenses/fonts/CormorantGaramond-OFL.txt",
+    "sha256": "b20b7d9626dd956b2c5e558692ad328b1f19e3275e2782db4fa07670d83f35e0",
+    "bytes": 1195560
+  },
+  {
+    "file": "dist/brand/fonts/source-sans-3.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/sourcesans3/SourceSans3%5Bwght%5D.ttf",
+    "retrieved": "2026-10-15",
+    "license": "licenses/fonts/SourceSans3-OFL.txt",
+    "sha256": "042fe2cc0b933e328410d7acbd0aa6a1873dca5aef81875f4bc214b08825c7b9",
+    "bytes": 646340
+  }
+]

@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T16:22:54.086307+00:00",
+  "title": "Design System: Wizard Combat",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.0283 235.06)",
+          "oklch(26.43% 0.0283 235.06)",
+          "oklch(37.86% 0.0283 235.06)",
+          "oklch(49.29% 0.0283 235.06)",
+          "oklch(60.71% 0.0283 235.06)",
+          "oklch(72.14% 0.0283 235.06)",
+          "oklch(83.57% 0.0283 235.06)",
+          "oklch(95.00% 0.0283 235.06)"
+        ]
+      },
+      "deep": {
+        "role": "neutral",
+        "displayName": "Deep",
+        "tonalRamp": [
+          "oklch(15.00% 0.0342 233.52)",
+          "oklch(26.43% 0.0342 233.52)",
+          "oklch(37.86% 0.0342 233.52)",
+          "oklch(49.29% 0.0342 233.52)",
+          "oklch(60.71% 0.0342 233.52)",
+          "oklch(72.14% 0.0342 233.52)",
+          "oklch(83.57% 0.0342 233.52)",
+          "oklch(95.00% 0.0342 233.52)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.0406 222.00)",
+          "oklch(26.43% 0.0406 222.00)",
+          "oklch(37.86% 0.0406 222.00)",
+          "oklch(49.29% 0.0406 222.00)",
+          "oklch(60.71% 0.0406 222.00)",
+          "oklch(72.14% 0.0406 222.00)",
+          "oklch(83.57% 0.0406 222.00)",
+          "oklch(95.00% 0.0406 222.00)"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Surface Raised",
+        "tonalRamp": [
+          "oklch(15.00% 0.0463 215.12)",
+          "oklch(26.43% 0.0463 215.12)",
+          "oklch(37.86% 0.0463 215.12)",
+          "oklch(49.29% 0.0463 215.12)",
+          "oklch(60.71% 0.0463 215.12)",
+          "oklch(72.14% 0.0463 215.12)",
+          "oklch(83.57% 0.0463 215.12)",
+          "oklch(95.00% 0.0463 215.12)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "oklch(15.00% 0.0339 209.74)",
+          "oklch(26.43% 0.0339 209.74)",
+          "oklch(37.86% 0.0339 209.74)",
+          "oklch(49.29% 0.0339 209.74)",
+          "oklch(60.71% 0.0339 209.74)",
+          "oklch(72.14% 0.0339 209.74)",
+          "oklch(83.57% 0.0339 209.74)",
+          "oklch(95.00% 0.0339 209.74)"
+        ]
+      },
+      "gold": {
+        "role": "primary",
+        "displayName": "Gold",
+        "tonalRamp": [
+          "oklch(15.00% 0.0912 82.98)",
+          "oklch(26.43% 0.0912 82.98)",
+          "oklch(37.86% 0.0912 82.98)",
+          "oklch(49.29% 0.0912 82.98)",
+          "oklch(60.71% 0.0912 82.98)",
+          "oklch(72.14% 0.0912 82.98)",
+          "oklch(83.57% 0.0912 82.98)",
+          "oklch(95.00% 0.0912 82.98)"
+        ]
+      },
+      "gold-bright": {
+        "role": "primary",
+        "displayName": "Gold Bright",
+        "tonalRamp": [
+          "oklch(15.00% 0.0845 85.97)",
+          "oklch(26.43% 0.0845 85.97)",
+          "oklch(37.86% 0.0845 85.97)",
+          "oklch(49.29% 0.0845 85.97)",
+          "oklch(60.71% 0.0845 85.97)",
+          "oklch(72.14% 0.0845 85.97)",
+          "oklch(83.57% 0.0845 85.97)",
+          "oklch(95.00% 0.0845 85.97)"
+        ]
+      },
+      "cyan": {
+        "role": "secondary",
+        "displayName": "Cyan",
+        "tonalRamp": [
+          "oklch(15.00% 0.0950 199.72)",
+          "oklch(26.43% 0.0950 199.72)",
+          "oklch(37.86% 0.0950 199.72)",
+          "oklch(49.29% 0.0950 199.72)",
+          "oklch(60.71% 0.0950 199.72)",
+          "oklch(72.14% 0.0950 199.72)",
+          "oklch(83.57% 0.0950 199.72)",
+          "oklch(95.00% 0.0950 199.72)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.0270 85.67)",
+          "oklch(26.43% 0.0270 85.67)",
+          "oklch(37.86% 0.0270 85.67)",
+          "oklch(49.29% 0.0270 85.67)",
+          "oklch(60.71% 0.0270 85.67)",
+          "oklch(72.14% 0.0270 85.67)",
+          "oklch(83.57% 0.0270 85.67)",
+          "oklch(95.00% 0.0270 85.67)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0241 200.01)",
+          "oklch(26.43% 0.0241 200.01)",
+          "oklch(37.86% 0.0241 200.01)",
+          "oklch(49.29% 0.0241 200.01)",
+          "oklch(60.71% 0.0241 200.01)",
+          "oklch(72.14% 0.0241 200.01)",
+          "oklch(83.57% 0.0241 200.01)",
+          "oklch(95.00% 0.0241 200.01)"
+        ]
+      },
+      "danger": {
+        "role": "neutral",
+        "displayName": "Danger",
+        "tonalRamp": [
+          "oklch(15.00% 0.1036 29.95)",
+          "oklch(26.43% 0.1036 29.95)",
+          "oklch(37.86% 0.1036 29.95)",
+          "oklch(49.29% 0.1036 29.95)",
+          "oklch(60.71% 0.1036 29.95)",
+          "oklch(72.14% 0.1036 29.95)",
+          "oklch(83.57% 0.1036 29.95)",
+          "oklch(95.00% 0.1036 29.95)"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15.00% 0.0649 153.87)",
+          "oklch(26.43% 0.0649 153.87)",
+          "oklch(37.86% 0.0649 153.87)",
+          "oklch(49.29% 0.0649 153.87)",
+          "oklch(60.71% 0.0649 153.87)",
+          "oklch(72.14% 0.0649 153.87)",
+          "oklch(83.57% 0.0649 153.87)",
+          "oklch(95.00% 0.0649 153.87)"
+        ]
+      },
+      "gold-pressed": {
+        "role": "primary",
+        "displayName": "Gold Pressed",
+        "tonalRamp": [
+          "oklch(15.00% 0.0877 78.17)",
+          "oklch(26.43% 0.0877 78.17)",
+          "oklch(37.86% 0.0877 78.17)",
+          "oklch(49.29% 0.0877 78.17)",
+          "oklch(60.71% 0.0877 78.17)",
+          "oklch(72.14% 0.0877 78.17)",
+          "oklch(83.57% 0.0877 78.17)",
+          "oklch(95.00% 0.0877 78.17)"
+        ]
+      },
+      "danger-line": {
+        "role": "neutral",
+        "displayName": "Danger Line",
+        "tonalRamp": [
+          "oklch(15.00% 0.0620 26.00)",
+          "oklch(26.43% 0.0620 26.00)",
+          "oklch(37.86% 0.0620 26.00)",
+          "oklch(49.29% 0.0620 26.00)",
+          "oklch(60.71% 0.0620 26.00)",
+          "oklch(72.14% 0.0620 26.00)",
+          "oklch(83.57% 0.0620 26.00)",
+          "oklch(95.00% 0.0620 26.00)"
+        ]
+      },
+      "success-line": {
+        "role": "neutral",
+        "displayName": "Success Line",
+        "tonalRamp": [
+          "oklch(15.00% 0.0487 155.78)",
+          "oklch(26.43% 0.0487 155.78)",
+          "oklch(37.86% 0.0487 155.78)",
+          "oklch(49.29% 0.0487 155.78)",
+          "oklch(60.71% 0.0487 155.78)",
+          "oklch(72.14% 0.0487 155.78)",
+          "oklch(83.57% 0.0487 155.78)",
+          "oklch(95.00% 0.0487 155.78)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Brandbook opening and game title."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section and screen titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Readable instructions and explanations."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Short utility labels and state names."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "duration",
+        "value": "180ms",
+        "purpose": "Base interactive transition."
+      },
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Shared settling curve."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "760px"
+      },
+      {
+        "name": "compact-desktop",
+        "value": "1100px"
+      },
+      {
+        "name": "wide",
+        "value": "1700px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "One primary next action.",
+      "html": "<button class=\"ds-button\">Start lesson</button>",
+      "css": ".ds-button{font:600 1rem var(--font-body,\"Source Sans 3\",sans-serif);border:1px solid var(--wc-gold,#c4a363);border-radius:2px;background:var(--wc-gold,#c4a363);color:var(--wc-ink,#081821);padding:13px 26px;min-height:48px;cursor:pointer;transition:background 180ms,color 180ms,border-color 180ms}.ds-button:hover{background:var(--wc-gold-bright,#e5c98c);border-color:var(--wc-gold-bright,#e5c98c)}.ds-button:active{background:var(--wc-gold-pressed,#ac884e)}.ds-button:focus-visible{outline:2px solid var(--wc-cyan,#82e7ec);outline-offset:5px}.ds-button:disabled{cursor:not-allowed;background:var(--wc-surface,#12313b);border-color:var(--wc-line,#49656a);color:var(--wc-muted,#aac0c1);opacity:.7}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A quieter action beside the primary.",
+      "html": "<button class=\"ds-button ds-secondary\">Stop lesson</button>",
+      "css": ".ds-button{font:600 1rem var(--font-body,\"Source Sans 3\",sans-serif);border:1px solid var(--wc-gold,#c4a363);border-radius:2px;background:var(--wc-gold,#c4a363);color:var(--wc-ink,#081821);padding:13px 26px;min-height:48px;cursor:pointer;transition:background 180ms,color 180ms,border-color 180ms}.ds-button:hover{background:var(--wc-gold-bright,#e5c98c);border-color:var(--wc-gold-bright,#e5c98c)}.ds-button:active{background:var(--wc-gold-pressed,#ac884e)}.ds-button:focus-visible{outline:2px solid var(--wc-cyan,#82e7ec);outline-offset:5px}.ds-button:disabled{cursor:not-allowed;background:var(--wc-surface,#12313b);border-color:var(--wc-line,#49656a);color:var(--wc-muted,#aac0c1);opacity:.7}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}.ds-secondary{background:transparent;color:var(--wc-text,#f1e8d5);border-color:var(--wc-line,#49656a)}.ds-secondary:hover{border-color:var(--wc-gold,#c4a363);color:var(--wc-gold-bright,#e5c98c);background:var(--wc-deep,#0d222d)}"
+    },
+    {
+      "name": "Labeled input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Visible labels with an error state when needed.",
+      "html": "<label class=\"ds-field\"><span>Player name</span><input class=\"ds-input\" placeholder=\"Enter a name\"></label>",
+      "css": ".ds-field{display:grid;gap:8px;font:16px var(--font-body,\"Source Sans 3\",sans-serif);color:var(--wc-muted,#aac0c1)}.ds-input{font:1rem var(--font-body,\"Source Sans 3\",sans-serif);color:var(--wc-text,#f1e8d5);background:var(--wc-ink,#081821);border:1px solid var(--wc-muted,#aac0c1);border-radius:2px;padding:13px 16px;min-height:48px;caret-color:var(--wc-cyan,#82e7ec)}.ds-input::placeholder{color:var(--wc-muted,#aac0c1)}.ds-input:hover{border-color:var(--wc-muted,#aac0c1)}.ds-input:focus-visible{outline:2px solid var(--wc-cyan,#82e7ec);outline-offset:5px}.ds-input[aria-invalid=true]{border-color:var(--wc-danger,#ef9b8d)}"
+    },
+    {
+      "name": "Ready marker",
+      "kind": "chip",
+      "description": "A static indicator pairs color with a state label.",
+      "html": "<span class=\"ds-badge\">Ready</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:8px;font:14px var(--font-body,\"Source Sans 3\",sans-serif);color:var(--wc-cyan,#82e7ec)}.ds-badge::before{content:\"\";width:5px;height:5px;border-radius:50%;background:currentColor}"
+    },
+    {
+      "name": "Error message",
+      "kind": "card",
+      "description": "Explain a recovery action in normal language.",
+      "html": "<p class=\"ds-alert\" role=\"alert\">Hand lost. Bring it back into view.</p>",
+      "css": ".ds-alert{padding:16px 20px;border:1px solid var(--wc-danger-line,#93645f);border-radius:2px;color:var(--wc-danger,#ef9b8d);background:var(--wc-deep,#0d222d);font:18px/1.55 var(--font-body,\"Source Sans 3\",sans-serif)}"
+    },
+    {
+      "name": "Completion message",
+      "kind": "card",
+      "description": "Confirm the finished task and retain readable contrast.",
+      "html": "<p class=\"ds-complete\" role=\"status\">Three correct casts. Lesson complete.</p>",
+      "css": ".ds-complete{padding:16px 20px;border:1px solid var(--wc-success-line,#60806b);border-radius:2px;color:var(--wc-success,#a8d5b5);background:var(--wc-deep,#0d222d);font:18px/1.55 var(--font-body,\"Source Sans 3\",sans-serif)}"
+    },
+    {
+      "name": "Motion switch",
+      "kind": "custom",
+      "description": "A labeled checkbox with a compact switch silhouette.",
+      "html": "<label class=\"ds-switch\"><input type=\"checkbox\" checked> Effects enabled</label>",
+      "css": ".ds-switch{display:inline-flex;align-items:center;gap:12px;cursor:pointer;color:var(--wc-text,#f1e8d5);font:16px var(--font-body,\"Source Sans 3\",sans-serif)}.ds-switch input{appearance:none;width:38px;height:22px;border:1px solid var(--wc-muted,#aac0c1);border-radius:15px;background:var(--wc-ink,#081821);position:relative;cursor:pointer}.ds-switch input::after{content:\"\";position:absolute;left:4px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--wc-muted,#aac0c1)}.ds-switch input:checked{border-color:var(--wc-gold,#c4a363);background:var(--wc-surface,#12313b)}.ds-switch input:checked::after{transform:translateX(16px);background:var(--wc-gold,#c4a363)}.ds-switch input:hover{border-color:var(--wc-gold,#c4a363)}.ds-switch input:focus-visible{outline:2px solid var(--wc-cyan,#82e7ec);outline-offset:5px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Arc & Anchor",
+    "overview": "Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.\n\nNavy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. This is the target system for new UI and the brandbook. The existing light prototype remains unchanged until the migration is implemented.",
+    "keyCharacteristics": [
+      "Deliberate strokes and open space.",
+      "Warm metal against a cool, dark field.",
+      "Clear instruction beside expressive titles.",
+      "One active gesture at a time."
+    ],
+    "rules": [
+      {
+        "name": "Signal",
+        "body": "Reserve cyan for active input, focus, and magic. A static instructional start point may use cyan to identify where active input begins. Do not fill every panel with glow.",
+        "section": "colors"
+      },
+      {
+        "name": "Contrast",
+        "body": "Use text, muted, gold, cyan, danger, and success on the dark surfaces. Filled gold controls use ink text. Do not assume a decorative line color is suitable for a control boundary; use gold or muted for an essential boundary. Status always has text or shape as well as color.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do keep active input easy to see against the scene.",
+      "Do use readable sans-serif instructions and serif titles.",
+      "Do preserve current spell directions and three-cast lesson behavior.",
+      "Do show errors with a specific next action.",
+      "Do label simulated previews and unimplemented features."
+    ],
+    "donts": [
+      "Don't copy Hogwarts crests, houses, castle silhouettes, typography, maps, or interface layouts.",
+      "Don't use cartoon characters, toy-like controls, or ornamental clutter.",
+      "Don't make cyan decoration compete with the live gesture.",
+      "Don't hide tracking loss behind a spell-failure message.",
+      "Don't imply that the design preview enables new gameplay."
+    ]
+  }
+}

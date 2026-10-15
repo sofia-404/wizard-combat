@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#081821" />
+    <title>Wizard Combat — визуальная система</title>
+    <link rel="icon" href="/brand/assets/emblem.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/brand/tokens.css" />
+    <link rel="stylesheet" href="/brand/components.css" />
+    <link rel="stylesheet" href="/brand/brandbook.css" />
+    <script src="/brand/brandbook.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">К содержанию</a>
+    <header class="masthead">
+      <a class="wordmark" href="#main"
+        ><img
+          src="/brand/assets/emblem.svg"
+          alt=""
+          width="40"
+          height="40"
+        /><span>Wizard Combat</span></a
+      >
+      <nav aria-label="Разделы брендбука">
+        <a href="#screens">Экраны</a><a href="#identity">Основа</a
+        ><a href="#components">Компоненты</a><a href="#rules">Правила</a>
+      </nav>
+      <span class="edition">Визуальная система · 2026</span>
+    </header>
+    <main id="main">
+      <section class="intro">
+        <div class="intro-copy">
+          <h1>
+            Магия начинается<br />
+            с движения.
+          </h1>
+          <p>
+            Wizard Combat превращает жест руки в заклинание. Его новый
+            визуальный язык — спокойная точность, тёмная глубина и свет, который
+            отвечает на действие.
+          </p>
+          <a class="intro-link" href="#screens"
+            >Исследовать интерфейс <span aria-hidden="true">↓</span></a
+          >
+        </div>
+        <div class="intro-mark" aria-hidden="true">
+          <svg viewBox="0 0 560 400" fill="none">
+            <path d="M87 295A188 188 0 1 1 469 245" stroke="var(--line)" />
+            <path
+              d="M110 295A166 166 0 1 1 446 245"
+              stroke="var(--line)"
+              stroke-dasharray="1 12"
+            />
+            <path d="M170 135H364V290" stroke="var(--gold)" stroke-width="1" />
+            <path
+              class="gesture-light"
+              d="M170 135H364V290"
+              stroke="var(--magic)"
+              stroke-width="3"
+            />
+            <circle cx="170" cy="135" r="7" fill="var(--magic)" />
+            <path
+              d="m364 278 12 12-12 12-12-12Z"
+              fill="var(--ink)"
+              stroke="var(--magic)"
+              stroke-width="2"
+            />
+            <path d="M255 128l8 7-8 7M357 214l7 8 7-8" stroke="var(--gold)" />
+            <path
+              d="M72 295h30M87 280v30M454 245h30M469 230v30"
+              stroke="var(--gold)"
+            />
+            <circle
+              cx="280"
+              cy="214"
+              r="114"
+              stroke="var(--gold)"
+              stroke-opacity=".18"
+            />
+          </svg>
+          <div class="mark-caption">
+            <span>Импульс</span><span>Направление</span><span>Завершение</span>
+          </div>
+        </div>
+      </section>
+      <section class="screens section" id="screens">
+        <div class="section-heading">
+          <h2>Один мир. Три режима.</h2>
+          <p>
+            Концепции интерфейса показывают будущий облик игры.<br />
+            Все показатели ниже — демонстрационные.
+          </p>
+        </div>
+        <div
+          class="screen-controls"
+          role="tablist"
+          aria-label="Концепции экранов"
+        >
+          <button
+            type="button"
+            id="tab-menu"
+            role="tab"
+            aria-selected="true"
+            aria-controls="screen-menu"
+            tabindex="0"
+          >
+            Главное меню</button
+          ><button
+            type="button"
+            id="tab-training"
+            role="tab"
+            aria-selected="false"
+            aria-controls="screen-training"
+            tabindex="-1"
+          >
+            Тренировка</button
+          ><button
+            type="button"
+            id="tab-fight"
+            role="tab"
+            aria-selected="false"
+            aria-controls="screen-fight"
+            tabindex="-1"
+          >
+            Поединок</button
+          ><span>Интерактивный макет</span>
+        </div>
+        <div class="screen-stage">
+          <section
+            class="game-screen menu-screen"
+            id="screen-menu"
+            role="tabpanel"
+            aria-labelledby="tab-menu"
+          >
+            <div class="screen-top">
+              <span>WIZARD COMBAT</span
+              ><span class="arc-badge">Камера выключена</span>
+            </div>
+            <div class="menu-content">
+              <div>
+                <img
+                  class="menu-emblem"
+                  src="/brand/assets/emblem.svg"
+                  alt="Эмблема Wizard Combat"
+                  width="64"
+                  height="64"
+                />
+                <h3>
+                  Ваша воля.<br />
+                  Ваше заклинание.
+                </h3>
+                <p>Начните с точного движения.</p>
+                <div class="menu-actions">
+                  <button class="arc-button" data-screen="training">
+                    Начать тренировку <span aria-hidden="true">→</span></button
+                  ><button class="arc-button secondary" data-screen="fight">
+                    Посмотреть поединок</button
+                  ><button class="text-button" data-scroll="components">
+                    Настройки интерфейса
+                  </button>
+                </div>
+              </div>
+              <div class="menu-instrument" aria-hidden="true">
+                <svg viewBox="0 0 460 390" fill="none">
+                  <circle cx="230" cy="195" r="150" stroke="var(--line)" />
+                  <circle
+                    cx="230"
+                    cy="195"
+                    r="138"
+                    stroke="var(--line)"
+                    stroke-dasharray="1 10"
+                  />
+                  <path
+                    d="M230 20v35M230 335v35M55 195h35M370 195h35"
+                    stroke="var(--gold)"
+                  />
+                  <path
+                    d="M145 110h170v170"
+                    stroke="var(--magic)"
+                    stroke-width="3"
+                  />
+                  <circle cx="145" cy="110" r="7" fill="var(--magic)" />
+                  <path
+                    d="m315 268 12 12-12 12-12-12Z"
+                    stroke="var(--magic)"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="m230 80 115 115-115 115-115-115Z"
+                    stroke="var(--gold)"
+                    stroke-opacity=".35"
+                  /></svg
+                ><span>Движение обретает силу</span>
+              </div>
+            </div>
+            <div class="screen-bottom">
+              <span>Управление жестом руки</span
+              ><span>Локальная обработка · Без записи камеры</span>
+            </div>
+          </section>
+          <section
+            class="game-screen training-screen"
+            id="screen-training"
+            role="tabpanel"
+            aria-labelledby="tab-training"
+            hidden
+          >
+            <div class="screen-top">
+              <span>ТРЕНИРОВКА</span
+              ><span class="arc-badge ready" id="training-badge"
+                >Демонстрация отслеживания</span
+              >
+            </div>
+            <div class="training-layout">
+              <div class="camera-concept">
+                <div class="camera-corners" aria-hidden="true"></div>
+                <span class="camera-label">Область камеры · схема</span
+                ><svg
+                  class="camera-trace"
+                  viewBox="0 0 600 360"
+                  fill="none"
+                  role="img"
+                  aria-label="Жест: вправо, затем вниз"
+                >
+                  <path
+                    d="M160 100H425V270"
+                    stroke="var(--line)"
+                    stroke-width="2"
+                    stroke-dasharray="6 7"
+                  />
+                  <path
+                    id="cast-trace"
+                    d="M160 100H425V270"
+                    stroke="var(--magic)"
+                    stroke-width="3"
+                  />
+                  <circle cx="160" cy="100" r="7" fill="var(--magic)" />
+                  <path
+                    d="m425 258 12 12-12 12-12-12Z"
+                    stroke="var(--magic)"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="m285 92 9 8-9 8M417 186l8 9 8-9"
+                    stroke="var(--gold)"
+                  />
+                </svg>
+                <div class="camera-instruction">
+                  <span class="arc-badge ready">Рука в поле зрения</span
+                  ><strong id="training-instruction"
+                    >Вправо. Затем вниз.</strong
+                  >
+                </div>
+              </div>
+              <aside class="spell-guide">
+                <span class="guide-label">Первое заклинание</span>
+                <h3>Expelliarmus</h3>
+                <p>
+                  Проведите рукой вправо, затем вниз. Не останавливайтесь в
+                  углу. Замрите в конце.
+                </p>
+                <div class="lesson-meter">
+                  <span>Точные жесты <b id="cast-count">0 / 3</b></span>
+                  <div class="segments" aria-hidden="true">
+                    <i></i><i></i><i></i>
+                  </div>
+                </div>
+                <button class="arc-button" id="simulate-cast">
+                  Показать точный жест</button
+                ><button class="text-button" id="reset-cast">
+                  Начать заново
+                </button>
+                <p class="small-note" id="training-status" role="status">
+                  Демо управляется кнопкой. Камера не используется.
+                </p>
+              </aside>
+            </div>
+            <div class="screen-bottom">
+              <span>Жест: вправо → вниз</span
+              ><span>Учебный макет · Без камеры</span>
+            </div>
+          </section>
+          <section
+            class="game-screen fight-screen"
+            id="screen-fight"
+            role="tabpanel"
+            aria-labelledby="tab-fight"
+            hidden
+          >
+            <div class="screen-top">
+              <span>ПОЕДИНОК / КОНЦЕПЦИЯ</span
+              ><span class="arc-badge ready" id="fight-badge"
+                >Ожидание жеста</span
+              >
+            </div>
+            <div class="fight-layout">
+              <div class="fight-side">
+                <span class="guide-label">Ваше состояние</span
+                ><strong>Готовность</strong>
+                <div class="readiness"><i></i></div>
+                <p>
+                  Интерфейс освобождает центр. Обратная связь остаётся на
+                  периферии.
+                </p>
+              </div>
+              <div class="target-field">
+                <div class="target-reticle" aria-hidden="true">
+                  <div></div>
+                  <i></i>
+                </div>
+                <span>Учебная мишень</span
+                ><strong id="fight-message">Выберите момент.</strong>
+                <p>Макет боевой сцены без игрового расчёта</p>
+              </div>
+              <div class="fight-spell">
+                <span class="guide-label">Выбранное заклинание</span>
+                <h3>Expelliarmus</h3>
+                <svg viewBox="0 0 140 100" fill="none" aria-hidden="true">
+                  <path
+                    d="M20 20h100v60"
+                    stroke="var(--magic)"
+                    stroke-width="2"
+                  />
+                  <circle cx="20" cy="20" r="4" fill="var(--magic)" />
+                  <path d="m120 72 8 8-8 8-8-8Z" stroke="var(--magic)" /></svg
+                ><button class="arc-button secondary" id="simulate-fight">
+                  Показать отклик
+                </button>
+              </div>
+            </div>
+            <div class="screen-bottom">
+              <span>Центр — для цели. Край — для статуса.</span
+              ><span>Синтетическая сцена · Не игровой режим</span>
+            </div>
+          </section>
+        </div>
+        <div class="screen-annotation">
+          <p id="screen-description">
+            Главное меню приглашает к первому действию. Знак жеста заменяет
+            герб, а спокойная композиция оставляет место воображению.
+          </p>
+          <span>Концепция, не готовая функция</span>
+        </div>
+      </section>
+      <section class="section identity" id="identity">
+        <div class="section-heading">
+          <h2>Тьма даёт свету смысл.</h2>
+          <p>
+            Синий задаёт глубину. Золото ведёт через интерфейс.<br />
+            Холодный свет принадлежит движению и ответу магии.
+          </p>
+        </div>
+        <div class="palette">
+          <button
+            class="swatch ink"
+            data-color="#081821"
+            aria-label="Скопировать цвет Полночь #081821"
+          >
+            <span>Полночь</span><b>#081821</b
+            ><small>Основной фон</small></button
+          ><button
+            class="swatch surface"
+            data-color="#12313B"
+            aria-label="Скопировать цвет Глубина #12313B"
+          >
+            <span>Глубина</span><b>#12313B</b
+            ><small>Рабочая поверхность</small></button
+          ><button
+            class="swatch gold"
+            data-color="#C4A363"
+            aria-label="Скопировать цвет Старое золото #C4A363"
+          >
+            <span>Старое золото</span><b>#C4A363</b
+            ><small>Действие и структура</small></button
+          ><button
+            class="swatch magic"
+            data-color="#82E7EC"
+            aria-label="Скопировать цвет Магический свет #82E7EC"
+          >
+            <span>Магический свет</span><b>#82E7EC</b
+            ><small>Жест и отклик</small></button
+          ><button
+            class="swatch paper"
+            data-color="#F1E8D5"
+            aria-label="Скопировать цвет Пергамент #F1E8D5"
+          >
+            <span>Пергамент</span><b>#F1E8D5</b><small>Основной текст</small>
+          </button>
+        </div>
+        <p class="palette-note" id="color-status" role="status">
+          Нажмите на цвет, чтобы скопировать HEX. Светлый текст остаётся на
+          тёмных поверхностях.
+        </p>
+        <div class="type-pair">
+          <div class="type-display">
+            <h3>
+              Сила —<br />
+              в точности.
+            </h3>
+            <span>Cormorant Garamond · 500 / 600</span>
+            <p>
+              Выразительные заголовки. Живой ритм и острые засечки — без
+              театральной тяжести.
+            </p>
+          </div>
+          <div class="type-body">
+            <h3>Ясность в каждом действии.</h3>
+            <p>
+              Source Sans 3 сохраняет читаемость там, где важна реакция: в
+              подсказках, кнопках и статусах. Кириллица — полноценная часть
+              системы.
+            </p>
+            <div class="type-scale">
+              <div>
+                <span>Название экрана</span><b class="scale-title">Тренировка</b
+                ><small>48 / 52 · serif</small>
+              </div>
+              <div>
+                <span>Заголовок блока</span
+                ><b class="scale-block">Точный жест</b
+                ><small>32 / 36 · serif</small>
+              </div>
+              <div>
+                <span>Основной текст</span><b>Не останавливайтесь в углу.</b
+                ><small>18 / 28 · sans</small>
+              </div>
+              <div>
+                <span>Подпись</span
+                ><b class="scale-small">Локальная обработка</b
+                ><small>14 / 20 · sans</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section components" id="components">
+        <div class="section-heading">
+          <h2>Состояния говорят прямо.</h2>
+          <p>
+            Один набор правил для меню, урока и боя.<br />
+            Каждый элемент помогает понять, что делать дальше.
+          </p>
+        </div>
+        <div class="component-row">
+          <div class="component-description">
+            <h3>Действия</h3>
+            <p>
+              Золото выделяет главное действие. Второстепенное оставляет больше
+              тишины.
+            </p>
+          </div>
+          <div class="component-demo">
+            <div class="button-samples">
+              <div>
+                <button class="arc-button" id="demo-action">
+                  Начать тренировку</button
+                ><span>Основное · наведите курсор</span>
+              </div>
+              <div>
+                <button class="arc-button secondary" id="demo-secondary">
+                  Вернуться в меню</button
+                ><span>Второстепенное</span>
+              </div>
+              <div>
+                <button class="arc-button" disabled>Продолжить</button
+                ><span>Недоступно</span>
+              </div>
+              <div>
+                <button class="arc-button" disabled data-loading="true">
+                  Подготовка</button
+                ><span>Загрузка</span>
+              </div>
+            </div>
+            <p class="demo-feedback" id="button-status" role="status">
+              Нажмите основную кнопку, чтобы увидеть отклик.
+            </p>
+          </div>
+        </div>
+        <div class="component-row">
+          <div class="component-description">
+            <h3>Ввод и выбор</h3>
+            <p>
+              Подпись остаётся видимой. Ошибка объясняет, что исправить. Фокус
+              виден с клавиатуры.
+            </p>
+          </div>
+          <div class="component-demo">
+            <div class="field-grid">
+              <div class="arc-field">
+                <label for="demo-name">Имя мага</label
+                ><input
+                  class="arc-input"
+                  id="demo-name"
+                  placeholder="Например, Северин"
+                  maxlength="32"
+                /><span class="field-hint">До 32 символов</span>
+              </div>
+              <div class="arc-field">
+                <label for="demo-hand">Рука для жеста</label
+                ><select class="arc-input" id="demo-hand">
+                  <option>Левая</option>
+                  <option>Правая</option>
+                </select>
+              </div>
+              <div class="arc-field">
+                <label for="demo-error">Пример ошибки</label
+                ><input
+                  class="arc-input"
+                  id="demo-error"
+                  value=""
+                  placeholder="Имя не указано"
+                  aria-invalid="true"
+                  aria-describedby="name-error"
+                /><span class="field-error" id="name-error"
+                  >Введите имя, чтобы продолжить.</span
+                >
+              </div>
+              <div class="switch-sample">
+                <label class="arc-switch"
+                  ><input type="checkbox" id="demo-sound" checked /><span
+                    >Звук интерфейса</span
+                  ></label
+                ><span class="field-hint" id="sound-status"
+                  >Включён · демонстрационный переключатель</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="component-row">
+          <div class="component-description">
+            <h3>Обратная связь</h3>
+            <p>
+              Цвет поддерживает смысл. Текст сообщает о результате даже без
+              цвета.
+            </p>
+          </div>
+          <div class="component-demo">
+            <div class="state-grid">
+              <div class="arc-alert success">
+                <strong>Жест распознан</strong>
+                <p>Движение завершено точно. Повторите ещё раз.</p>
+              </div>
+              <div class="arc-alert error">
+                <strong>Рука вышла из кадра</strong>
+                <p>Покажите кисть целиком и повторите жест.</p>
+              </div>
+              <div class="empty-sample">
+                <span class="empty-symbol" aria-hidden="true"></span
+                ><strong>Пока нет жестов</strong>
+                <p>Первое движение появится здесь.</p>
+              </div>
+              <div class="status-sample">
+                <span class="arc-badge ready">Рука отслеживается</span
+                ><span class="arc-badge">Камера выключена</span
+                ><span class="arc-badge error">Рука не найдена</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="component-row">
+          <div class="component-description">
+            <h3>Курсор и фокус</h3>
+            <p>
+              Точный указатель для спокойных сцен. Системный курсор сохраняется
+              над текстом и вводом.
+            </p>
+          </div>
+          <div class="component-demo cursor-demo">
+            <div
+              class="cursor-surface"
+              tabindex="0"
+              aria-label="Образец курсора. Наведите указатель или сфокусируйте область."
+            >
+              <img
+                src="/brand/assets/cursor.svg"
+                alt=""
+                width="48"
+                height="48"
+              /><span>Наведите курсор на это поле</span
+              ><small>Tab показывает кольцо фокуса</small>
+            </div>
+            <div class="spacing-spec">
+              <span>Ритм расстояний</span>
+              <div><i></i><i></i><i></i><i></i><i></i></div>
+              <p>8 · 16 · 24 · 32 · 48 px</p>
+              <small>Углы 2 px · Кнопки от 48 px</small>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section rules" id="rules">
+        <div class="section-heading">
+          <h2>Меньше шума. Больше воли.</h2>
+          <p>
+            Эти ограничения сохраняют цельный мир<br />
+            на любом экране и в любом состоянии.
+          </p>
+        </div>
+        <div class="rules-grid">
+          <div>
+            <h3>Свет следует действию</h3>
+            <p>
+              Циан появляется в траектории, активном отслеживании и ответе на
+              жест. Фон не конкурирует с целью.
+            </p>
+          </div>
+          <div>
+            <h3>Украшение имеет смысл</h3>
+            <p>
+              Дуга обозначает пространство жеста. Точка — начало. Ромб —
+              завершение. Орнамент не скрывает управление.
+            </p>
+          </div>
+          <div>
+            <h3>Текст помогает действовать</h3>
+            <p>
+              «Покажите кисть целиком», а не «Ошибка ввода». Сначала причина,
+              затем понятный следующий шаг.
+            </p>
+          </div>
+          <div>
+            <h3>Движение бережёт внимание</h3>
+            <p>
+              Короткий отклик, без постоянного мерцания. Настройка уменьшения
+              движения отключает анимацию.
+            </p>
+          </div>
+        </div>
+        <div class="handoff">
+          <img src="/brand/assets/emblem.svg" alt="" width="72" height="72" />
+          <div>
+            <h3>Система готова к переносу.</h3>
+            <p>Токены, компоненты и графика отделены от брендбука.</p>
+          </div>
+          <a href="/brand/tokens.css" class="arc-button secondary"
+            >Токены CSS <span aria-hidden="true">↗</span></a
+          ><a href="/brand/components.css" class="arc-button secondary"
+            >Компоненты CSS <span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a class="wordmark" href="#main">Wizard Combat</a>
+      <p>
+        Оригинальная визуальная система.<br />
+        Концепции экранов не меняют текущий игровой прототип.
+      </p>
+      <a href="/"
+        >Открыть текущий прототип <span aria-hidden="true">↗</span></a
+      >
+    </footer>
+  </body>
+</html>
