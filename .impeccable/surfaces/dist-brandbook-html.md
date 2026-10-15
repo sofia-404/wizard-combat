@@ -42,7 +42,7 @@ Assessments use adult audience identification and product clarity. They are desi
 
 ## Practical defaults and limits
 
-The preview is Russian-language UI; the current gameplay prototype is English. This does not change gameplay locale. Documentation uses English technical instructions. Fonts cover both Cyrillic and Latin. Use existing spell terminology until a separate naming decision.
+All game UI, brandbook copy, accessible labels, examples, and repository design documentation use English. The user confirmed this language requirement. Keep existing spell terminology until a separate naming decision. Bundled fonts retain their full character coverage.
 
 Main-menu and fight studies are proposed designs. The training study simulates feedback and does not open a camera. The current game continues at the root route. Do not treat illustrated controls as new gameplay behavior.
 

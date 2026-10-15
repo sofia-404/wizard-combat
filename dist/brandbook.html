@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#081821" />
-    <title>Wizard Combat — визуальная система</title>
+    <title>Wizard Combat — Visual System</title>
     <link rel="icon" href="/brand/assets/emblem.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/brand/tokens.css" />
     <link rel="stylesheet" href="/brand/components.css" />
@@ -12,7 +12,7 @@
     <script src="/brand/brandbook.js" defer></script>
   </head>
   <body>
-    <a class="skip" href="#main">К содержанию</a>
+    <a class="skip" href="#main">Skip to content</a>
     <header class="masthead">
       <a class="wordmark" href="#main"
         ><img
@@ -22,26 +22,26 @@
           height="40"
         /><span>Wizard Combat</span></a
       >
-      <nav aria-label="Разделы брендбука">
-        <a href="#screens">Экраны</a><a href="#identity">Основа</a
-        ><a href="#components">Компоненты</a><a href="#rules">Правила</a>
+      <nav aria-label="Brandbook sections">
+        <a href="#screens">Screens</a><a href="#identity">Foundation</a
+        ><a href="#components">Components</a><a href="#rules">Principles</a>
       </nav>
-      <span class="edition">Визуальная система · 2026</span>
+      <span class="edition">Visual system · 2026</span>
     </header>
     <main id="main">
       <section class="intro">
         <div class="intro-copy">
           <h1>
-            Магия начинается<br />
-            с движения.
+            Magic begins<br />
+            with movement.
           </h1>
           <p>
-            Wizard Combat превращает жест руки в заклинание. Его новый
-            визуальный язык — спокойная точность, тёмная глубина и свет, который
-            отвечает на действие.
+            Wizard Combat turns a hand gesture into a spell. Its visual language
+            combines quiet precision, dark depth, and light that responds to
+            action.
           </p>
           <a class="intro-link" href="#screens"
-            >Исследовать интерфейс <span aria-hidden="true">↓</span></a
+            >Explore the interface <span aria-hidden="true">↓</span></a
           >
         </div>
         <div class="intro-mark" aria-hidden="true">
@@ -80,22 +80,22 @@
             />
           </svg>
           <div class="mark-caption">
-            <span>Импульс</span><span>Направление</span><span>Завершение</span>
+            <span>Impulse</span><span>Direction</span><span>Completion</span>
           </div>
         </div>
       </section>
       <section class="screens section" id="screens">
         <div class="section-heading">
-          <h2>Один мир. Три режима.</h2>
+          <h2>One world. Three modes.</h2>
           <p>
-            Концепции интерфейса показывают будущий облик игры.<br />
-            Все показатели ниже — демонстрационные.
+            Interface concepts explore the game's future look.<br />
+            All values below are illustrative.
           </p>
         </div>
         <div
           class="screen-controls"
           role="tablist"
-          aria-label="Концепции экранов"
+          aria-label="Screen concepts"
         >
           <button
             type="button"
@@ -105,7 +105,7 @@
             aria-controls="screen-menu"
             tabindex="0"
           >
-            Главное меню</button
+            Main menu</button
           ><button
             type="button"
             id="tab-training"
@@ -114,7 +114,7 @@
             aria-controls="screen-training"
             tabindex="-1"
           >
-            Тренировка</button
+            Training</button
           ><button
             type="button"
             id="tab-fight"
@@ -123,8 +123,8 @@
             aria-controls="screen-fight"
             tabindex="-1"
           >
-            Поединок</button
-          ><span>Интерактивный макет</span>
+            Duel</button
+          ><span>Interactive mockup</span>
         </div>
         <div class="screen-stage">
           <section
@@ -135,29 +135,29 @@
           >
             <div class="screen-top">
               <span>WIZARD COMBAT</span
-              ><span class="arc-badge">Камера выключена</span>
+              ><span class="arc-badge">Camera off</span>
             </div>
             <div class="menu-content">
               <div>
                 <img
                   class="menu-emblem"
                   src="/brand/assets/emblem.svg"
-                  alt="Эмблема Wizard Combat"
+                  alt="Wizard Combat emblem"
                   width="64"
                   height="64"
                 />
                 <h3>
-                  Ваша воля.<br />
-                  Ваше заклинание.
+                  Your will.<br />
+                  Your spell.
                 </h3>
-                <p>Начните с точного движения.</p>
+                <p>Begin with a precise movement.</p>
                 <div class="menu-actions">
                   <button class="arc-button" data-screen="training">
-                    Начать тренировку <span aria-hidden="true">→</span></button
+                    Start training <span aria-hidden="true">→</span></button
                   ><button class="arc-button secondary" data-screen="fight">
-                    Посмотреть поединок</button
+                    Preview duel</button
                   ><button class="text-button" data-scroll="components">
-                    Настройки интерфейса
+                    Interface controls
                   </button>
                 </div>
               </div>
@@ -191,12 +191,12 @@
                     stroke="var(--gold)"
                     stroke-opacity=".35"
                   /></svg
-                ><span>Движение обретает силу</span>
+                ><span>Movement becomes power</span>
               </div>
             </div>
             <div class="screen-bottom">
-              <span>Управление жестом руки</span
-              ><span>Локальная обработка · Без записи камеры</span>
+              <span>Hand gesture controls</span
+              ><span>Local processing · No camera recording</span>
             </div>
           </section>
           <section
@@ -207,21 +207,21 @@
             hidden
           >
             <div class="screen-top">
-              <span>ТРЕНИРОВКА</span
+              <span>TRAINING</span
               ><span class="arc-badge ready" id="training-badge"
-                >Демонстрация отслеживания</span
+                >Tracking demo</span
               >
             </div>
             <div class="training-layout">
               <div class="camera-concept">
                 <div class="camera-corners" aria-hidden="true"></div>
-                <span class="camera-label">Область камеры · схема</span
+                <span class="camera-label">Camera area · schematic</span
                 ><svg
                   class="camera-trace"
                   viewBox="0 0 600 360"
                   fill="none"
                   role="img"
-                  aria-label="Жест: вправо, затем вниз"
+                  aria-label="Gesture: right, then down"
                 >
                   <path
                     d="M160 100H425V270"
@@ -247,38 +247,36 @@
                   />
                 </svg>
                 <div class="camera-instruction">
-                  <span class="arc-badge ready">Рука в поле зрения</span
-                  ><strong id="training-instruction"
-                    >Вправо. Затем вниз.</strong
-                  >
+                  <span class="arc-badge ready">Hand in view</span
+                  ><strong id="training-instruction">Right. Then down.</strong>
                 </div>
               </div>
               <aside class="spell-guide">
-                <span class="guide-label">Первое заклинание</span>
+                <span class="guide-label">First spell</span>
                 <h3>Expelliarmus</h3>
                 <p>
-                  Проведите рукой вправо, затем вниз. Не останавливайтесь в
-                  углу. Замрите в конце.
+                  Move your hand right, then down. Keep moving through the
+                  corner. Hold still at the end.
                 </p>
                 <div class="lesson-meter">
-                  <span>Точные жесты <b id="cast-count">0 / 3</b></span>
+                  <span>Precise gestures <b id="cast-count">0 / 3</b></span>
                   <div class="segments" aria-hidden="true">
                     <i></i><i></i><i></i>
                   </div>
                 </div>
                 <button class="arc-button" id="simulate-cast">
-                  Показать точный жест</button
+                  Show precise gesture</button
                 ><button class="text-button" id="reset-cast">
-                  Начать заново
+                  Start again
                 </button>
                 <p class="small-note" id="training-status" role="status">
-                  Демо управляется кнопкой. Камера не используется.
+                  Use the button to run this demo. No camera is used.
                 </p>
               </aside>
             </div>
             <div class="screen-bottom">
-              <span>Жест: вправо → вниз</span
-              ><span>Учебный макет · Без камеры</span>
+              <span>Gesture: right → down</span
+              ><span>Training mockup · No camera</span>
             </div>
           </section>
           <section
@@ -289,19 +287,19 @@
             hidden
           >
             <div class="screen-top">
-              <span>ПОЕДИНОК / КОНЦЕПЦИЯ</span
+              <span>DUEL / CONCEPT</span
               ><span class="arc-badge ready" id="fight-badge"
-                >Ожидание жеста</span
+                >Awaiting gesture</span
               >
             </div>
             <div class="fight-layout">
               <div class="fight-side">
-                <span class="guide-label">Ваше состояние</span
-                ><strong>Готовность</strong>
+                <span class="guide-label">Your status</span
+                ><strong>Ready</strong>
                 <div class="readiness"><i></i></div>
                 <p>
-                  Интерфейс освобождает центр. Обратная связь остаётся на
-                  периферии.
+                  The interface keeps the center clear. Feedback stays at the
+                  edges.
                 </p>
               </div>
               <div class="target-field">
@@ -309,12 +307,12 @@
                   <div></div>
                   <i></i>
                 </div>
-                <span>Учебная мишень</span
-                ><strong id="fight-message">Выберите момент.</strong>
-                <p>Макет боевой сцены без игрового расчёта</p>
+                <span>Training target</span
+                ><strong id="fight-message">Choose your moment.</strong>
+                <p>Scene mockup without combat simulation</p>
               </div>
               <div class="fight-spell">
-                <span class="guide-label">Выбранное заклинание</span>
+                <span class="guide-label">Selected spell</span>
                 <h3>Expelliarmus</h3>
                 <svg viewBox="0 0 140 100" fill="none" aria-hidden="true">
                   <path
@@ -325,109 +323,108 @@
                   <circle cx="20" cy="20" r="4" fill="var(--magic)" />
                   <path d="m120 72 8 8-8 8-8-8Z" stroke="var(--magic)" /></svg
                 ><button class="arc-button secondary" id="simulate-fight">
-                  Показать отклик
+                  Show feedback
                 </button>
               </div>
             </div>
             <div class="screen-bottom">
-              <span>Центр — для цели. Край — для статуса.</span
-              ><span>Синтетическая сцена · Не игровой режим</span>
+              <span>Target at the center. Status at the edges.</span
+              ><span>Illustrative scene · Not a playable mode</span>
             </div>
           </section>
         </div>
         <div class="screen-annotation">
           <p id="screen-description">
-            Главное меню приглашает к первому действию. Знак жеста заменяет
-            герб, а спокойная композиция оставляет место воображению.
+            The main menu invites a first action. A gesture mark takes the place
+            of a crest, while the quiet composition leaves room for imagination.
           </p>
-          <span>Концепция, не готовая функция</span>
+          <span>Concept, not an implemented feature</span>
         </div>
       </section>
       <section class="section identity" id="identity">
         <div class="section-heading">
-          <h2>Тьма даёт свету смысл.</h2>
+          <h2>Darkness gives light meaning.</h2>
           <p>
-            Синий задаёт глубину. Золото ведёт через интерфейс.<br />
-            Холодный свет принадлежит движению и ответу магии.
+            Blue creates depth. Gold guides the way.<br />
+            Cool light belongs to movement and magical feedback.
           </p>
         </div>
         <div class="palette">
           <button
             class="swatch ink"
             data-color="#081821"
-            aria-label="Скопировать цвет Полночь #081821"
+            aria-label="Copy Midnight #081821"
           >
-            <span>Полночь</span><b>#081821</b
-            ><small>Основной фон</small></button
+            <span>Midnight</span><b>#081821</b
+            ><small>Main background</small></button
           ><button
             class="swatch surface"
             data-color="#12313B"
-            aria-label="Скопировать цвет Глубина #12313B"
+            aria-label="Copy Depth #12313B"
           >
-            <span>Глубина</span><b>#12313B</b
-            ><small>Рабочая поверхность</small></button
+            <span>Depth</span><b>#12313B</b
+            ><small>Working surface</small></button
           ><button
             class="swatch gold"
             data-color="#C4A363"
-            aria-label="Скопировать цвет Старое золото #C4A363"
+            aria-label="Copy Aged gold #C4A363"
           >
-            <span>Старое золото</span><b>#C4A363</b
-            ><small>Действие и структура</small></button
+            <span>Aged gold</span><b>#C4A363</b
+            ><small>Action and structure</small></button
           ><button
             class="swatch magic"
             data-color="#82E7EC"
-            aria-label="Скопировать цвет Магический свет #82E7EC"
+            aria-label="Copy Magic light #82E7EC"
           >
-            <span>Магический свет</span><b>#82E7EC</b
-            ><small>Жест и отклик</small></button
+            <span>Magic light</span><b>#82E7EC</b
+            ><small>Gesture and feedback</small></button
           ><button
             class="swatch paper"
             data-color="#F1E8D5"
-            aria-label="Скопировать цвет Пергамент #F1E8D5"
+            aria-label="Copy Parchment #F1E8D5"
           >
-            <span>Пергамент</span><b>#F1E8D5</b><small>Основной текст</small>
+            <span>Parchment</span><b>#F1E8D5</b><small>Body text</small>
           </button>
         </div>
         <p class="palette-note" id="color-status" role="status">
-          Нажмите на цвет, чтобы скопировать HEX. Светлый текст остаётся на
-          тёмных поверхностях.
+          Select a color to copy its HEX value. Light text stays on dark
+          surfaces.
         </p>
         <div class="type-pair">
           <div class="type-display">
             <h3>
-              Сила —<br />
-              в точности.
+              Power lies<br />
+              in precision.
             </h3>
             <span>Cormorant Garamond · 500 / 600</span>
             <p>
-              Выразительные заголовки. Живой ритм и острые засечки — без
-              театральной тяжести.
+              Expressive headings. A lively rhythm and sharp serifs, with a
+              light touch.
             </p>
           </div>
           <div class="type-body">
-            <h3>Ясность в каждом действии.</h3>
+            <h3>Clarity in every action.</h3>
             <p>
-              Source Sans 3 сохраняет читаемость там, где важна реакция: в
-              подсказках, кнопках и статусах. Кириллица — полноценная часть
-              системы.
+              Source Sans 3 keeps prompts, buttons, and status messages readable
+              when every reaction matters. Clear controls make the next action
+              easy to find.
             </p>
             <div class="type-scale">
               <div>
-                <span>Название экрана</span><b class="scale-title">Тренировка</b
+                <span>Screen title</span><b class="scale-title">Training</b
                 ><small>48 / 52 · serif</small>
               </div>
               <div>
-                <span>Заголовок блока</span
-                ><b class="scale-block">Точный жест</b
+                <span>Section heading</span
+                ><b class="scale-block">Precise gesture</b
                 ><small>32 / 36 · serif</small>
               </div>
               <div>
-                <span>Основной текст</span><b>Не останавливайтесь в углу.</b
+                <span>Body text</span><b>Keep moving through the corner.</b
                 ><small>18 / 28 · sans</small>
               </div>
               <div>
-                <span>Подпись</span
-                ><b class="scale-small">Локальная обработка</b
+                <span>Caption</span><b class="scale-small">Local processing</b
                 ><small>14 / 20 · sans</small>
               </div>
             </div>
@@ -436,93 +433,93 @@
       </section>
       <section class="section components" id="components">
         <div class="section-heading">
-          <h2>Состояния говорят прямо.</h2>
+          <h2>States speak clearly.</h2>
           <p>
-            Один набор правил для меню, урока и боя.<br />
-            Каждый элемент помогает понять, что делать дальше.
+            One set of rules for menus, lessons, and combat.<br />
+            Every element makes the next step clear.
           </p>
         </div>
         <div class="component-row">
           <div class="component-description">
-            <h3>Действия</h3>
+            <h3>Actions</h3>
             <p>
-              Золото выделяет главное действие. Второстепенное оставляет больше
-              тишины.
+              Gold highlights the main action. Secondary actions keep a quieter
+              presence.
             </p>
           </div>
           <div class="component-demo">
             <div class="button-samples">
               <div>
                 <button class="arc-button" id="demo-action">
-                  Начать тренировку</button
-                ><span>Основное · наведите курсор</span>
+                  Start training</button
+                ><span>Primary · hover to preview</span>
               </div>
               <div>
                 <button class="arc-button secondary" id="demo-secondary">
-                  Вернуться в меню</button
-                ><span>Второстепенное</span>
+                  Back to menu</button
+                ><span>Secondary</span>
               </div>
               <div>
-                <button class="arc-button" disabled>Продолжить</button
-                ><span>Недоступно</span>
+                <button class="arc-button" disabled>Continue</button
+                ><span>Disabled</span>
               </div>
               <div>
                 <button class="arc-button" disabled data-loading="true">
-                  Подготовка</button
-                ><span>Загрузка</span>
+                  Preparing</button
+                ><span>Loading</span>
               </div>
             </div>
             <p class="demo-feedback" id="button-status" role="status">
-              Нажмите основную кнопку, чтобы увидеть отклик.
+              Press the primary button to see feedback.
             </p>
           </div>
         </div>
         <div class="component-row">
           <div class="component-description">
-            <h3>Ввод и выбор</h3>
+            <h3>Input and selection</h3>
             <p>
-              Подпись остаётся видимой. Ошибка объясняет, что исправить. Фокус
-              виден с клавиатуры.
+              Labels stay visible. Errors explain what to fix. Keyboard focus
+              stays clear.
             </p>
           </div>
           <div class="component-demo">
             <div class="field-grid">
               <div class="arc-field">
-                <label for="demo-name">Имя мага</label
+                <label for="demo-name">Wizard name</label
                 ><input
                   class="arc-input"
                   id="demo-name"
-                  placeholder="Например, Северин"
+                  placeholder="For example, Severin"
                   maxlength="32"
-                /><span class="field-hint">До 32 символов</span>
+                /><span class="field-hint">Up to 32 characters</span>
               </div>
               <div class="arc-field">
-                <label for="demo-hand">Рука для жеста</label
+                <label for="demo-hand">Gesture hand</label
                 ><select class="arc-input" id="demo-hand">
-                  <option>Левая</option>
-                  <option>Правая</option>
+                  <option>Left</option>
+                  <option>Right</option>
                 </select>
               </div>
               <div class="arc-field">
-                <label for="demo-error">Пример ошибки</label
+                <label for="demo-error">Error example</label
                 ><input
                   class="arc-input"
                   id="demo-error"
                   value=""
-                  placeholder="Имя не указано"
+                  placeholder="Name is missing"
                   aria-invalid="true"
                   aria-describedby="name-error"
                 /><span class="field-error" id="name-error"
-                  >Введите имя, чтобы продолжить.</span
+                  >Enter a name to continue.</span
                 >
               </div>
               <div class="switch-sample">
                 <label class="arc-switch"
                   ><input type="checkbox" id="demo-sound" checked /><span
-                    >Звук интерфейса</span
+                    >Interface sound</span
                   ></label
                 ><span class="field-hint" id="sound-status"
-                  >Включён · демонстрационный переключатель</span
+                  >On · demo toggle</span
                 >
               </div>
             </div>
@@ -530,114 +527,116 @@
         </div>
         <div class="component-row">
           <div class="component-description">
-            <h3>Обратная связь</h3>
+            <h3>Feedback</h3>
             <p>
-              Цвет поддерживает смысл. Текст сообщает о результате даже без
-              цвета.
+              Color supports meaning. Text explains the result without relying
+              on color.
             </p>
           </div>
           <div class="component-demo">
             <div class="state-grid">
               <div class="arc-alert success">
-                <strong>Жест распознан</strong>
-                <p>Движение завершено точно. Повторите ещё раз.</p>
+                <strong>Gesture recognized</strong>
+                <p>Movement completed precisely. Try it once more.</p>
               </div>
               <div class="arc-alert error">
-                <strong>Рука вышла из кадра</strong>
-                <p>Покажите кисть целиком и повторите жест.</p>
+                <strong>Hand out of frame</strong>
+                <p>Show your whole hand and repeat the gesture.</p>
               </div>
               <div class="empty-sample">
                 <span class="empty-symbol" aria-hidden="true"></span
-                ><strong>Пока нет жестов</strong>
-                <p>Первое движение появится здесь.</p>
+                ><strong>No gestures yet</strong>
+                <p>Your first movement will appear here.</p>
               </div>
               <div class="status-sample">
-                <span class="arc-badge ready">Рука отслеживается</span
-                ><span class="arc-badge">Камера выключена</span
-                ><span class="arc-badge error">Рука не найдена</span>
+                <span class="arc-badge ready">Hand tracking active</span
+                ><span class="arc-badge">Camera off</span
+                ><span class="arc-badge error">Hand not found</span>
               </div>
             </div>
           </div>
         </div>
         <div class="component-row">
           <div class="component-description">
-            <h3>Курсор и фокус</h3>
+            <h3>Cursor and focus</h3>
             <p>
-              Точный указатель для спокойных сцен. Системный курсор сохраняется
-              над текстом и вводом.
+              A precise pointer for quiet scenes. The system cursor stays in
+              place over text and inputs.
             </p>
           </div>
           <div class="component-demo cursor-demo">
             <div
               class="cursor-surface"
               tabindex="0"
-              aria-label="Образец курсора. Наведите указатель или сфокусируйте область."
+              aria-label="Cursor sample. Hover over or focus this area."
             >
               <img
                 src="/brand/assets/cursor.svg"
                 alt=""
                 width="48"
                 height="48"
-              /><span>Наведите курсор на это поле</span
-              ><small>Tab показывает кольцо фокуса</small>
+              /><span>Hover over this area</span
+              ><small>Press Tab to reveal the focus ring</small>
             </div>
             <div class="spacing-spec">
-              <span>Ритм расстояний</span>
+              <span>Spacing rhythm</span>
               <div><i></i><i></i><i></i><i></i><i></i></div>
               <p>8 · 16 · 24 · 32 · 48 px</p>
-              <small>Углы 2 px · Кнопки от 48 px</small>
+              <small>2 px corners · Buttons at least 48 px tall</small>
             </div>
           </div>
         </div>
       </section>
       <section class="section rules" id="rules">
         <div class="section-heading">
-          <h2>Меньше шума. Больше воли.</h2>
+          <h2>Less noise. More intent.</h2>
           <p>
-            Эти ограничения сохраняют цельный мир<br />
-            на любом экране и в любом состоянии.
+            These principles keep the world consistent<br />
+            across every screen and state.
           </p>
         </div>
         <div class="rules-grid">
           <div>
-            <h3>Свет следует действию</h3>
+            <h3>Light follows action</h3>
             <p>
-              Циан появляется в траектории, активном отслеживании и ответе на
-              жест. Фон не конкурирует с целью.
+              Cyan marks the gesture path, active tracking, and feedback. The
+              background leaves the target in focus.
             </p>
           </div>
           <div>
-            <h3>Украшение имеет смысл</h3>
+            <h3>Every detail has a purpose</h3>
             <p>
-              Дуга обозначает пространство жеста. Точка — начало. Ромб —
-              завершение. Орнамент не скрывает управление.
+              The arc defines the gesture space. The dot marks its start. The
+              diamond marks its end. Ornament keeps controls clear.
             </p>
           </div>
           <div>
-            <h3>Текст помогает действовать</h3>
+            <h3>Words guide action</h3>
             <p>
-              «Покажите кисть целиком», а не «Ошибка ввода». Сначала причина,
-              затем понятный следующий шаг.
+              “Show your whole hand” gives a clear next step. Explain the cause,
+              then show how to recover.
             </p>
           </div>
           <div>
-            <h3>Движение бережёт внимание</h3>
+            <h3>Motion respects attention</h3>
             <p>
-              Короткий отклик, без постоянного мерцания. Настройка уменьшения
-              движения отключает анимацию.
+              Feedback is brief and steady. Reduced motion preferences turn
+              animations off.
             </p>
           </div>
         </div>
         <div class="handoff">
           <img src="/brand/assets/emblem.svg" alt="" width="72" height="72" />
           <div>
-            <h3>Система готова к переносу.</h3>
-            <p>Токены, компоненты и графика отделены от брендбука.</p>
+            <h3>Ready to build with.</h3>
+            <p>
+              Tokens, components, and artwork are separate from the brandbook.
+            </p>
           </div>
           <a href="/brand/tokens.css" class="arc-button secondary"
-            >Токены CSS <span aria-hidden="true">↗</span></a
+            >CSS tokens <span aria-hidden="true">↗</span></a
           ><a href="/brand/components.css" class="arc-button secondary"
-            >Компоненты CSS <span aria-hidden="true">↗</span></a
+            >CSS components <span aria-hidden="true">↗</span></a
           >
         </div>
       </section>
@@ -645,12 +644,10 @@
     <footer>
       <a class="wordmark" href="#main">Wizard Combat</a>
       <p>
-        Оригинальная визуальная система.<br />
-        Концепции экранов не меняют текущий игровой прототип.
+        An original visual system.<br />
+        Screen concepts leave the current game prototype unchanged.
       </p>
-      <a href="/"
-        >Открыть текущий прототип <span aria-hidden="true">↗</span></a
-      >
+      <a href="/">Open current prototype <span aria-hidden="true">↗</span></a>
     </footer>
   </body>
 </html>

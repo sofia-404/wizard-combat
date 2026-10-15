@@ -119,6 +119,8 @@ Use the frontmatter values and the matching `--wc-*` properties in `dist/brand/t
 
 ## Typography
 
+Use English for all interface copy, accessible labels, examples, and design documentation. Keep spell names unchanged.
+
 Use local Cormorant Garamond for display and section titles. Use local Source Sans 3 for body copy, controls, counters, and instructions. Font files and licenses live in `dist/brand/fonts/` and `licenses/fonts/`.
 
 Display may be large and tightly led. Body text stays at 18px in the brandbook; utility text stays at least 14px. Readable prose should remain around 60–70 characters per line. Player instructions use sentence case and short verbs: “Hold still,” “Move right, then down,” “Pause to cast.” Reserve spaced uppercase for short labels.

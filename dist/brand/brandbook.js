@@ -1,11 +1,11 @@
 "use strict";
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const descriptions = {
-  menu: "Главное меню приглашает к первому действию. Знак жеста заменяет герб, а спокойная композиция оставляет место воображению.",
+  menu: "The main menu invites a first action. A gesture mark takes the place of a crest, while the quiet composition leaves room for imagination.",
   training:
-    "Тренировка отделяет область жеста от инструкции. Холодный свет показывает траекторию, а три отметки делают прогресс понятным.",
+    "Training separates the gesture area from instructions. Cool light shows the path, and three marks make progress clear.",
   fight:
-    "Концепция поединка сохраняет свободный центр. Статус и заклинание остаются по краям. Мишень и отклик здесь — только визуальная демонстрация.",
+    "The duel concept keeps the center clear. Status and spell controls stay at the edges. The target and feedback are visual demonstrations only.",
 };
 function showScreen(name, focus = false) {
   tabs.forEach((tab) => {
@@ -56,15 +56,15 @@ function updateCast() {
     .forEach((el, index) => el.classList.toggle("filled", index < casts));
   castButton.disabled = casts === 3;
   castButton.textContent =
-    casts === 3 ? "Три жеста выполнены" : "Показать точный жест";
+    casts === 3 ? "Three gestures complete" : "Show precise gesture";
   document.getElementById("training-instruction").textContent =
-    casts === 3 ? "Точность закреплена." : "Вправо. Затем вниз.";
+    casts === 3 ? "Precision established." : "Right. Then down.";
   document.getElementById("training-status").textContent =
     casts === 3
-      ? "Демонстрация завершена. Начните заново, чтобы повторить."
+      ? "Demo complete. Start again to repeat it."
       : casts
-        ? `Точный жест показан. Ещё ${3 - casts} до завершения демо.`
-        : "Демо управляется кнопкой. Камера не используется.";
+        ? `Precise gesture shown. ${3 - casts} more to complete the demo.`
+        : "Use the button to run this demo. No camera is used.";
 }
 castButton.addEventListener("click", () => {
   casts = Math.min(3, casts + 1);
@@ -80,30 +80,30 @@ document.getElementById("simulate-fight").addEventListener("click", (event) => {
   fightOn = !fightOn;
   document.getElementById("screen-fight").classList.toggle("is-cast", fightOn);
   document.getElementById("fight-message").textContent = fightOn
-    ? "Жест завершён."
-    : "Выберите момент.";
+    ? "Gesture complete."
+    : "Choose your moment.";
   document.getElementById("fight-badge").textContent = fightOn
-    ? "Демонстрационный отклик"
-    : "Ожидание жеста";
+    ? "Demo feedback"
+    : "Awaiting gesture";
   event.currentTarget.textContent = fightOn
-    ? "Сбросить отклик"
-    : "Показать отклик";
+    ? "Reset feedback"
+    : "Show feedback";
 });
 document.getElementById("demo-action").addEventListener("click", () => {
   document.getElementById("button-status").textContent =
-    "Готово. Это пример ответа на действие; игровая сессия не запускается.";
+    "Done. This is a sample response; no game session has started.";
 });
 document.getElementById("demo-sound").addEventListener("change", (event) => {
   document.getElementById("sound-status").textContent =
-    `${event.target.checked ? "Включён" : "Выключен"} · демонстрационный переключатель`;
+    `${event.target.checked ? "On" : "Off"} · demo toggle`;
 });
 document.getElementById("demo-error").addEventListener("input", (event) => {
   const valid = event.target.value.trim().length > 0;
   event.target.setAttribute("aria-invalid", String(!valid));
   const hint = document.getElementById("name-error");
   hint.textContent = valid
-    ? "Имя указано. Ошибка исправлена."
-    : "Введите имя, чтобы продолжить.";
+    ? "Name entered. Error resolved."
+    : "Enter a name to continue.";
   hint.classList.toggle("field-error", !valid);
   hint.classList.toggle("field-hint", valid);
 });
@@ -112,9 +112,9 @@ document.querySelectorAll("[data-color]").forEach((button) =>
     const status = document.getElementById("color-status");
     try {
       await navigator.clipboard.writeText(button.dataset.color);
-      status.textContent = `Цвет ${button.dataset.color} скопирован.`;
+      status.textContent = `Color ${button.dataset.color} copied.`;
     } catch {
-      status.textContent = `Цвет для копирования: ${button.dataset.color}`;
+      status.textContent = `Color to copy: ${button.dataset.color}`;
     }
   }),
 );

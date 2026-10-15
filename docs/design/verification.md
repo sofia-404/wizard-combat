@@ -26,4 +26,8 @@ The independent finish reviewer requested two small fixes: stronger input bounda
 
 `previews/menu.png`, `previews/training.png`, and `previews/fight.png` are browser captures of the screen-study section in `dist/brandbook.html`, rendered at a 1920×1080 browser viewport with reduced motion enabled. They are original repository UI evidence, not generated artwork or screenshots of Hogwarts Legacy. Their labels and states are illustrative. The interactive page is the source of truth.
 
+## English copy update
+
+All static copy, accessible names, placeholders, SVG titles, and dynamic feedback now use English. Preview images were recaptured in English. The English version was checked at 1920×1080 and 390×844: no page errors or horizontal overflow, working keyboard tabs, three-gesture completion and reset, duel feedback, and form-error recovery. A scan of tracked text files found no Cyrillic text. `AGENTS.md` records English as the repository-wide language requirement.
+
 These checks do not validate physical camera play, a complete fight mode, or a migration of the existing gameplay page.

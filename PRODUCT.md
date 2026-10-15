@@ -43,6 +43,8 @@ Hold -> Ready -> Draw -> Pause -> Match -> Cast
 
 ## Brand Commitments
 
+All repository content must use English, as requested by the user. This includes UI, code comments, logs, examples, accessible labels, documentation, and asset prompts. Russian is reserved for conversation.
+
 Keep the name Wizard Combat. Use Hogwarts Legacy only as a palette reference: midnight navy, teal fog, aged gold, and cyan magic. Create original marks, diagrams, layout, scenes, and typography treatment. The identity must feel mature and restrained.
 
 The current request creates a complete repository brandbook, reusable design assets, and screen specifications. This branch establishes the standard; applying it to current gameplay is a separate migration.
