@@ -365,6 +365,10 @@ try{
  await denied.close();
  // Exercise presentation races in isolation. This page uses no camera input.
  let poses=await context.newPage();await poses.goto(base);await poses.getByRole('button',{name:'Fight',exact:true}).click();
+ // Both figures idle at rest. A falling dummy and reduced motion stop that motion.
+ const IDLE=['player-breathe','player-sway','player-back-arm','player-wand-arm','dummy-breathe','dummy-sway','dummy-wand'];
+ const idle=()=>poses.evaluate(()=>[...document.querySelectorAll('#fightView .idle')].map(group=>group.getAnimations().map(animation=>animation.animationName).join()));
+ assert.deepEqual(await idle(),IDLE);
  await poses.evaluate(async()=>{
   const {createDummyReactions}=await import('/fight-reactions.js');
   window.reactions=createDummyReactions(document.querySelector('#fightDummyActor'));
@@ -376,10 +380,14 @@ try{
  assert.equal(await poses.locator('#fightDummyActor').getAttribute('data-pose'),'ready');
  await poses.evaluate(()=>window.reactions.react('Expelliarmus',true));
  assert.equal(await poses.locator('#fightDummyActor').getAttribute('data-pose'),'falling');
+ assert.deepEqual(await idle(),[...IDLE.slice(0,4),'','',''],'the wizard keeps moving while the dummy falls');
  await poses.evaluate(()=>window.reactions.reset());await poses.waitForTimeout(1000);
  assert.equal(await poses.locator('#fightDummyActor').getAttribute('data-pose'),'ready');
  assert.equal(await poses.locator('#fightDummyActor').evaluate(el=>el.getAnimations().length),0);
+ assert.deepEqual(await idle(),IDLE);
  await poses.emulateMedia({reducedMotion:'reduce'});
+ assert.deepEqual(await idle(),IDLE.map(()=>''));
+ assert.equal(await poses.evaluate(()=>[...document.querySelectorAll('#fightView .idle')].every(group=>getComputedStyle(group).transform==='none')),true);
  await poses.evaluate(()=>window.reactions.react('Basic Cast',true));
  assert.equal(await poses.locator('#fightDummyActor').getAttribute('data-pose'),'fallen');
  assert.equal(await poses.locator('#fightDummyActor').evaluate(el=>el.getAnimations().length),0);
@@ -480,6 +488,7 @@ try{
  assert.equal(await isDisarmed(),'false','flight does not drop the wand');
  await poses.clock.runFor(60);
  assert.equal(await isDisarmed(),'true','impact drops the wand with the camera off');
+ assert.equal(await poses.locator('#fightDummyWand .idle').evaluate(group=>group.getAnimations().length),0,'a dropped wand stops swaying');
  assert.equal(await poses.locator('#fightWandStatus').textContent(),'Disarmed · Wand returns in 2 seconds');
  // Inspect the rendered motion: release, accelerating fall, one small bounce, rest.
  const wandFall=await poses.locator('#fightDummyWand').evaluate(wand=>{
@@ -509,6 +518,7 @@ try{
  assert.equal(await poses.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await poses.screenshot({path:path.join(output,'fight-disarmed-mobile.png'),fullPage:true,animations:'disabled'});
  await untilReturn();
+ assert.equal(await poses.locator('#fightDummyWand .idle').evaluate(group=>group.getAnimations().length),1,'a returned wand sways again');
  await castAtDummy('Expelliarmus');await poses.clock.runFor(160);
  await poses.clock.runFor(1000);
  await castAtDummy('Expelliarmus');await poses.clock.runFor(160);

@@ -83,7 +83,7 @@ The brandbook Training illustration remains a synthetic design study. It is not 
 
 ## Implemented Fight
 
-Fight shares the legacy Practice camera and detector. It shows the same transparent hand/path overlay on an illustrated arena, without camera pixels in the arena. Target health changes at impact. Reset restores the target; mode changes preserve health and cancel pending flights. The player stays at full health because the dummy does not attack. `README.md` defines the current values and state rules.
+Fight shares the legacy Practice camera and detector. It shows the same transparent hand/path overlay on an illustrated arena, without camera pixels in the arena. Both figures idle at rest with small breathing, sway, and wand motion. Reduced motion turns the idle motion off. Target health changes at impact. Reset restores the target; mode changes preserve health and cancel pending flights. The player stays at full health because the dummy does not attack. `README.md` defines the current values and state rules.
 
 Keep these mechanics during the separate design migration. The future fight study below does not replace them.
 

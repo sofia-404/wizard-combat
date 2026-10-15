@@ -131,12 +131,22 @@
     <div class="fight-arena">
       <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard in blue robes stands on the left of a stone floor in a moonlit ruined castle." loading="lazy">
       <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
+        <g class="fight-player" aria-hidden="true">
+          <image href="/assets/fight-player-plate.png" x="0" y="240" width="660" height="570"/>
+          <g class="idle player-breathe"><g class="idle player-sway">
+            <image href="/assets/fight-player-body.png" x="0" y="240" width="660" height="570"/>
+            <g class="idle player-back-arm"><image href="/assets/fight-player-back-arm.png" x="0" y="240" width="660" height="570"/></g>
+            <g class="idle player-wand-arm"><image href="/assets/fight-player-wand-arm.png" x="0" y="240" width="660" height="570"/></g>
+          </g></g>
+        </g>
         <ellipse class="fight-dummy-shadow" cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
         <g id="fightDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
-          <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
-          <g id="fightDummyWand" aria-hidden="true">
-            <image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/>
-          </g>
+          <g class="idle dummy-breathe"><g class="idle dummy-sway">
+            <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+            <g id="fightDummyWand" aria-hidden="true">
+              <g class="idle dummy-wand"><image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/></g>
+            </g>
+          </g></g>
         </g>
       </svg>
       <div class="arena-shade" aria-hidden="true"></div>
@@ -193,10 +203,20 @@
         <div class="fight-arena">
           <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard faces a stationary training dummy in the moonlit arena." loading="lazy">
           <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
+            <g class="fight-player" aria-hidden="true">
+              <image href="/assets/fight-player-plate.png" x="0" y="240" width="660" height="570"/>
+              <g class="idle player-breathe"><g class="idle player-sway">
+                <image href="/assets/fight-player-body.png" x="0" y="240" width="660" height="570"/>
+                <g class="idle player-back-arm"><image href="/assets/fight-player-back-arm.png" x="0" y="240" width="660" height="570"/></g>
+                <g class="idle player-wand-arm"><image href="/assets/fight-player-wand-arm.png" x="0" y="240" width="660" height="570"/></g>
+              </g></g>
+            </g>
             <ellipse cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
             <g id="trainingDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
-              <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
-              <g id="trainingDummyWand" aria-hidden="true"><image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/></g>
+              <g class="idle dummy-breathe"><g class="idle dummy-sway">
+                <image href="/assets/fight-dummy-unarmed.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+                <g id="trainingDummyWand" aria-hidden="true"><g class="idle dummy-wand"><image href="/assets/fight-wand.png" x="1285" y="526" width="68" height="96" preserveAspectRatio="none"/></g></g>
+              </g></g>
             </g>
           </svg>
           <div class="arena-shade" aria-hidden="true"></div>
