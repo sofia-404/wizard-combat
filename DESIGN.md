@@ -82,7 +82,7 @@ components:
 
 Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.
 
-Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. This is the system used by the brandbook and the implemented menu shell, Options, Credits, and Fight placeholder. Training retains the existing light interface; its full visual migration remains separate.
+Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. The brandbook, main menu, Options, and Credits use this system. Practice and the static-dummy Duel keep their current styles until a separate design migration. They do not yet meet all target text-size, control-size, font, and token rules.
 
 **Key Characteristics:**
 
@@ -171,7 +171,7 @@ Show start, direction, end, and one short instruction. For Expelliarmus, move ri
 
 ### Combat HUD
 
-Keep the center free for the target and cast. Put current spell and casting state at the perimeter. Opponent health, player damage, cooldowns, and victory states require product rules before implementation. Brandbook examples are labeled proposed designs, not playable combat.
+Keep the center free for the target and cast. Put current spell and casting state at the perimeter. The static-dummy Duel already implements target health, damage at impact, defeat, and reset; preserve those rules during visual migration. New opponent attacks, player damage, cooldowns, and full-fight victory states require separate product rules. Brandbook examples remain proposed designs, not playable combat.
 
 ## Do's and Don'ts
 

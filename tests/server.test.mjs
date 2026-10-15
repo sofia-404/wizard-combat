@@ -74,8 +74,13 @@ test('local server serves files and validates stored events and result cards', {
   assert.equal((await post('api/events', {...event, unexpected: 'value'})).status, 400);
   assert.equal((await post('api/events', {...event, reason: 'x'.repeat(201)})).status, 400);
   assert.equal((await post('api/events', {...event, reason: 'x'.repeat(5000)})).status, 413);
+  const duel = {id: randomUUID(), type: 'duel', source: 'duel', cause: 'hit', activeTab: 'duel',
+    previousTab: 'practice', castId: event.id, castToHitMs: 131, playerHealth: 200,
+    dummyHealth: 170, previousDummyHealth: 200, maxHealth: 200, damage: 30, hits: 1};
+  assert.equal((await post('api/events', duel)).status, 201);
+  assert.equal((await post('api/events', {...duel, unexpected: 'value'})).status, 400);
   const records = (await readFile(path.join(folder, 'play-data/events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
-  assert.deepEqual(records, [event]);
+  assert.deepEqual(records, [event, duel]);
   const bytes = png(720, 440), card = {id: event.id, png: 'data:image/png;base64,' + bytes.toString('base64')};
   assert.equal((await post('api/results', card)).status, 201);
   assert.deepEqual(await readFile(path.join(folder, 'play-data/results', event.id + '.png')), bytes);

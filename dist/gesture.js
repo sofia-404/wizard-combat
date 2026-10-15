@@ -1,7 +1,4 @@
-import {matchCircle} from './circle-match.js';
-import {matchStrokes} from './stroke-match.js';
-import {matchExpelliarmus} from './expelliarmus.js';
-import {loopTurns} from './path-turns.js';
+import {matchGestures,matchesIntentCorner} from './gestures/index.js';
 // Image-width units, including y. This preserves physical shape proportions.
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function bounds(points){
@@ -35,8 +32,8 @@ export function movementIntent(points,precisionScale=1){
   const zigzag=reversals>=2&&Math.abs(end.y-a.y)>=b.height*.50;
   const loop=distance(a,end)<diag*.65&&length>diag*1.7;
   const corner=!loop&&!zigzag&&!valley&&Math.max(b.width,b.height)>=.10&&deviation>=.12
-    ?matchExpelliarmus(resample(points),b,precisionScale):null;
-  const motionForm=loop?'loop':zigzag?'zigzag':valley?'valley':corner?.gate==='ok'&&corner.distance<corner.limit?'spell_corner':'move';
+    ?matchesIntentCorner(resample(points),b,precisionScale):false;
+  const motionForm=loop?'loop':zigzag?'zigzag':valley?'valley':corner?'spell_corner':'move';
   return {intent:Math.max(b.width,b.height)>=.10&&deviation>=.12&&motionForm!=='move',lineDeviation:+deviation.toFixed(4),motionForm};
 }
 export const DIFFICULTY_PROFILES=Object.freeze({easy:{limitFactor:1.35,captureMs:9000},normal:{limitFactor:1,captureMs:6000},hard:{limitFactor:.7,captureMs:3500}});
@@ -48,42 +45,25 @@ export function recognize(points,difficulty='normal'){
   if(points.length<5)return empty('Too few points','too_few_points');
   if(Math.max(b.width,b.height)<.10)return empty('Draw a larger shape','too_small');
   const sample=resample(points);if(!sample.length)return empty('No movement','no_movement');
-  const ratio=b.width/Math.max(b.height,1e-6),diag=Math.hypot(b.width,b.height);
-  const closure=distance(points[0],points.at(-1))/diag;
-  let winding=0;const center={x:(b.minX+b.maxX)/2,y:(b.minY+b.maxY)/2};
-  for(let i=1;i<sample.length;i++){let d=Math.atan2(sample[i].y-center.y,sample[i].x-center.x)-Math.atan2(sample[i-1].y-center.y,sample[i-1].x-center.x);while(d>Math.PI)d-=2*Math.PI;while(d< -Math.PI)d+=2*Math.PI;winding+=d;}
-  const angles=sample.map(p=>Math.atan2(p.y-center.y,p.x-center.x)).sort((a,b)=>a-b);
-  let maxAngularGap=angles[0]+2*Math.PI-angles.at(-1);
-  for(let i=1;i<angles.length;i++)maxAngularGap=Math.max(maxAngularGap,angles[i]-angles[i-1]);
-  const radii=sample.map(p=>distance(p,center)),meanRadius=radii.reduce((a,b)=>a+b,0)/radii.length;
-  const radialSpread=Math.sqrt(radii.reduce((sum,r)=>sum+(r-meanRadius)**2,0)/radii.length)/Math.max(meanRadius,1e-6);
-  const circle=matchCircle(points),turns=loopTurns(sample,b);
-  Object.assign(diagnostics,turns);
-  Object.assign(diagnostics,{circleMatcher:'$P',circleCoverage:Math.round((2*Math.PI-maxAngularGap)*180/Math.PI),circleTurns:+(Math.abs(winding)/(2*Math.PI)).toFixed(2),radialSpread:+radialSpread.toFixed(3),circleOtherDistance:+circle.otherDistance.toFixed(4),circleLimit:.12});
-  const circleGate=ratio<.5||ratio>2?'aspect_ratio':Math.abs(winding)<4.7||maxAngularGap>Math.PI/3?'partial_loop':radialSpread>.35*profile.limitFactor?'uneven_loop':turns.circleIndent>.08&&turns.circleReverseTurn>45&&turns.pathReverseTurn>45?'inward_turn':circle.otherDistance+.02<circle.distance?'non_circle':'ok';
-  const strokes=matchStrokes(sample,b,profile.limitFactor);
-  // A broad arc has no distinct bottom turn. Allow a clear V with uneven arms.
-  diagnostics.vCornerTurn=Math.round(strokes.V.cornerTurn||0);
-  diagnostics.circleIndentLimit=.08;
-  if(strokes.V.gate==='ok'&&diagnostics.circleCoverage<210&&diagnostics.vCornerTurn<45)strokes.V.gate='rounded_arc';
-  const fits={Circle:{distance:circle.distance,gate:circleGate,limit:.12*profile.limitFactor},...strokes,Expelliarmus:matchExpelliarmus(sample,b,profile.limitFactor)};
+  const fits=matchGestures(points,sample,b,diagnostics,profile.limitFactor);
   const matches=[];
-  for(const [shape,fit] of Object.entries(fits)){
-    const key=shape.toLowerCase();
+  for(const candidate of fits){
+    const {spell,fit}=candidate,key=spell.gesture.diagnosticKey;
     diagnostics[key+'Distance']=+fit.distance.toFixed(4);diagnostics[key+'Gate']=fit.gate;
     diagnostics[key+'Limit']=fit.limit;
-    if(shape!=='Circle'){
+    if(spell.gesture.strokeDiagnostics){
       diagnostics[key+'Bend']=+fit.bend.toFixed(4);diagnostics[key+'Efficiency']=+fit.efficiency.toFixed(4);
     }
-    if(fit.gate==='ok'&&fit.distance<fit.limit)matches.push(shape);
+    if(fit.gate==='ok'&&fit.distance<fit.limit)matches.push(candidate);
   }
   // Each method must pass its own limits. Never rank unrelated distance scales.
-  const accepted=matches.length===1,shape=accepted?matches[0]:'None';
-  const cause=accepted?'matched':matches.length>1?'ambiguous_shape':strokes.Z.gate==='z_orientation'?'z_orientation':circleGate==='inward_turn'?'inward_turn':'shape_distance';
-  Object.assign(diagnostics,{strokeMatcher:'ordered_segments',zOrientation:strokes.Z.orientation||'unknown',zTrim:+(strokes.Z.trim||0).toFixed(3),circleCornerMargin:.02,matchCandidates:matches.join(',')||'None',closure:+closure.toFixed(3),winding:+winding.toFixed(3)});
-  const score=accepted?Math.max(0,Math.round(100*(1-fits[shape].distance/(shape==='Circle'?.45:.15)))):0;
+  const accepted=matches.length===1,match=accepted?matches[0]:null,shape=match?.spell.label||'None';
+  const failure=fits.map(candidate=>candidate.fit.failure).filter(Boolean).sort((a,b)=>a.priority-b.priority)[0];
+  const cause=accepted?'matched':matches.length>1?'ambiguous_shape':failure?.cause||'shape_distance';
+  diagnostics.matchCandidates=matches.map(candidate=>candidate.spell.label).join(',')||'None';
+  const score=accepted?Math.max(0,Math.round(100*(1-match.fit.distance/match.spell.gesture.scoreScale))):0;
   return {accepted,shape,score,margin:0,cause,
-    reason:accepted?'Shape accepted':cause==='z_orientation'?'Z is reversed. Follow the Z shown.':cause==='inward_turn'?'Loop turns inward. Draw a round loop.':matches.length>1?'Shape unclear. Draw one clear shape.':'No match. Follow one of the shapes shown.',diagnostics};
+    reason:accepted?'Shape accepted':matches.length>1?'Shape unclear. Draw one clear shape.':failure?.reason||'No match. Follow one of the shapes shown.',diagnostics};
 }
 
 function movementDiagnostics(path,precisionScale=1){const {lineDeviation,motionForm}=movementIntent(path,precisionScale);return {lineDeviation,motionForm:motionForm||'move'};}

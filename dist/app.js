@@ -1,10 +1,15 @@
 import {getSettings,updateSettings} from './settings.js';
 import {GestureController,bounds} from './gesture.js';
-import {ExpelliarmusLesson} from './lesson.js';
-import {TrainingDummy} from './dummy.js';
+import {SpellLesson} from './training/lesson.js';
+import {TrainingDummy} from './combat/training-dummy.js';
+import {castDamage} from './combat/cast.js';
+import {spellForShape} from './spells/index.js';
+import {animations} from './presentation/animations.js';
+import {renderSpellChoices} from './presentation/gesture-guide.js';
 import {HandInput} from './hand-input.js';
 import {resultCard,resultTitle} from './result-card.js';
 const $=id=>document.getElementById(id);
+renderSpellChoices($('expected'),document.querySelector('.shapes'));
 const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d'),preview=$('pathPreview'),pc=preview.getContext('2d');
 let stream=null,worker=null,token=0,modelReady=false,busy=false,loading=false,delegate='GPU',recovering=false;
 let lastVideoTime=-1,lastSent=0,lastResult=0,rateStart=0,rateCount=0,hz=0,inference=0,selectedPoints=null,cursor=null;
@@ -12,7 +17,7 @@ let session=crypto.randomUUID(),events=[],hits=0,flashUntil=0,lastPath=[],lastPa
 $('hand').value=getSettings().hand;
 const controller=new GestureController(onGesture,{difficulty:getSettings().difficulty});
 const handInput=new HandInput();
-const lesson=new ExpelliarmusLesson();
+const lesson=new SpellLesson();
 const dummy=new TrainingDummy();
 let inputSettings=readSettings(),tracking={},trackingAt=0,trackingFrames=0,noHandFrames=0,labelHoldFrames=0,wrongHandFrames=0,edgeFrames=0,duplicateFrames=0,lastFrameT=null;
 function readSettings(){return {hand:$('hand').value,point:$('point').value,swap:Number($('swap').checked),expected:$('expected').value,difficulty:getSettings().difficulty};}
@@ -31,8 +36,9 @@ function reportTracking(cause,data={}){
 }
 const connections=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
 function set(id,value){if($(id).textContent!==String(value))$(id).textContent=String(value);}
-function record(data,png=null){
-  const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:3,...inputSettings,lessonState:lesson.state,lessonCount:lesson.count,...data};
+export function record(data,png=null){
+  const activeTab=$('duelView')?.hidden===false?'duel':'practice';
+  const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:3,...inputSettings,lessonState:lesson.state,lessonCount:lesson.count,activeTab,...data};
   saveQueue.push({event,png,eventSaved:false});flush();
 }
 async function flush(){
@@ -68,12 +74,13 @@ function onGesture(event){
   set('diagnosis',event.type==='cancel'?event.reason:`${result.shape==='None'?'Path':'Closest: '+result.shape} | Size ${Math.round(Math.max(result.width||0,result.height||0)*100)}% | ${result.samples||0} points`);
   if(event.type==='cast'){
     hits++;set('hits',`${hits} ${hits===1?'hit':'hits'}`);
-    const damage=event.score>=88?30:event.score>=78?25:20;
+    const damage=castDamage(event);
     set('impact','+'+damage);set('targetNote',`${event.shape} · ${damage} damage`);
-    $('targetScene').classList.remove('hit');void $('targetScene').offsetWidth;$('targetScene').classList.add('hit');flashUntil=now+1100;
+    animations[spellForShape(event.shape).visuals.cast]($('targetScene'));flashUntil=now+1100;
     if(dummy.cast(event,now)){
       renderDummy();record({type:'settings',cause:'dummy_disarm',reason:'Dummy disarmed. Wand returns in 2 seconds.'});
     }
+    document.dispatchEvent(new CustomEvent('wizard:cast',{detail:{id:result.id,shape:event.shape,score:event.score,damage}}));
   }
   renderSession();
 }
@@ -83,10 +90,10 @@ function renderDummy(){
   $('dummy').setAttribute('aria-label',dummy.disarmed?'Training dummy with dropped wand':'Training dummy holding a wand');
 }
 function renderLesson(){
-  set('lessonCount',`${lesson.count} / 3`);$('lessonProgress').value=lesson.count;
+  set('lessonCount',`${lesson.count} / ${lesson.requiredCasts}`);$('lessonProgress').max=lesson.requiredCasts;$('lessonProgress').value=lesson.count;
   const complete=lesson.state==='complete';
-  set('lessonProgress',`${lesson.count} of 3`);
-  set('lessonMessage',complete?'Lesson complete: 3/3.':lesson.message);
+  set('lessonProgress',`${lesson.count} of ${lesson.requiredCasts}`);
+  set('lessonMessage',complete?`Lesson complete: ${lesson.requiredCasts}/${lesson.requiredCasts}.`:lesson.message);
   $('lessonMessage').classList.toggle('lesson-complete',complete);
   set('lessonStart',complete?'Practice again':'Start lesson');
   $('lessonStart').hidden=lesson.state==='active';
@@ -213,13 +220,13 @@ function animate(now){
 $('lessonStart').addEventListener('click',()=>{
   controller.cancel('Lesson started. Hold still to start.','input_changed');
   lesson.start();renderLesson();lastPath=[];lastUI='';
-  record({type:'settings',cause:'lesson_start',reason:'Expelliarmus lesson started'});
+  record({type:'settings',cause:'lesson_start',reason:`${lesson.spell.label} lesson started`});
 });
 $('lessonStop').addEventListener('click',()=>{
   const finished=lesson.state==='complete';
   controller.cancel('Lesson stopped. Hold still to start.','input_changed');
   lesson.stop();renderLesson();lastPath=[];lastUI='';
-  record({type:'settings',cause:finished?'lesson_finish':'lesson_stop',reason:finished?'Expelliarmus lesson finished':'Expelliarmus lesson stopped'});
+  record({type:'settings',cause:finished?'lesson_finish':'lesson_stop',reason:`${lesson.spell.label} lesson ${finished?'finished':'stopped'}`});
 });
 $('camera').addEventListener('click',startCamera);
 for(const id of ['hand','point','swap','expected'])$(id).addEventListener('change',()=>{controller.cancel('Input changed. Hold still to start.','input_changed');inputSettings=readSettings();handInput.reset();tracking={};record({type:'settings',reason:'Input changed'});cursor=null;selectedPoints=null;lastPath=[];lastUI='';});

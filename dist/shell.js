@@ -1,13 +1,28 @@
 import {getSettings,updateSettings} from './settings.js';
 import {createMenuAudio} from './menu-audio.js';
 import {stopTrainingCamera} from './app.js';
+import {selectGameView} from './duel.js';
 const $=id=>document.getElementById(id);
 const audio=createMenuAudio(getSettings);
-const views={menu:$('mainMenu'),fight:$('fightView'),options:$('optionsView'),credits:$('creditsView'),training:$('trainingView')};
+const views={menu:$('mainMenu'),options:$('optionsView'),credits:$('creditsView'),training:$('trainingView')};
 let current='menu',returnFocus=null;
 const help={easy:'9 seconds to draw. More forgiving shape tolerance.',normal:'6 seconds to draw. Standard shape tolerance.',hard:'3.5 seconds to draw. Tighter shape tolerance.'};
 function renderSettings(){const settings=getSettings();$('musicSetting').checked=settings.music;$('sfxSetting').checked=settings.sfx;$('handSetting').value=settings.hand;$('difficultySetting').value=settings.difficulty;$('difficultyHelp').textContent=help[settings.difficulty];$('soundToggle').textContent=settings.muted?'Unmute sound':'Mute sound';$('soundToggle').setAttribute('aria-pressed',String(settings.muted));$('soundToggle').setAttribute('aria-label',settings.muted?'Unmute sound':'Mute sound');audio.sync();}
-function show(name,trigger){if(!views[name])return;if(current==='training'&&name!=='training')stopTrainingCamera();if(current==='menu'&&name!=='menu')returnFocus=trigger;for(const [key,view] of Object.entries(views))view.hidden=key!==name;$('menuShell').hidden=name==='training';current=name;audio.setMenuVisible(name!=='training');window.scrollTo(0,0);if(name==='menu'){(returnFocus||document.querySelector('[data-view="training"]')).focus();}else if(name==='training')$('trainingBack').focus();else views[name].querySelector('h2').focus();}
+function show(name,trigger){
+  const game=name==='training'||name==='fight';
+  const viewName=game?'training':name;
+  if(!views[viewName])return;
+  if(current==='training'&&!game){stopTrainingCamera();selectGameView('practice');}
+  if(current==='menu'&&name!=='menu')returnFocus=trigger;
+  for(const [key,view] of Object.entries(views))view.hidden=key!==viewName;
+  $('menuShell').hidden=game;
+  current=viewName;
+  if(game)selectGameView(name==='fight'?'duel':'practice');
+  audio.setMenuVisible(!game);window.scrollTo(0,0);
+  if(name==='menu')(returnFocus||document.querySelector('[data-view="training"]')).focus();
+  else if(game)$('trainingBack').focus();
+  else views[name].querySelector('h2').focus();
+}
 for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>show(button.dataset.view,button));
 for(const button of document.querySelectorAll('[data-back]'))button.addEventListener('click',()=>show('menu'));
 $('trainingBack').addEventListener('click',()=>show('menu'));

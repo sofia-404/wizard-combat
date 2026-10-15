@@ -13,3 +13,8 @@
 .menu-nav button:hover:after,.menu-nav button:focus-visible:after{transform:scaleX(1);opacity:1}
 @keyframes view-enter{from{filter:brightness(.78);transform:translateY(5px)}to{filter:brightness(1);transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.menu-screen,.menu-art{animation:none}.menu-nav button span{transition:none;transform:none!important}.menu-nav button:after{transition:none}}
+
+/* Preserve the existing Duel surface inside the shared play wrapper. */
+body.duel-open #trainingView{background:#10181d;color:#ede9df;color-scheme:dark}
+.duel-open .training-navigation{max-width:1600px;color:#ede9df}
+.duel-open .training-navigation button{color:#ede9df;border-color:#a3b0b5}

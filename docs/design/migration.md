@@ -1,6 +1,6 @@
 # Adopt the brandbook without changing recognition behavior.
 
-This branch adds a design reference and reusable assets. It leaves the current gameplay page and recognizer behavior intact. The future migration should be a separate implementation change.
+The brandbook supplies a design reference and reusable assets. Practice and the static-dummy Duel are implemented with their own styles. Their design migration remains a separate implementation change; preserve current recognition and game rules.
 
 ## Adoption order
 
@@ -10,7 +10,13 @@ This branch adds a design reference and reusable assets. It leaves the current g
 4. Recompose training around the current camera, lesson, and dummy state. Preserve existing IDs or update their JavaScript bindings deliberately.
 5. Put technical settings and event logs behind an explicit diagnostics view. Keep them available for trials.
 6. Add a main-menu route only when its actions lead to working screens.
-7. Define fight mechanics before implementing the fight concept. Treat mockup numbers and states as illustrative.
+7. Preserve the implemented dummy Duel rules. Define opponent attacks and other full-fight mechanics separately before extending the fight concept. Treat mockup numbers and states as illustrative.
+
+## Current migration gaps
+
+Duel currently uses separate colors, small utility text, and controls below the target sizes. Align fonts, tokens, text, and controls in the design migration; do not change them as part of a merge.
+
+The token sheet defines global aliases such as `--line` and `--muted`, which Practice also uses. It also sets the root color scheme. The component sheet includes global focus and reduced-motion rules. Scope these rules before adopting them in one view, then check both views for unintended changes.
 
 ## Import
 
@@ -51,14 +57,17 @@ SVG assets live in `dist/brand/assets/`: `emblem.svg`, `mark.svg` (the mark alia
 | Camera lifecycle, mirrored preview, local records | `dist/app.js` |
 | Hand selection and short label changes | `dist/hand-input.js` |
 | Start, end, timeout, and loss rules | `dist/gesture.js` |
-| Right-then-down spell direction | `dist/expelliarmus.js` |
-| Three-cast progress and completion actions | `dist/lesson.js` |
-| Two-second wand return | `dist/dummy.js` |
+| Right-then-down spell direction | `dist/gestures/ordered-corner.js` |
+| Spell definitions, damage, and colors | `dist/spells/`, `dist/combat/cast.js` |
+| Three-cast progress and completion actions | `dist/training/lesson.js` |
+| Two-second Practice wand return | `dist/combat/training-dummy.js` |
+| Shared camera view, Duel health, and effects | `dist/duel.js`, `dist/duel-health.js`, `dist/duel-effects.js` |
 | Captured path drawing and recording limits | `dist/result-card.js` |
 
 ## Verification before migration ships
 
-- Run `npm test` for existing rules. Run the current browser training check after adapting selectors deliberately.
+- Run `npm test`, `npm run test:browser`, and `npm run test:duel`. Adapt selectors deliberately if the layout changes.
+- Check shared camera controls, tab changes, damage at impact, cancelled flights, defeat, reset, and separate Practice/Duel health state.
 - Inspect at 1920×1080 and a narrow viewport. Check 200% zoom and keyboard focus.
 - Check camera off, starting, blocked, absent hand, ready, drawing, accepted, rejected, lost tracking, and 3/3 completion.
 - Check both hands and both control points. The displayed Expelliarmus guide stays right then down.

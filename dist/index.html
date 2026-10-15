@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/menu.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/duel.css"><link rel="stylesheet" href="/menu.css"></head>
 <body>
 <div id="menuShell" class="menu-shell">
   <div class="menu-art" aria-hidden="true"></div>
@@ -8,17 +8,11 @@
   <section id="mainMenu" class="menu-screen" aria-labelledby="menuTitle">
     <div class="menu-masthead"><img src="/brand/assets/mark.svg" alt="" width="48" height="48"><h1 id="menuTitle">Wizard<br>Combat</h1></div>
     <nav class="menu-nav" aria-label="Main menu">
-      <button type="button" data-view="fight"><span>Fight</span><small>Coming soon</small></button>
+      <button type="button" data-view="fight"><span>Fight</span></button>
       <button type="button" data-view="training"><span>Training</span></button>
       <button type="button" data-view="options"><span>Options</span></button>
       <button type="button" data-view="credits"><span>Credits</span></button>
     </nav>
-  </section>
-  <section id="fightView" class="menu-screen detail-view" hidden aria-labelledby="fightTitle">
-    <button type="button" class="menu-back" data-back>Back to menu</button>
-    <h2 id="fightTitle" tabindex="-1">Fight</h2><h3>Fight with dummy</h3><p class="coming-soon">Coming soon</p>
-    <p>Fight mode is being built. Learn your first spell in Training.</p>
-    <button type="button" class="menu-action" data-view="training">Open Training</button>
   </section>
   <section id="optionsView" class="menu-screen detail-view" hidden aria-labelledby="optionsTitle">
     <button type="button" class="menu-back" data-back>Back to menu</button>
@@ -43,9 +37,14 @@
     <p class="setting-note">Camera images and video are not saved. Training records include results, timing, settings, and captured path drawings.</p>
   </section>
 </div>
-<div id="trainingView" hidden><div class="training-navigation"><button id="trainingBack" type="button">Back to menu</button><span>Training</span></div>
+<div id="trainingView" hidden><div class="training-navigation"><button id="trainingBack" type="button">Back to menu</button><span>Training &amp; Duel</span></div>
 <main>
-  <header><div><p class="eyebrow">CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
+  <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div><div class="local"><i></i> Local processing · No camera recording</div></header>
+  <nav class="view-tabs" role="tablist" aria-label="Game views">
+    <button id="practiceTab" class="view-tab" type="button" role="tab" aria-selected="true" aria-controls="practiceView">Practice</button>
+    <button id="duelTab" class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="duelView" tabindex="-1">Duel <span class="tab-badge">NEW</span></button>
+  </nav>
+  <div id="practiceView" role="tabpanel" aria-labelledby="practiceTab">
   <section class="toolbar" aria-label="Camera controls">
     <button id="camera" class="primary">Start camera</button>
     <label>Drawing hand<select id="hand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
@@ -115,5 +114,67 @@
     <div><svg viewBox="0 0 60 60" role="img" aria-label="Start at the dot. Move right, then down."><circle cx="10" cy="10" r="3"/><path d="M13 10H48V50M28 6L33 10L28 14M43 44L48 50L53 44"/></svg><div><b>Expelliarmus</b><span>Start at the dot. Right, then down. Do not pause at the corner.</span></div></div>
   </section>
   <section class="session"><div class="panel-heading"><span>SESSION CHECK</span><span id="saveStatus">No records yet</span></div><div class="counters"><div><b id="attempts">0</b><span>Completed attempts</span></div><div><b id="accepted">0</b><span>Accepted</span></div><div><b id="rejected">0</b><span>Rejected</span></div><div><b id="lost">0</b><span>Tracking lost</span></div><div><b id="accuracy">—</b><span>Expected shape</span></div><div><b id="p90">—</b><span>90% response</span></div></div><p class="hint">Choose a test shape to count correct results. Result cards and control logs save on this laptop. No camera images are saved.</p><ol id="events" class="event-list"><li class="muted">No gestures yet.</li></ol></section>
+  </div>
+  <section id="duelView" role="tabpanel" aria-labelledby="duelTab" hidden>
+    <div class="duel-heading">
+      <div><p class="duel-kicker">THE TRAINING GROUNDS</p><h2>A place to master your magic.</h2></div>
+      <span class="duel-mode"><span aria-hidden="true"></span> Static dummy</span>
+    </div>
+    <div class="duel-controls" aria-label="Duel camera controls">
+      <button id="duelCamera" class="duel-start" type="button">Start camera</button>
+      <label>Drawing hand<select id="duelHand"><option value="Right">Right hand</option><option value="Left" selected>Left hand</option></select></label>
+      <label>Track point<select id="duelPoint"><option value="tip">Index fingertip</option><option value="grip">Knuckles · wand grip</option></select></label>
+      <label class="duel-swap"><input id="duelSwap" type="checkbox"> Swap hand labels</label>
+      <button id="duelResetDummy" class="duel-back" type="button">Reset dummy</button>
+      <span id="duelCameraState" class="duel-camera-state" role="status">Camera off</span>
+    </div>
+    <div class="duel-stage">
+    <div class="duel-battlefield">
+    <div class="duel-arena">
+      <img class="arena-art" src="/assets/duel-arena-background.jpg" width="1659" height="948" alt="A wizard in blue robes stands on the left of a stone floor in a moonlit ruined castle." loading="lazy">
+      <svg class="duel-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
+        <ellipse class="duel-dummy-shadow" cx="1430" cy="777" rx="126" ry="16" fill="#071019" opacity=".45" aria-hidden="true"/>
+        <g id="duelDummyActor" role="img" aria-label="Training dummy, standing ready" data-pose="ready">
+          <image href="/assets/duel-dummy.png" x="1277" y="308" width="322" height="471" preserveAspectRatio="xMidYMax meet" aria-hidden="true"/>
+        </g>
+      </svg>
+      <div class="arena-shade" aria-hidden="true"></div>
+      <svg id="duelEffects" class="duel-effects" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+      <canvas id="duelGesture" class="duel-gesture" width="640" height="480" aria-label="Live hand path on the battlefield"></canvas>
+      <div class="duel-hud">
+        <div class="fighter-card fighter-player"><span class="fighter-role">YOUR WIZARD</span><strong>Player</strong><progress id="duelPlayerHealth" class="duel-health" max="200" value="200" aria-label="Player health">200 of 200</progress><span id="duelPlayerHealthText" class="duel-health-value">200 / 200</span><span class="fighter-detail">Static dummy does not attack</span></div>
+        <div class="arena-emblem" aria-label="Practice arena"><span aria-hidden="true">◇</span><span>PRACTICE</span></div>
+        <div class="fighter-card fighter-dummy"><span class="fighter-role">YOUR TARGET</span><strong>Training dummy</strong><progress id="duelDummyHealth" class="duel-health" max="200" value="200" aria-label="Dummy health">200 of 200</progress><span id="duelDummyHealthText" class="duel-health-value">200 / 200</span><span id="duelDummyState" class="fighter-detail">Static · No return fire</span></div>
+      </div>
+      <div id="duelDefeat" class="duel-defeat" hidden><strong>Dummy defeated</strong><span>Select Reset dummy to continue.</span></div>
+      <div class="arena-caption"><span><i class="player-dot" aria-hidden="true"></i> PLAYER</span><span class="arena-location">THE MOONLIT COURT</span><span>STATIC DUMMY <i class="dummy-dot" aria-hidden="true"></i></span></div>
+    </div>
+    <div class="duel-arena-feedback">
+      <div><b id="duelArenaPhase">OFF</b><span id="duelArenaInstruction">Start the camera to begin.</span></div>
+      <p id="duelArenaResult">Start the camera. Hold still until READY.</p>
+    </div>
+    </div>
+    <div class="duel-live">
+      <section class="duel-camera-panel" aria-label="Live camera and hand path">
+        <div class="duel-panel-heading"><span>YOUR CAMERA</span><span id="duelTracking">Off</span></div>
+        <div id="duelCameraMount"></div>
+      </section>
+      <section class="duel-cast-panel" aria-label="Spell feedback">
+        <div class="duel-panel-heading"><span>SPELL CONTROL</span><span id="duelHits">0 hits</span></div>
+        <p id="duelCastStatus" role="status" aria-live="polite">Start the camera. Hold still until READY.</p>
+        <p id="duelResult">Draw one shape, then pause to cast.</p>
+        <div class="duel-spell-guide" aria-label="Spell shapes">
+          <span><b>○</b> Circle</span><span><b>V</b> V</span><span><b>Z</b> Z</span><span><b>┐</b> Expelliarmus</span>
+        </div>
+        <p class="duel-help">Expelliarmus: move right, then down. Pause only at the end. Use the same direction with either hand.</p>
+        <p class="duel-help">The camera follows your hand, not the wand tip. Use Knuckles when you hold a wand.</p>
+      </section>
+    </div>
+    </div>
+    <div class="duel-bottom">
+      <div class="duel-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>Accepted spells fly from your wand to the dummy. Both tabs share the same camera, settings, and practice session.</p></div></div>
+      <button id="backToPractice" class="duel-back" type="button"><span aria-hidden="true">←</span> Back to Practice</button>
+    </div>
+  </section>
 </main></div><script type="module" src="/shell.js"></script>
 </body></html>

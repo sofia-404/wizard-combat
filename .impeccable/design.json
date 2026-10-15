@@ -317,7 +317,7 @@
   ],
   "narrative": {
     "northStar": "Arc & Anchor",
-    "overview": "Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.\n\nNavy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. This is the target system for new UI and the brandbook. The existing light prototype remains unchanged until the migration is implemented.",
+    "overview": "Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.\n\nNavy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. This is the target system for new UI and the brandbook. Practice and the static-dummy Duel keep their current styles until a separate design migration. They do not yet meet all target text-size, control-size, font, and token rules.",
     "keyCharacteristics": [
       "Deliberate strokes and open space.",
       "Warm metal against a cool, dark field.",

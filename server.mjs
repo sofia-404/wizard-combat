@@ -7,6 +7,7 @@ const mime={'.txt':'text/plain; charset=utf-8','.html':'text/html','.js':'text/j
 const fields=new Set(['difficulty','id','session','at','type','expected','shape','score','margin','latency','duration','reason','hand','point','hz','inference','source','version','swap','cause','trackingCause','state','detected','handCount','labelConfidence','frameAge','frameGap','gapMs','frames','noHandFrames','labelHoldFrames','wrongHandFrames','gaps','samples','width','height','minSize','circleDistance','vDistance','zDistance','circleGate','vGate','zGate','closure','winding','matchLimit','marginLimit']);
 for(const field of ['edgeFrames','duplicateFrames','duplicateHands','uniqueHands','candidateSeparation','captureNo','endRule','startSpan','holdSpan','holdMs','gapResumes','maxGapMs','gapDistance','gapAllowed','pathLength','resultImage','lineDeviation','stopCause','circleMatcher','circleCoverage','circleTurns','radialSpread','circleOtherDistance','circleLimit','vArmRatio','strokeMatcher','matchCandidates','vLimit','zLimit','vBend','zBend','vEfficiency','zEfficiency','zOrientation','zTrim','motionForm','circleCornerMargin','circleIndent','circleReverseTurn','pathReverseTurn','shapeStarted','vCornerTurn','circleIndentLimit','gapCause','duplicatePalmDistance','duplicatePointDistance','selectedPalmError','selectedPointError','selectionRule','expelliarmusDistance','expelliarmusGate','expelliarmusLimit','expelliarmusBend','expelliarmusEfficiency','lessonState','lessonCount'])fields.add(field);
 let writes=Promise.resolve();
+for(const field of ['activeTab','previousTab','castId','castToHitMs','playerHealth','dummyHealth','previousDummyHealth','maxHealth','damage','hits'])fields.add(field);
 const server=http.createServer(async(req,res)=>{
   const reply=(code,data)=>{res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
   try {
@@ -25,7 +26,7 @@ const server=http.createServer(async(req,res)=>{
         try{await writeFile(path.join(folder,event.id+'.png'),png,{flag:'wx',mode:0o600});}catch(error){if(error.code!=='EEXIST')throw error;}
         return reply(201,{saved:true});
       }
-      if(!event||Array.isArray(event)||!['cast','reject','cancel','camera','reset','tracking','settings','capture','ignored'].includes(event.type))return reply(400,{error:'Invalid event'});
+      if(!event||Array.isArray(event)||!['cast','reject','cancel','camera','reset','tracking','settings','capture','ignored','duel'].includes(event.type))return reply(400,{error:'Invalid event'});
       for(const [key,value] of Object.entries(event))if(!fields.has(key)||!['string','number'].includes(typeof value)||(typeof value==='string'&&value.length>200)||(typeof value==='number'&&!Number.isFinite(value)))return reply(400,{error:'Invalid field'});
       const save=writes.then(async()=>{await mkdir(path.join(root,'play-data'),{recursive:true});await appendFile(path.join(root,'play-data/events.jsonl'),JSON.stringify(event)+'\n',{mode:0o600});});
       writes=save.catch(()=>{});await save;return reply(201,{saved:true});

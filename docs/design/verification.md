@@ -2,7 +2,7 @@
 
 Checked on 2026-10-15 using Chromium through `playwright-cli`.
 
-After rebasing onto `main` at `e5d7bb5`, all 24 existing Node.js tests pass on Node.js 24.11.0, including 137 gesture cases and the consecutive-cast checks. `node --check dist/brand/brandbook.js` also passes. No gameplay JavaScript or current gameplay HTML/CSS differs from that base.
+These results describe the original brandbook changes at `5015c9d`, before integration with Duel. After rebasing onto `main` at `e5d7bb5`, all 24 existing Node.js tests pass on Node.js 24.11.0, including 137 gesture cases and the consecutive-cast checks. `node --check dist/brand/brandbook.js` also passes. In that brandbook-only comparison, gameplay JavaScript and gameplay HTML/CSS did not differ from the base.
 
 ## Browser checks
 

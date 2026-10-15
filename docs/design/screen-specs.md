@@ -1,6 +1,6 @@
 # Each screen gives the player one clear next action.
 
-The root now implements the main menu, Options, Credits, and a Fight placeholder. Training keeps its existing light interface, camera input, free practice, three-cast lesson, and stationary dummy. The training layout below and full fight mode remain target specifications. Brandbook illustrations use synthetic state and must say so outside their frames.
+The root implements the main menu, Options, and Credits. Training opens Practice; Fight opens the static-dummy Duel with health, hit reactions, defeat, and reset. Both gameplay views keep their current styles. The training layout below and full fight mode remain target specifications. Their visual migration is separate. Brandbook illustrations use synthetic state and must say so outside their frames.
 
 ## Shared rules
 
@@ -19,20 +19,19 @@ Purpose: choose a mode without requesting camera access.
 ```text
 ORIGINAL MARK    Wizard Combat              FULL-HEIGHT WIZARD IMAGE
 
-Fight             Coming soon              Original mature mage
+Fight                                      Original mature mage
 Training                                   Quiet teal scene
 Options
 Credits
 
                                           Mute / unmute sound
-Camera processing stays on this device.
 ```
 
 Implemented in `dist/index.html`, `dist/menu.css`, and `dist/shell.js`. Keep the requested order: Fight, Training, Options, Credits. The full-viewport composition places navigation left and the supplied wizard image right. Reuse the existing palette, fonts, and original mark. Training receives initial keyboard focus. Focus and hover reveal the gold diamond, short rule, and small text shift.
 
 Training opens the existing light interface without starting the camera. Back to menu or Escape stops the camera and cancels capture while preserving lesson progress until reload. Returning to Training leaves the camera off. Back returns focus to the original menu trigger. Detail headings receive focus when their view opens.
 
-Fight opens a clearly labeled Coming soon view for Fight with dummy, with Back to menu and Open Training actions. It must not imply playable combat or introduce health, damage, or progression.
+Fight opens the existing static-dummy Duel without starting the camera. Practice and Duel tabs remain available inside the play view. Back to menu or Escape stops the camera and clears pending Duel flights. Dummy health and lesson progress remain until reset or reload.
 
 ### Options and sound
 
@@ -40,7 +39,7 @@ Options use labeled switches for Music and Sound effects, plus native selectors 
 
 Easy allows 9 seconds to draw with tolerance scale 1.35. Normal allows 6 seconds with scale 1 and preserves earlier behavior. Hard allows 3.5 seconds with scale 0.7. The scale changes shape-distance limits, circle radial variation, and V/Z/Expelliarmus bend and straightness checks. Easy also widens the Expelliarmus corner check used to identify an attempt; Hard leaves that check at Normal tolerance. Directions, minimum size, holds, tracking-loss rules, lesson count, and dummy response are unchanged. These are implementation values, not validated physical-player difficulty claims.
 
-Music begins after a pointer or keyboard action. It pauses in Training and when the page is hidden. Focus, hover, and click effects respect the effects preference and master mute. Essential state remains readable without audio.
+Music begins after a pointer or keyboard action. It pauses in Training, Duel, and when the page is hidden. Focus, hover, and click effects respect the effects preference and master mute. Essential state remains readable without audio.
 
 ### Credits and responsive behavior
 
@@ -86,15 +85,21 @@ The current prototype shows the target separately from the camera. The concept m
 | Ignored return | Ready for the next movement. | Quiet feedback, no attempt increment |
 | Complete | Three correct casts. Lesson complete. | 3/3 and two next actions |
 
-Show “Wand ready” and “Wand returning” for the dummy. Preserve its actual two-second return rule. An accepted cast may restart that timer. Do not promise an accuracy percentage based on matcher distances.
+Show “Wand ready” and “Wand returning” for the dummy. Preserve its actual two-second return rule. An accepted Expelliarmus cast may restart that timer. Do not promise an accuracy percentage based on matcher distances.
 
 On narrow screens, place the play field first, then the compact instruction and progress, then setup. Keep controls usable even if a physical mobile-camera trial is still pending.
 
-## Fight
+## Implemented Duel
+
+Duel shares the Practice camera and detector. It shows the same transparent hand/path overlay on an illustrated arena, without camera pixels in the arena. Target health changes at impact. Reset restores the target; tab changes preserve health and cancel pending flights. The player stays at full health because the dummy does not attack. `README.md` defines the current values and state rules.
+
+Keep these mechanics during the separate design migration. The future fight study below does not replace them.
+
+## Future fight
 
 Purpose: present a future combat scene while keeping input state clear.
 
-The implemented Fight page is only a Coming soon placeholder. The scene below remains a future design.
+Fight opens the implemented static-dummy Duel. The scene below remains a future design for full combat.
 
 ```text
 Pause                   TARGET / OPPONENT                Tracking
@@ -110,7 +115,7 @@ The brandbook demonstrates visual hierarchy only. Use a stationary practice targ
 
 Do not implement health bars, damage numbers, cooldowns, opponent AI, victory, or defeat from a visual mockup. Those need defined rules, input handling, persistence decisions, and tests. A paused state must stop new capture and expose a clear resume action. A tracking loss must cancel a cast rather than punish the player as a missed attack.
 
-Open product decisions: fight opponent, hit rules, available spells, feedback timing, victory and defeat, camera display or compositing, accessibility alternatives, and session duration.
+Open decisions for full fight mode: attacking opponents, player damage and defeat, additional spells, cooldowns, full-fight win conditions, camera composition, accessibility alternatives, and session duration. Existing dummy Duel hit rules and feedback remain the implemented baseline.
 
 ## UI copy
 
