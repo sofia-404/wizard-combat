@@ -49,6 +49,7 @@ try {
   const playerHealth = () => page.locator('#spellTrainingPlayerHealth').evaluate(node => node.value);
   const count = () => page.locator('#spellTrainingCount').textContent();
   const targetHealth = () => page.locator('#spellTrainingDummyHealth').evaluate(node => node.value);
+  const charge = page.locator('#spellTrainingDummyWand .opponent-charge');
   const input = async ready => page.evaluate(async ready => (await import('/input-state.js')).updateInputState({
     camera:ready ? 'Stop camera' : 'Start camera', cameraState:ready ? 'Camera on' : 'Camera stopped', cameraDisabled:false
   }), ready);
@@ -64,6 +65,12 @@ try {
       await page.setViewportSize({width,height});
       await page.evaluate(async () => { scrollTo(0,0); await document.fonts.ready; });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+      if (prefix === 'spell-training-protego-warning') {
+        const arena = await page.locator('#spellTrainingView .practice-arena').boundingBox();
+        const core = await charge.locator(':scope > circle').last().boundingBox();
+        assert.ok(core.x >= arena.x && core.x + core.width <= arena.x + arena.width
+          && core.y >= arena.y && core.y + core.height <= arena.y + arena.height, 'Wand charge stays inside the battlefield');
+      }
       if (prefix === 'spell-training-protego-complete') {
         const arena = await page.locator('#spellTrainingView .practice-arena').boundingBox();
         const popup = await page.locator('#spellTrainingCompletion').boundingBox();
@@ -76,18 +83,27 @@ try {
   await page.locator('#spellTrainingSpell').selectOption('protego');
   await capture('spell-training-protego-idle');
   await page.clock.fastForward(15000);
+  assert.equal(await charge.isVisible(), false, 'No charge while the camera is off');
   assert.equal(await playerHealth(), 200);
   await input(true);
   await cast('Protego');
   assert.equal(await count(), '0 / 3', 'Casting alone does not count');
   await advance(3050);
   assert.match(await page.locator('#spellTrainingDummyState').textContent(), /Casting Basic Cast/);
+  assert.equal(await charge.isVisible(), true, 'Charge is visible from the start of preparation');
+  assert.equal(await charge.getAttribute('data-spell'), 'Basic Cast');
   await capture('spell-training-protego-warning');
-  await advance(2650);
+  const steadyCore = await charge.locator(':scope > circle').last().getAttribute('r');
+  await advance(1000);
+  assert.equal(await charge.locator(':scope > circle').last().getAttribute('r'), steadyCore, 'Reduced motion keeps the charge steady');
+  await advance(1000);
+  assert.equal(await charge.isVisible(), false, 'Charge ends at launch, before impact');
+  await advance(650);
   assert.equal(await playerHealth(), 175, 'Expired shield does not block');
   assert.equal(await count(), '0 / 3');
   await advance(3400);
   assert.match(await page.locator('#spellTrainingDummyState').textContent(), /Casting Confringo/);
+  assert.equal(await charge.evaluate(node => getComputedStyle(node).color), 'rgb(239, 68, 68)', 'Confringo charge uses its spell color');
   await cast('Protego');
   await advance(2600);
   assert.equal(await playerHealth(), 175);
@@ -138,6 +154,7 @@ try {
   await cast('Expelliarmus');
   await advance(150);
   assert.equal(await page.locator('#spellTrainingDummyActor').getAttribute('data-disarmed'), 'true');
+  assert.equal(await charge.isVisible(), false, 'Disarm clears the charge');
   await advance(2500);
   assert.equal(await playerHealth(), 175, 'Disarm interrupts preparation');
   await fresh();
@@ -180,7 +197,12 @@ try {
   assert.equal(await playerHealth(), 150, 'Attacks resume after opponent recovery');
   await page.emulateMedia({reducedMotion:'no-preference'});
   await fresh();
-  await advance(5150);
+  await advance(3050);
+  const earlyCore = Number(await charge.locator(':scope > circle').last().getAttribute('r'));
+  await advance(1000);
+  assert.ok(Number(await charge.locator(':scope > circle').last().getAttribute('r')) > earlyCore, 'Charge grows during preparation');
+  await advance(1100);
+  assert.equal(await charge.isVisible(), false);
   const x = await page.locator('#spellTrainingIncomingEffects [data-phase="flight"] > circle').evaluate(node => Number(node.getAttribute('cx')));
   assert.ok(x > 295 && x < 1348, 'Incoming spell travels toward the player');
   await cast('Protego');

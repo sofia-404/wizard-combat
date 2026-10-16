@@ -6,6 +6,7 @@ import {createGestureMirror} from './practice-arena-gesture.js';
 import {createPracticeArenaDisarm} from './practice-arena-disarm.js';
 import {record, toggleGameCamera} from './app.js';
 import {createShieldView} from './presentation/shield-view.js';
+import {createOpponentCharge} from './presentation/opponent-charge.js';
 import {spellColor} from './presentation/spell-color.js';
 import {createPracticeArenaEvents} from './presentation/practice-arena-events.js';
 import {syncGameCamera} from './presentation/game-camera.js';
@@ -13,6 +14,7 @@ import {syncGameCamera} from './presentation/game-camera.js';
 import {SoloOpponent, SOLO_RULES} from './combat/solo-opponent.js';
 
 import {getInputState} from './input-state.js';
+import {getSettings} from './settings.js';
 
 // Each arena has its own combat state and uses the shared camera controller.
 export function createArenaView(view, label) {
@@ -47,6 +49,7 @@ export function createArenaView(view, label) {
   }
   const shieldView = createShieldView($('practiceArenaShield'), null, health.shield, {cx:295, cy:520, rx:260, ry:325});
   const opponentShieldView = opponent ? createShieldView($('practiceArenaOpponentShield'), null, opponent.shield, {cx:1420, cy:540, rx:260, ry:325}) : null;
+  const opponentCharge = opponent ? createOpponentCharge($('practiceArenaDummyWand'), SOLO_RULES.warningMs) : null;
   function logPracticeArena(cause, data = {}) {
     record({type: 'practiceArena', source: view, cause, playerHealth: health.player,
       dummyHealth: health.dummy, maxHealth: MAX_HEALTH, hits: health.hits, ...data});
@@ -72,7 +75,8 @@ export function createArenaView(view, label) {
     if (!opponent) return;
     const now = performance.now(), active = opponentActive();
     const disarmed = $('practiceArenaDummyActor').dataset.disarmed === 'true';
-    const action = opponent.update(now, {active, disarmed});
+    const action = opponent.update(now, {active, disarmed, difficulty:getSettings().difficulty});
+    opponentCharge.refresh(opponent.preparing, now);
     if (!active) {
       clearInterval(opponentTick);
       opponentTick = null;
@@ -124,13 +128,14 @@ export function createArenaView(view, label) {
       document.dispatchEvent(new CustomEvent('wizard:duel-defeat', {detail:{view}}));
       logPracticeArena('defeat', {castId: cast.id});
     }
-  });
+  }, opponent ? {flightMs:SOLO_RULES.flightMs, keepFlightTime:true} : {});
 
   function clearEffects(cause) {
     for (const cast of health.pending.values()) logPracticeArena('cancel', {castId: cast.id, reason: cause});
     effects.clear();
     incomingEffects?.clear();
     opponent?.stop();
+    opponentCharge?.clear();
     health.cancelFlights();
     dummyReactions.settle();
     playerReactions.settle();
@@ -244,6 +249,10 @@ export function createArenaView(view, label) {
     }
     const shot = health.launch({...cast, launchedAt: performance.now()});
     if (!shot) return;
+    opponent?.reactToAttack(shot.launchedAt, {
+      active:opponentActive(), disarmed:$('practiceArenaDummyActor').dataset.disarmed === 'true',
+      difficulty:getSettings().difficulty
+    });
     document.dispatchEvent(new CustomEvent('wizard:game-cast', {detail:{...shot, view}}));
     effects.cast(shot);
     logPracticeArena('cast', {castId: shot.id, shape: shot.shape, score: shot.score, damage: shot.damage});

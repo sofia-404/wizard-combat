@@ -8,6 +8,7 @@ import {createDummyReactions, createPlayerReactions} from './practice-arena-reac
 import {createPracticeArenaDisarm} from './practice-arena-disarm.js';
 import {createGestureMirror} from './practice-arena-gesture.js';
 import {createShieldView} from './presentation/shield-view.js';
+import {createOpponentCharge} from './presentation/opponent-charge.js';
 import {createPracticeArenaEvents} from './presentation/practice-arena-events.js';
 import {syncGameCamera} from './presentation/game-camera.js';
 import {record, cancelGestureCapture, toggleGameCamera} from './app.js';
@@ -23,6 +24,7 @@ let cameraReady = false;
 let completionDismissed = false;
 const health = new PracticeArenaHealth();
 const opponent = new SoloOpponent({attacksOnly:true});
+const opponentCharge = createOpponentCharge($('spellTrainingDummyWand'), SOLO_RULES.warningMs);
 const incoming = new Set();
 let opponentTick = null;
 let pageHidden = false;
@@ -74,6 +76,7 @@ function stopOpponent() {
   clearInterval(opponentTick);
   opponentTick = null;
   opponent.stop();
+  opponentCharge.clear();
   incomingEffects.clear();
   incoming.clear();
   $('spellTrainingDummyState').hidden = true;
@@ -84,6 +87,7 @@ function syncOpponent() {
   const now = performance.now();
   const disarmed = $('spellTrainingDummyActor').dataset.disarmed === 'true';
   const action = opponent.update(now, {active:true, disarmed});
+  opponentCharge.refresh(opponent.preparing, now);
   if (opponentTick === null) opponentTick = setInterval(syncOpponent, 50);
   if (action?.type === 'prepare') {
     events.add(`Opponent prepares ${action.shape}`, 'Cast Protego before the spell hits.');
