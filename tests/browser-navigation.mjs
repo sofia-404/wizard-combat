@@ -1,3 +1,5 @@
+import {startSimulatedArena} from './browser-game-mode.mjs';
+import {startSelectedMode} from './browser-game-mode.mjs';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright-core';
 import {mkdir, mkdtemp, cp, copyFile, rm} from 'node:fs/promises';
@@ -8,6 +10,9 @@ import path from 'node:path';
 import {startSimulatedLesson} from './browser-health-checks.mjs';
 import {checkSoloDuel} from './browser-solo-duel.mjs';
 import {checkSiteHistory} from './browser-history.mjs';
+import {checkStageSelection} from './browser-stage-selection.mjs';
+import {checkCharacterSelection} from './browser-character-selection.mjs';
+import {checkBattleSkins} from './browser-battle-skins.mjs';
 import {checkReloadRendering} from './browser-reload-rendering.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -31,6 +36,9 @@ try {
     api.once('exit', code => { clearTimeout(timer); reject(Error(`Server exited with ${code}: ${stderr}`)); });
   });
   browser = await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE, headless:true, args:['--disable-gpu']});
+  await checkCharacterSelection(browser, base, root);
+  await checkBattleSkins(browser, base, root);
+  await checkStageSelection(browser, base, root);
   await checkReloadRendering(browser, base, root);
   const context = await browser.newContext({permissions:[], reducedMotion:'reduce', viewport:{width:1920,height:1080}});
   await context.addInitScript(() => {
@@ -93,12 +101,15 @@ try {
     assert.deepEqual(await page.evaluate(() => window.focusCalls), []);
   };
   const checkKeyboardFocus = async selector => {
-    assert.equal(await page.locator(selector).evaluate(element => {
+    const state = await page.locator(selector).evaluate(element => {
       const style = getComputedStyle(element);
       const outline = style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0;
       const menuMarker = element.matches('.menu-nav button') && getComputedStyle(element, '::before').opacity === '1';
-      return element === document.activeElement && element.matches(':focus-visible') && (outline || menuMarker);
-    }), true);
+      return {focused:element === document.activeElement, visible:element.matches(':focus-visible'),
+        indicator:outline || menuMarker, active:document.activeElement.id || document.activeElement.tagName};
+    });
+    assert.ok(state.focused && state.visible && state.indicator,
+      `${page.url()}: expected visible keyboard focus on ${selector}; ${JSON.stringify(state)}`);
   };
   const hash = async name => {
     await page.evaluate(name => { location.hash = name; }, name);
@@ -140,12 +151,22 @@ try {
       await page.keyboard.press('Tab');
       await checkKeyboardFocus(first);
       await page.keyboard.press('Tab');
+      if (['practiceArena','spellTraining','soloDuel'].includes(name)) {
+        await checkKeyboardFocus('#' + name + 'Camera');
+        if (name === 'spellTraining') {
+          await page.keyboard.press('Tab');
+          await checkKeyboardFocus('#spellTrainingSpell');
+          await page.keyboard.press('Shift+Tab');
+          await checkKeyboardFocus('#spellTrainingCamera');
+        }
+      }
       await page.keyboard.press('Shift+Tab');
       await checkKeyboardFocus(first);
       if (['practiceArena','spellTraining','soloDuel'].includes(name)) {
         await page.keyboard.press('Space');
         await checkScreen('menu');
         await page.keyboard.press('Enter');
+        await startSelectedMode(page, true);
         await checkScreen(name);
         await checkKeyboardFocus('#gameBack');
       }
@@ -161,6 +182,7 @@ try {
       await page.keyboard.press('Tab');
       await checkKeyboardFocus('[data-view="spellTraining"]');
       await page.getByRole('button', {name, exact:true}).click();
+      await startSelectedMode(page);
       await checkScreen(({'Practice Arena':'practiceArena','Solo Duel':'soloDuel','Spell Training':'spellTraining'}[name] || name.toLowerCase()), false);
       assert.equal(await page.locator(':focus-visible:visible').count(), 0);
     }
@@ -180,9 +202,9 @@ try {
       await button.waitFor({state:'visible'});
       if (action === 'pointer-start') await button.click();
       else {
+        // All game views put Start camera immediately after Back to menu.
         await page.keyboard.press('Tab');
         await page.keyboard.press('Tab');
-        if (name === 'spellTraining') await page.keyboard.press('Tab');
         await checkKeyboardFocus('#' + name + 'Camera');
         await page.keyboard.press(action === 'stay-space' ? 'Space' : 'Enter');
       }
@@ -190,7 +212,7 @@ try {
       assert.equal(await button.isDisabled(), true);
       if (action === 'tab') {
         await page.keyboard.press('Shift+Tab');
-        if (name === 'spellTraining') await page.keyboard.press('Shift+Tab');
+        await checkKeyboardFocus('#gameBack');
       }
       if (action === 'focus-away') {
         await page.locator('#gameBack').focus();
@@ -200,6 +222,7 @@ try {
       if (action === 'leave') {
         await page.keyboard.press('Escape');
         await page.keyboard.press('Enter');
+        await startSelectedMode(page, true);
         await checkScreen(name);
       }
       const focusCalls = await page.evaluate(() => window.focusCalls.length);
@@ -280,12 +303,16 @@ try {
     if (action !== 'mouse') { await page.keyboard.press('Tab'); await page.keyboard.press('Tab'); }
     await activate('#practiceArenaCamera');
     await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().camera === 'Stop camera');
+    await page.waitForFunction(() => document.querySelector('#practiceArenaView .practice-arena').dataset.roundPhase === 'active');
     // Simulated casts exercise the UI state without a real camera or detector.
+    for (let round = 1; round <= 2; round++) {
     for (let i = 0; i < 7; i++) {
       await page.evaluate(i => document.dispatchEvent(new CustomEvent('wizard:cast', {
-        detail:{id:'focus-hit-' + i, shape:'Expelliarmus', score:99}
+        detail:{id:crypto.randomUUID(), shape:'Expelliarmus', score:99}
       })), i);
       await page.waitForFunction(i => document.querySelector('#practiceArenaDummyHealth').value === Math.max(0, 200 - (i + 1) * 30), i);
+    }
+    if(round === 1)await page.waitForFunction(() => document.querySelector('#practiceArenaView .practice-arena').dataset.roundPhase === 'active');
     }
     await activate('#practiceArenaCamera');
     assert.equal(await page.locator('#practiceArenaCamera').isHidden(), true);
@@ -307,6 +334,7 @@ try {
     await page.keyboard.press('Tab');
     assert.equal(await page.getByRole('button', {name, exact:true}).evaluate(element => element === document.activeElement && element.matches(':focus-visible')), true);
     await page.keyboard.press('Enter');
+    await startSelectedMode(page, true);
     await checkScreen(({'Practice Arena':'practiceArena','Solo Duel':'soloDuel','Spell Training':'spellTraining'}[name] || name.toLowerCase()));
     await page.keyboard.press('Escape');
     await checkScreen('menu');
@@ -314,9 +342,9 @@ try {
   }
   // Both popstate and hashchange may fire for one history move. Apply it once.
   await page.goto(base + '#menu');
-  await page.getByRole('button', {name:'Spell Training', exact:true}).click();
+  await page.getByRole('button', {name:'Spell Training', exact:true}).click(); await startSelectedMode(page);
   await page.locator('#gameBack').click();
-  await page.getByRole('button', {name:'Practice Arena', exact:true}).click();
+  await page.getByRole('button', {name:'Practice Arena', exact:true}).click(); await startSelectedMode(page);
   await page.goBack(); await checkScreen('menu');
   await page.goBack(); await checkScreen('spellTraining');
   const changes = await page.evaluate(() => window.viewChanges.length);
@@ -324,7 +352,6 @@ try {
   await page.evaluate(() => {
     window.dispatchEvent(new PopStateEvent('popstate'));
     window.dispatchEvent(new HashChangeEvent('hashchange'));
-    document.querySelector('[data-view="spellTraining"]').click();
   });
   assert.equal(await page.evaluate(() => window.viewChanges.length), changes);
   assert.equal(await page.evaluate(() => history.length), historyLength);
@@ -337,7 +364,7 @@ try {
   await page.getByRole('button', {name:'Options', exact:true}).click();
   await page.locator('#handSetting').selectOption('Right');
   await page.keyboard.press('Escape');
-  await page.getByRole('button', {name:'Spell Training', exact:true}).click();
+  await page.getByRole('button', {name:'Spell Training', exact:true}).click(); await startSelectedMode(page);
   await startSimulatedLesson(page);
   await page.evaluate(() => {
     for (let i=0;i<3;i++) document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
@@ -355,6 +382,7 @@ try {
   assert.equal(await page.locator('#spellTrainingLearnedTotal').textContent(), '0 of 4 spells learned');
   assert.equal(await page.locator('#handSetting').inputValue(), 'Right');
   await hash('practiceArena');
+  await startSimulatedArena(page, 'practiceArena', false);
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {detail:{id:crypto.randomUUID(),shape:'Basic Cast',score:95}})));
   await page.waitForFunction(() => document.querySelector('#practiceArenaDummyHealth').value === 170);
   await hash('spellTraining'); await hash('practiceArena');
@@ -435,6 +463,7 @@ try {
     await fresh.keyboard.press('Tab');
     assert.equal(await fresh.locator('[data-view="spellTraining"]').evaluate(element => element === document.activeElement && element.matches(':focus-visible')), true);
     await fresh.getByRole('button', {name, exact:true}).tap();
+    await startSelectedMode(fresh);
     await fresh.locator('#' + screens[({'Practice Arena':'practiceArena','Solo Duel':'soloDuel','Spell Training':'spellTraining'}[name] || name.toLowerCase())]).waitFor({state:'visible'});
     assert.equal(await fresh.locator(':focus-visible:visible').count(), 0);
   }

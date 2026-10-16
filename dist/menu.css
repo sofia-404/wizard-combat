@@ -28,8 +28,23 @@ body.practice-arena-open #gameView{background:#10181d;color:#ede9df}
 @media(forced-colors:active){#menuShell .menu-nav button:focus-visible{outline:2px solid Highlight}}
 .menu-nav button:is([data-view="options"],[data-view="credits"]){min-height:52px}
 .menu-nav button:is([data-view="options"],[data-view="credits"]) span{font-size:32px}
-@media(max-height:700px) and (min-width:601px){#mainMenu{padding-top:64px;padding-bottom:32px}#mainMenu .menu-nav{margin-top:40px}}
-@media(min-width:601px) and (min-height:701px){#mainMenu{padding-top:24vh;padding-bottom:48px}}
+/* Setup screens share a height budget. Text and controls keep readable minimums;
+   artwork uses the space left. Shorter screens can still scroll. */
+:is(#mainMenu,#characterSelectView,#stageSelectView){
+  --setup-height:max(640px,100svh);
+  --setup-gap:clamp(16px,2.22svh,24px);
+  --setup-edge:clamp(20px,2.96svh,32px);
+  --setup-title:clamp(28px,min(3vw,4.44svh),48px);
+}
+@media(min-width:601px){
+  #mainMenu{padding-top:clamp(64px,calc(var(--setup-height) - 820px),24svh);padding-bottom:calc(var(--setup-edge) * 1.5)}
+  #mainMenu .menu-masthead h1{font-size:clamp(48px,calc(var(--setup-title) * 1.5),72px)}
+  #mainMenu .menu-nav{margin-top:clamp(32px,7.4svh,80px)}
+  #mainMenu .menu-nav button{min-height:clamp(56px,calc(var(--setup-title) * 1.5),72px)}
+  #mainMenu .menu-nav button span{font-size:clamp(28px,calc(var(--setup-title) * .75),36px)}
+  #mainMenu .menu-utilities button{min-height:52px}
+  #mainMenu .menu-utilities button span{font-size:clamp(26px,calc(var(--setup-title) * .667),32px)}
+}
 
 .options-form #pointSetting{width:230px;max-width:100%}
 .options-form .volume-control{display:flex;align-items:center;gap:12px;width:200px;max-width:100%}.volume-control input{width:100%;min-width:0;accent-color:var(--wc-gold);cursor:pointer}.volume-control output{min-width:4ch;text-align:right;font-variant-numeric:tabular-nums}

@@ -1,13 +1,14 @@
+import {spellRule} from './combat/rules.js';
 import {spellColor} from './presentation/spell-color.js';
 import {spellForShape} from './spells/index.js';
 
 // Positions use the source artwork coordinates, so effects follow the image at any size.
 const START = {x: 560, y: 374};
 const TARGET = {x: 1410, y: 465};
-const FLIGHT_MS = 120;
+const FLIGHT_MS = cast => spellRule(cast.shape)?.flightMs || 0;
 const IMPACT_MS = 750;
 
-export function createSpellEffects(svg, onImpact, {start = START, target = TARGET, flightMs = FLIGHT_MS, keepFlightTime = false} = {}) {
+export function createSpellEffects(svg, onImpact, {start = START, target = TARGET, flightMs = FLIGHT_MS, keepFlightTime = true} = {}) {
   const active = new Set();
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let frame = 0;
@@ -22,8 +23,9 @@ export function createSpellEffects(svg, onImpact, {start = START, target = TARGE
   function tick(now) {
     frame = 0;
     for (const spell of active) {
+      const start = spell.start;
       const age = now - spell.started;
-      const flight = spell.reduced && !keepFlightTime ? 0 : flightMs;
+      const flight = spell.reduced && !keepFlightTime ? 0 : spell.flightMs;
       if (age < flight) {
         if (spell.reduced) continue;
         const progress = Math.max(0, age / flight);
@@ -61,15 +63,18 @@ export function createSpellEffects(svg, onImpact, {start = START, target = TARGE
   return {
     cast(cast) {
       if (spellForShape(cast.shape)?.visuals.cast === 'shield') return;
+      const wand = svg.id.endsWith('IncomingEffects') ? svg.closest('.practice-arena')?.querySelector('[id$="DummyWand"][data-tip-x]') : null;
+      const origin = wand ? {x:Number(wand.dataset.tipX), y:Number(wand.dataset.tipY)} : start;
       const group = element('g', {'data-spell': cast.shape, 'data-phase': 'flight', class: 'practice-arena-spell'}, svg);
       const color = spellColor(cast.shape);
-      const trail = element('line', {x1: start.x, y1: start.y, x2: start.x, y2: start.y, stroke: color, 'stroke-width': 7, 'stroke-linecap': 'round'}, group);
-      const orb = element('circle', {cx: start.x, cy: start.y, r: 9, fill: '#fff', stroke: color, 'stroke-width': 4}, group);
+      const trail = element('line', {x1: origin.x, y1: origin.y, x2: origin.x, y2: origin.y, stroke: color, 'stroke-width': 7, 'stroke-linecap': 'round'}, group);
+      const orb = element('circle', {cx: origin.x, cy: origin.y, r: 9, fill: '#fff', stroke: color, 'stroke-width': 4}, group);
       if (reducedMotion.matches) { trail.setAttribute('visibility', 'hidden'); orb.setAttribute('visibility', 'hidden'); }
       const burst = element('g', {visibility: 'hidden'}, group);
       const glow = element('circle', {cx: target.x, cy: target.y, r: 12, fill: color, opacity: .65}, burst);
       const ring = element('circle', {cx: target.x, cy: target.y, r: 15, fill: 'none', stroke: color, 'stroke-width': 5}, burst);
-      active.add({cast, group, trail, orb, burst, glow, ring, hit: false, started: performance.now(), reduced: reducedMotion.matches});
+      active.add({cast, group, trail, orb, burst, glow, ring, start:origin, hit: false, started: performance.now(),
+        flightMs:typeof flightMs === 'function' ? flightMs(cast) : flightMs, reduced: reducedMotion.matches});
       if (!frame) frame = requestAnimationFrame(tick);
     },
     clear() {

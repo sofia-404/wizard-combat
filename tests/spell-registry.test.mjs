@@ -33,7 +33,7 @@ test('invalid definitions fail before a spell can enter play', () => {
     list => { list[0].gesture.checker = 'missing'; },
     list => { list[0].gesture.scoreScale = 0; },
     list => { list[0].effects[0].type = 'missing'; },
-    list => { list[1].effects[0].tiers.reverse(); },
+    list => { list[1].effects[0].tiers.push({minScore:10,value:20}); },
     list => { list[1].effects[0].tiers[0].value = NaN; },
     list => { list[3].effects[1].durationMs = -1; },
     list => { list[0].effects[0].durationMs = 0; },
@@ -63,10 +63,10 @@ test('registered colors include red Confringo and preserve the Protego fallback'
   for (const shape of [undefined,null,'unknown']) assert.equal(spellColor(shape),'#8ce8ff');
 });
 
-test('attack damage bands stay unchanged; shields do no damage', () => {
+test('attack damage is fixed across accuracy scores; shields do no damage', () => {
   for (const spell of spellList) {
     for (const [score, expected] of [[0,20], [77.999,20], [78,25], [87.999,25], [88,30], [100,30]]) {
-      assert.equal(castDamage(cast(spell.label, score)), spell.effects.some(effect=>effect.type==='damage') ? expected : 0, `${spell.id}: ${score}`);
+      assert.equal(castDamage(cast(spell.label, score)), ({'Basic Cast':20,Confringo:40,Expelliarmus:10,Protego:0})[spell.label], `${spell.id}: ${score}`);
     }
     assert.equal(castDamage({...cast(spell.label), accepted: false}), 0);
     assert.equal(castDamage({...cast(spell.label), type: 'cancel'}), 0);
@@ -138,7 +138,7 @@ test('Basic Cast keeps its movement, effects, and bidirectional recognition', ()
   assert.equal(spell.kind, 'spell');
   assert.deepEqual(spell.gesture, {checker:'valley', scoreScale:.15, diagnosticKey:'basiccast', strokeDiagnostics:true});
   assert.equal(spell.lesson, null);
-  assert.deepEqual(spell.effects, [{type:'damage', tiers:[{minScore:88,value:30},{minScore:78,value:25},{minScore:0,value:20}]}]);
+  assert.deepEqual(spell.effects, [{type:'damage', tiers:[{minScore:0,value:20}]}]);
   assert.deepEqual(spell.visuals, {cast:'dummy-hit', color:'#c5a0ff'});
   assert.equal(spellForShape('V'), undefined);
   assert.equal(spells.v, undefined);

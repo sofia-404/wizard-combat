@@ -1,3 +1,4 @@
+import {startSelectedMode} from './browser-game-mode.mjs';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright-core';
 import {mkdir, mkdtemp, cp, copyFile, rm} from 'node:fs/promises';
@@ -31,6 +32,7 @@ try {
   const context = await browser.newContext({permissions:[], reducedMotion:'reduce', viewport:{width:1920,height:1080}});
   await context.addInitScript(() => {
     window.cameraCalls = 0;
+    Math.random = () => 0; // Always choose defense when the opponent is eligible.
     navigator.mediaDevices.getUserMedia = () => { window.cameraCalls++; throw Error('Real camera access is forbidden'); };
     HTMLMediaElement.prototype.play = () => Promise.resolve();
   });
@@ -41,9 +43,10 @@ try {
   });
   const page = await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
+  await page.clock.install({time:new Date('2026-10-16T12:00:00Z')});
+  await page.clock.pauseAt(new Date('2026-10-16T12:00:01Z'));
   await page.goto(base + '#soloDuel');
   await page.locator('#soloDuelView .practice-arena').waitFor({state:'visible'});
-  await page.clock.install();
   const advance = ms => page.clock.runFor(ms);
   const playerHealth = () => page.locator('#soloDuelPlayerHealth').evaluate(node => node.value);
   const targetHealth = () => page.locator('#soloDuelDummyHealth').evaluate(node => node.value);
@@ -58,11 +61,12 @@ try {
     await input(false);
     await page.locator('#soloDuelResetDummy').evaluate(node => node.click());
     await input(true);
+    await advance(2000);
   };
   const capture = async prefix => {
     for (const [size,width,height] of [['desktop',1920,1080],['mobile',390,844]]) {
       await page.setViewportSize({width,height});
-      await page.evaluate(async () => { scrollTo(0,0); await document.fonts.ready; });
+      await page.evaluate(async () => { scrollTo({top:0,left:0,behavior:'instant'}); await document.fonts.ready; });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       if (prefix === 'solo-duel-warning') {
         const arena = await page.locator('#soloDuelView .practice-arena').boundingBox();
@@ -73,67 +77,135 @@ try {
       await page.screenshot({path:path.join(output, `${prefix}-${size}.png`), fullPage:true, animations:'disabled'});
     }
   };
+  const opponentProtected = () => page.locator('#soloDuelOpponentShield').evaluate(node => node.classList.contains('shield-active'));
+  const playerProtected = () => page.locator('#soloDuelShield').evaluate(node => node.classList.contains('shield-active'));
+  await page.evaluate(() => {
+    window.playerCasts = [];
+    document.addEventListener('wizard:game-cast', ({detail}) => {
+      if (detail.view === 'soloDuel') window.playerCasts.push({...detail, time:performance.now()});
+    });
+  });
   await capture('solo-duel-gameplay');
-  await page.clock.fastForward(15000);
+  await cast('Basic Cast');
+  await advance(15000);
   assert.equal(await playerHealth(), 200, 'No attacks before camera readiness');
-  assert.equal(records.some(record => record.cause === 'opponent_cast'), false);
-  assert.equal(await charge.isVisible(), false, 'No charge before camera readiness');
-  await input(true);
+  assert.equal(await targetHealth(), 200, 'Camera-off casts are ignored');
+  assert.equal(await charge.isVisible(), false);
+
+  const status = page.locator('#soloDuelView .combat-status');
+  const until = async (check, label, max = 15000) => {
+    for (let elapsed = 0; elapsed <= max; elapsed += 50) {
+      if (await check()) return;
+      await advance(50);
+    }
+    assert.fail(`Timed out: ${label}`);
+  };
+  const launched = () => page.locator('#soloDuelIncomingEffects [data-phase="flight"]').count();
+  await fresh();
   await advance(3050);
   assert.match(await page.locator('#soloDuelDummyState').textContent(), /Casting Basic Cast/);
-  assert.equal(await charge.isVisible(), true, 'Charge is visible from the start of preparation');
-  assert.equal(await charge.getAttribute('data-spell'), 'Basic Cast');
-  await capture('solo-duel-warning');
-  await advance(1500);
-  assert.equal(await charge.isVisible(), false, 'Charge ends at launch, before impact');
-  await advance(650);
-  assert.equal(await playerHealth(), 175, 'First attack applies 25 damage at impact');
-  assert.equal(await page.locator('#soloDuelPlayerActor').getAttribute('data-pose'), 'ready');
-  await fresh();
-  await advance(4400);
-  await cast('Protego');
-  await advance(800);
-  assert.equal(await playerHealth(), 200, 'Player Protego blocks the incoming attack');
-  assert.match(await page.locator('#soloDuelEvents').textContent(), /Protego blocked the hit/);
-  await capture('solo-duel-block');
-  await advance(3000);
-  assert.equal(await playerHealth(), 175, 'Expired player shield does not block the next attack');
-  await advance(900);
-  assert.equal(await page.locator('#soloDuelOpponentShield').evaluate(node => node.classList.contains('shield-active')), false, 'No scheduled Protego');
   assert.equal(await charge.isVisible(), true);
-  const before = await targetHealth();
-  await cast('Expelliarmus');
-  await advance(100);
-  assert.equal(await page.locator('#soloDuelOpponentShield').evaluate(node => node.classList.contains('shield-active')), false, 'Defense has a reaction delay');
-  await advance(200);
-  assert.equal(await page.locator('#soloDuelOpponentShield').evaluate(node => node.classList.contains('shield-active')), true);
-  assert.equal(await charge.isVisible(), false, 'Opponent defense cancels the charge');
-  await capture('solo-duel-opponent-shield');
-  await advance(400);
-  assert.equal(await targetHealth(), before);
-  assert.equal(await page.locator('#soloDuelDummyActor').getAttribute('data-disarmed'), 'false', 'Shield blocks disarm');
-  assert.equal(await page.locator('#soloDuelHits').textContent(), '0 hits');
-  await advance(3100);
+  await capture('solo-duel-warning');
+  await advance(1550);
+  assert.match(await page.locator('#soloDuelDummyState').textContent(), /Cast Protego now/);
+  await until(launched, 'first attack release');
+  assert.equal(await charge.isVisible(), false);
+  assert.match(await page.locator('#soloDuelDummyState').textContent(), /Cast Protego now/, 'cue stays visible during flight and opponent recovery');
+  await advance(900);
+  assert.equal(await playerHealth(), 200, 'Full flight time remains in reduced motion');
+  await advance(150);
+  assert.equal(await playerHealth(), 180);
+  await until(launched, 'second attack release');
   await cast('Basic Cast');
-  await advance(100);
-  assert.equal(await targetHealth(), before, 'Reduced motion keeps Solo Duel flight time');
-  await advance(600);
-  assert.equal(await targetHealth(), before - 30, 'Opponent shield expires');
+  await advance(1050);
+  assert.equal(await targetHealth(), 180, 'Heavy recovery prevents reactive defense');
+  await advance(200);
+  assert.equal(await playerHealth(), 140);
+  await capture('solo-duel-recovery');
 
   await fresh();
+  await advance(5100);
+  await cast('Protego');
+  await advance(1600);
+  assert.equal(await playerHealth(), 200);
+  assert.match(await page.locator('#soloDuelEvents').textContent(), /Protego blocked the hit/);
+  await capture('solo-duel-block');
+  await advance(500);
+  assert.equal(await playerProtected(), false, 'Shield expires after two seconds');
+  await until(async () => await playerHealth() === 160, 'next unblocked heavy hit');
+
+  await fresh();
+  await until(launched, 'attack before perfect block');
+  await advance(750);
+  await cast('Protego');
+  await advance(300);
+  assert.equal(await playerHealth(), 200);
+  assert.match(await page.locator('#soloDuelEvents').textContent(), /Perfect block/);
+  assert.match(await page.locator('#soloDuelDummyState').textContent(), /Recovering/);
+  await capture('solo-duel-perfect-block');
+  await cast('Confringo');
+  await advance(1250);
+  assert.equal(await targetHealth(), 160, 'Counter lands inside the 1.5-second opening');
+
+  await fresh();
+  await cast('Confringo');
+  await advance(650);
   await cast('Basic Cast');
-  await advance(4000);
+  await cast('Protego');
+  assert.match(await status.textContent(), /Spell ready: Protego/);
+  assert.match(await page.locator('#soloDuelEvents').textContent(), /Protego replaces/);
+  assert.equal(await playerProtected(), false);
+  await capture('solo-duel-queued');
+  await advance(1250);
+  assert.equal(await playerProtected(), false, 'Replacement keeps the original recovery deadline');
+  await advance(150);
+  assert.equal(await playerProtected(), true);
+  assert.doesNotMatch(await status.textContent(), /Spell ready/);
+  await cast('Protego');
+  assert.match(await page.locator('#soloDuelEvents').textContent(), /Protego ready in/);
+  await advance(2050);
+  assert.equal(await playerProtected(), false);
+
+  await fresh();
   await cast('Expelliarmus');
-  await advance(1800);
-  assert.equal(await playerHealth(), 200, 'Disarm cancels the prepared attack');
+  await advance(250);
+  assert.equal(await opponentProtected(), false);
+  await advance(100);
+  assert.match(await page.locator('#soloDuelDummyState').textContent(), /Preparing Protego/);
+  await advance(500);
+  assert.equal(await opponentProtected(), false, 'Normal needs 900 ms to raise its shield');
+  await advance(100);
+  assert.equal(await opponentProtected(), true);
+  await capture('solo-duel-opponent-shield');
+  await advance(2000);
+  assert.equal(await targetHealth(), 200);
+  await cast('Expelliarmus'); // Shield is down, but its cooldown still runs.
+  await advance(1050);
+  assert.equal(await targetHealth(), 200);
+  await advance(100);
+  assert.equal(await targetHealth(), 190);
+  assert.equal(await page.locator('#soloDuelDummyActor').getAttribute('data-disarmed'), 'true');
+  assert.equal(await charge.isVisible(), false);
+  await cast('Expelliarmus');
+  await advance(1150);
+  assert.equal(await targetHealth(), 180);
+  await advance(900);
+  assert.equal(await page.locator('#soloDuelDummyActor').getAttribute('data-disarmed'), 'false', 'Repeat hit cannot extend two-second disarm');
+
+  await fresh();
+  await cast('Confringo');
+  await advance(500);
+  await cast('Protego');
   await input(false);
-  await page.clock.fastForward(15000);
-  assert.equal(await playerHealth(), 200, 'Stopped camera prevents attacks');
+  await advance(5000);
   await input(true);
-  await advance(4600);
+  await advance(1000);
+  assert.equal(await playerProtected(), false, 'Camera restart cannot release an old queue');
+  await fresh();
+  await until(launched, 'incoming flight before camera stop');
   await input(false);
   await advance(2000);
-  assert.equal(await playerHealth(), 200, 'Stopping the camera cancels an incoming flight');
+  assert.equal(await playerHealth(), 200);
 
   await fresh();
   await advance(4000);
@@ -143,134 +215,81 @@ try {
     Object.defineProperty(document, 'hidden', {configurable:true, value:true});
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await page.clock.fastForward(15000);
-  assert.equal(await playerHealth(), 200, 'Hidden page cancels attacks');
-  assert.equal(await charge.getAttribute('visibility'), 'hidden', 'Hidden page clears the charge');
-  assert.equal(await page.locator('#soloDuelOpponentShield').evaluate(node => node.classList.contains('shield-active')), false, 'Hidden page cancels a pending defense');
+  await advance(15000);
+  assert.equal(await playerHealth(), 200);
+  assert.equal(await charge.getAttribute('visibility'), 'hidden');
+  assert.equal(await opponentProtected(), false);
   await page.evaluate(() => {
     delete document.hidden;
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await advance(1000);
-  assert.equal(await playerHealth(), 200, 'Resume has no overdue attack');
+  assert.equal(await playerHealth(), 200);
   await page.locator('#gameBack').click();
-  await page.getByRole('button', {name:'Practice Arena',exact:true}).click();
+  await page.getByRole('button', {name:'Practice Arena',exact:true}).click(); await startSelectedMode(page);
   await input(true);
-  await page.clock.fastForward(15000);
-  assert.equal(await page.locator('#practiceArenaPlayerHealth').evaluate(node => node.value), 200, 'Practice Arena does not attack');
-  assert.equal(await playerHealth(), 200, 'Hidden Solo Duel does not attack');
+  await advance(15000);
+  assert.equal(await page.locator('#practiceArenaPlayerHealth').evaluate(node => node.value), 200);
   await cast('Basic Cast');
-  await advance(150);
-  assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(node => node.value), 170, 'Practice Arena attacks still apply damage');
-  assert.equal(await page.locator('#practiceArenaHits').textContent(), '1 hit');
+  await advance(1050);
+  assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(node => node.value), 180, 'Practice uses the same fixed damage and flight');
   await cast('Protego');
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail:{view:'practiceArena', id:crypto.randomUUID(), damage:25}})));
-  assert.equal(await page.locator('#practiceArenaPlayerHealth').evaluate(node => node.value), 200, 'Practice Arena Protego still blocks damage');
+  assert.equal(await page.locator('#practiceArenaPlayerHealth').evaluate(node => node.value), 200);
   await page.locator('#gameBack').click();
-  await page.getByRole('button', {name:'Solo Duel',exact:true}).click();
+  await page.getByRole('button', {name:'Solo Duel',exact:true}).click(); await startSelectedMode(page);
   await fresh();
-  await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail:{view:'soloDuel', id:crypto.randomUUID(), damage:175}})));
-  await advance(5700);
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail:{view:'soloDuel', id:crypto.randomUUID(), damage:190}})));
+  await advance(6750);
   assert.equal(await playerHealth(), 0);
-  assert.equal(await page.locator('#soloDuelDefeat strong').textContent(), 'Player defeated');
+  assert.equal(await page.locator('#soloDuelView .practice-arena').getAttribute('data-round-phase'), 'result');
+  await advance(4000);
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail:{view:'soloDuel', id:crypto.randomUUID(), damage:200}})));
+  assert.equal(await page.locator('#soloDuelDefeat strong').textContent(), 'Opponent wins the match · 0–2');
+  await cast('Protego');
+  assert.equal(await playerProtected(), false);
   const count = records.filter(record => record.cause === 'opponent_cast').length;
-  await page.clock.fastForward(15000);
-  assert.equal(records.filter(record => record.cause === 'opponent_cast').length, count, 'Defeat stops attacks');
-  await page.locator('#soloDuelResetDummy').click();
+  await advance(15000);
+  assert.equal(records.filter(record => record.cause === 'opponent_cast').length, count);
+  await fresh();
   assert.equal(await playerHealth(), 200);
   assert.equal(await targetHealth(), 200);
-  await advance(5700);
-  assert.equal(await playerHealth(), 175, 'Restart starts a fresh attack cycle');
-  await cast('Basic Cast');
-  await advance(3400);
-  for (let i = 0; i < 7; i++) await cast('Basic Cast');
-  await advance(650);
-  assert.equal(await targetHealth(), 0);
-  const afterWin = await playerHealth();
-  await page.clock.fastForward(15000);
-  assert.equal(await playerHealth(), afterWin, 'Defeated opponent cannot attack');
+  assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(node => node.value), 180);
+
   await page.emulateMedia({reducedMotion:'no-preference'});
   await fresh();
   await advance(3050);
   const earlyCore = Number(await charge.locator(':scope > circle').last().getAttribute('r'));
   await advance(1000);
-  assert.ok(Number(await charge.locator(':scope > circle').last().getAttribute('r')) > earlyCore, 'Charge grows during preparation');
-  await advance(600);
-  assert.equal(await charge.isVisible(), false);
+  assert.ok(Number(await charge.locator(':scope > circle').last().getAttribute('r')) > earlyCore);
+  await until(launched, 'moving incoming spell');
+  await advance(150);
   const x = await page.locator('#soloDuelIncomingEffects [data-phase="flight"] > circle').evaluate(node => Number(node.getAttribute('cx')));
-  assert.ok(x > 295 && x < 1348, 'Incoming spell travels from opponent to player');
-  assert.equal(await playerHealth(), 200, 'No damage before impact with motion enabled');
+  assert.ok(x > 295 && x < 1348);
   await cast('Protego');
-  await advance(600);
-  assert.equal(await playerHealth(), 200, 'Protego cast during travel blocks at impact');
+  assert.match(await page.locator('#soloDuelDummyState').textContent(), /Cast Protego now/, 'cue stays visible during flight and opponent recovery');
+  await advance(900);
+  assert.equal(await playerHealth(), 200);
   await fresh();
   await cast('Expelliarmus');
   await advance(100);
   const outgoingX = await page.locator('#soloDuelEffects [data-phase="flight"] > circle').evaluate(node => Number(node.getAttribute('cx')));
-  assert.ok(outgoingX > 560 && outgoingX < 1410, 'Player spell travels toward the opponent');
-  await advance(600);
-  assert.equal(await targetHealth(), 200, 'Reactive Protego also blocks with motion enabled');
-  await fresh();
-  await cast('Basic Cast');
-  await input(false);
-  await advance(700);
-  assert.equal(await page.locator('#soloDuelOpponentShield').evaluate(node => node.classList.contains('shield-active')), false, 'Camera stop cancels a pending defense');
-  await page.evaluate(() => {
-    document.addEventListener('wizard:opponent-cast', ({detail}) => {
-      if (detail.view === 'soloDuel' && detail.shape === 'Protego') window.defenseActivatedAt = performance.now();
-    });
-  });
-  const opponentProtected = () => page.locator('#soloDuelOpponentShield').evaluate(node => node.classList.contains('shield-active'));
-  for (const [difficulty, reactionMs, cooldownMs] of [['easy',400,9000], ['normal',200,6000], ['hard',100,4500]]) {
+  assert.ok(outgoingX > 560 && outgoingX < 1410);
+  await advance(1050);
+  assert.equal(await targetHealth(), 200);
+  for (const [difficulty, reactionMs] of [['easy',950], ['normal',900], ['hard',550]]) {
     await page.evaluate(async difficulty => (await import('/settings.js')).updateSettings({difficulty}), difficulty);
     await fresh();
-    await cast('Basic Cast');
+    await cast('Expelliarmus');
     await advance(reactionMs - 50);
-    assert.equal(await opponentProtected(), false, `${difficulty}: reaction is not early`);
+    assert.equal(await opponentProtected(), false);
     await advance(100);
-    assert.equal(await opponentProtected(), true, `${difficulty}: selected reaction delay`);
-    const remaining = await page.evaluate(cooldownMs => window.defenseActivatedAt + cooldownMs - performance.now(), cooldownMs);
-    await advance(remaining - 100);
-    assert.equal(await opponentProtected(), false, `${difficulty}: shield expires before cooldown`);
-    await cast('Basic Cast');
-    await advance(700);
-    assert.equal(await opponentProtected(), false, `${difficulty}: a shot during cooldown cannot trigger defense later`);
-    assert.equal(await targetHealth(), 170, `${difficulty}: cooldown gives a damage opening`);
-    await cast('Basic Cast');
-    await advance(reactionMs + 100);
-    assert.equal(await opponentProtected(), true, `${difficulty}: defense is ready after cooldown`);
-  }
-  await page.evaluate(() => {
-    window.attackTimes = [];
-    document.addEventListener('wizard:opponent-cast', ({detail}) => {
-      if (detail.view === 'soloDuel' && detail.shape !== 'Protego') window.attackTimes.push(performance.now());
-    });
-  });
-  for (const [difficulty, intervalMs, warningMs] of [['easy',5000,2000], ['normal',3000,1500], ['hard',2000,1000]]) {
-    await page.evaluate(async difficulty => (await import('/settings.js')).updateSettings({difficulty}), difficulty);
-    await fresh();
-    await page.evaluate(() => { window.attackTimes = []; });
-    await advance(3000 + warningMs / 2);
-    assert.equal(await charge.isVisible(), true, `${difficulty}: charge is visible halfway through warning`);
-    const radius = Number(await charge.locator(':scope > circle').last().getAttribute('r'));
-    assert.ok(Math.abs(radius - 13) < .35, `${difficulty}: charge follows selected warning time`);
-    await advance(warningMs / 2 - 50);
-    assert.equal(await page.evaluate(() => window.attackTimes.length), 0, `${difficulty}: no early release`);
-    await advance(100);
-    assert.equal(await page.evaluate(() => window.attackTimes.length), 1, `${difficulty}: release at selected warning time`);
-    assert.equal(await charge.isVisible(), false, `${difficulty}: charge clears at release`);
-    await advance(2 * intervalMs);
-
-    const times = await page.evaluate(() => window.attackTimes);
-    assert.equal(times.length, 3, `${difficulty}: three attacks`);
-    for (let index = 1; index < times.length; index++) {
-      assert.ok(Math.abs(times[index] - times[index - 1] - intervalMs) < 1, `${difficulty}: exact attack interval`);
-    }
+    assert.equal(await opponentProtected(), true, `${difficulty}: notice plus preparation delay`);
   }
   assert.equal(await page.evaluate(() => window.cameraCalls), 0);
   assert.deepEqual(errors, []);
   assert.ok(records.some(record => record.cause === 'opponent_block' && record.source === 'soloDuel'));
-  console.log('PASS: opponent attacks, warnings, both Protego shields, disarm, camera stop, visibility, navigation, defeat, restart, and desktop/narrow previews. Simulated input only.');
+  console.log('PASS: Solo Duel damage, flight, warnings, recovery, queued shield, cooldown, disarm, perfect block, lifecycle, other-mode isolation, motion, and desktop/narrow previews. Simulated input only.');
 } finally {
   await browser?.close();
   if (api && api.exitCode === null && api.signalCode === null) {

@@ -1,3 +1,4 @@
+import {DIFFICULTIES} from './combat/rules.js';
 import {matchGestures,matchesIntentCorner} from './gestures/index.js';
 // Image-width units, including y. This preserves physical shape proportions.
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -36,7 +37,7 @@ export function movementIntent(points,precisionScale=1){
   const motionForm=loop?'loop':zigzag?'zigzag':valley?'valley':corner?'spell_corner':'move';
   return {intent:Math.max(b.width,b.height)>=.10&&deviation>=.12&&motionForm!=='move',lineDeviation:+deviation.toFixed(4),motionForm};
 }
-export const DIFFICULTY_PROFILES=Object.freeze({easy:{limitFactor:1.35,captureMs:9000},normal:{limitFactor:1,captureMs:6000},hard:{limitFactor:.7,captureMs:3500}});
+export const DIFFICULTY_PROFILES=DIFFICULTIES;
 export function recognize(points,difficulty='normal'){
   const profile=DIFFICULTY_PROFILES[difficulty]||DIFFICULTY_PROFILES.normal;
   const b=points.length?bounds(points):{width:0,height:0};

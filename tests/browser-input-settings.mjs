@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {checkHealthBars, checkSpellTrainingRestart, checkPlayerDefeat, startSimulatedLesson} from './browser-health-checks.mjs';
 import {checkGameAudio} from './browser-game-audio.mjs';
+import {startSelectedMode, startSimulatedArena} from './browser-game-mode.mjs';
 import {chromium} from 'playwright-core';
 import {mkdir, mkdtemp, cp, copyFile, rm} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
@@ -60,6 +61,7 @@ try {
     assert.equal(await page.evaluate(() => window.cameraCalls), 0);
     if (await page.locator('#gameView').isVisible()) await page.locator('#gameBack').click();
     await page.getByRole('button', {name, exact:true}).click();
+    await startSelectedMode(page);
   };
   const openOptions = async () => {
     await page.keyboard.press('Escape');
@@ -144,7 +146,7 @@ try {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       assert.equal(await page.locator('#video').evaluate(el => el.srcObject), null);
       await page.evaluate(async () => {
-        window.scrollTo(0, 0);
+        window.scrollTo({top:0,left:0,behavior:'instant'});
         await document.fonts.ready;
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       });
@@ -169,29 +171,34 @@ try {
   await page.setViewportSize({width:1100,height:900});
   await checkEventPanel(1100);
   await capture('practice-arena-gameplay');
+  await startSimulatedArena(page, 'practiceArena', false);
+  const roundEvents = await page.locator('#practiceArenaEvents li').count();
   // Repeated failed attempts are separate events, even with the same reason.
   await page.evaluate(() => {
     for (let i = 0; i < 2; i++) document.dispatchEvent(new CustomEvent('wizard:practice-arena-gesture', {
       detail:{type:'reject', reason:'Draw a larger shape', cause:'too_small'}
     }));
   });
-  assert.equal(await page.locator('#practiceArenaEvents li').count(), 2);
+  assert.equal(await page.locator('#practiceArenaEvents li').count(), roundEvents + 2);
   assert.equal(await page.locator('#practiceArenaEventsEmpty').isVisible(), false);
   // Capture the defeat window with simulated casts and no camera access.
-  for (const health of [170, 140, 110, 80, 50, 20, 0]) {
+  for (let round = 1; round <= 2; round++) {
+  for (const health of [180, 160, 140, 120, 100, 80, 60, 40, 20, 0]) {
     await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {
       detail:{id:crypto.randomUUID(), shape:'Basic Cast', score:95, damage:30}
     })));
     await page.waitForFunction(value => document.querySelector('#practiceArenaDummyHealth').value === value, health);
-    if (health === 170) {
-      assert.equal(await page.locator('#practiceArenaEvents li').count(), 3, 'one spell event after two failed attempts');
+    if (health === 180 && round === 1) {
+      assert.equal(await page.locator('#practiceArenaEvents li').count(), roundEvents + 3, 'one spell event after two failed attempts');
       assert.equal(await page.locator('#practiceArenaEvents li strong').first().textContent(), 'Basic Cast');
-      assert.equal(await page.locator('#practiceArenaEvents li p').first().textContent(), '30 damage · 95% precision');
+      assert.equal(await page.locator('#practiceArenaEvents li p').first().textContent(), '20 damage · 95% precision');
     }
   }
+  if(round === 1) await page.waitForFunction(() => document.querySelector('#practiceArenaView .practice-arena').dataset.roundPhase === 'active');
+  }
   await page.waitForFunction(() => document.querySelector('#practiceArenaEffects').childElementCount === 0);
-  assert.equal(await page.locator('#practiceArenaEvents li').count(), 10);
-  assert.equal(await page.locator('#practiceArenaEvents li strong').first().textContent(), 'Dummy defeated');
+  assert.equal(await page.locator('#practiceArenaEvents li').count(), roundEvents + 25);
+  assert.equal(await page.locator('#practiceArenaEvents li strong').first().textContent(), 'Player wins round 2');
   assert.equal(await page.locator('#practiceArenaEvents li strong').nth(1).textContent(), 'Basic Cast');
   assert.equal(await page.locator('#practiceArenaEvents li p').nth(1).textContent(), '20 damage · 95% precision');
   assert.equal(await page.locator('#practiceArenaEvents li strong').nth(2).textContent(), 'Basic Cast');
@@ -202,6 +209,7 @@ try {
   await page.getByRole('button', {name:'Restart', exact:true}).click();
   assert.equal(await page.locator('#practiceArenaEvents li').count(), 1);
   assert.equal(await page.locator('#practiceArenaEvents li strong').textContent(), 'Practice Arena restarted');
+  await startSimulatedArena(page, 'practiceArena', false);
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {
     detail:{id:crypto.randomUUID(), shape:'Protego', score:87, damage:0}
   })));
@@ -252,36 +260,35 @@ try {
     await page.locator('#spellTrainingSpell').selectOption(id);
     await startSimulatedLesson(page);
     // Simulated lesson events only. No camera stream or detector is started.
-    await page.evaluate(shape => {
-      for (let i = 0; i < 3; i++) document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(shape => document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
         detail:{id:crypto.randomUUID(), type:'cast', accepted:true, shape, score:95}
-      }));
-    }, shape);
+      })), shape);
+      await page.waitForFunction(n => document.querySelector('#spellTrainingDummyHealth').value === 200-10*n, i+1);
+    }
     assert.equal(await page.locator('#spellTrainingCount').textContent(), '3 / 3');
-    await page.waitForFunction(() => document.querySelector('#spellTrainingEvents').children.length === 3);
-    assert.deepEqual(await page.locator('#spellTrainingEvents li strong').allTextContents(), ['Expelliarmus','Expelliarmus','Expelliarmus']);
-    assert.deepEqual(await page.locator('#spellTrainingEvents li p').allTextContents(), Array(3).fill('30 damage · 95% precision'));
+    await page.waitForFunction(() => [...document.querySelectorAll('#spellTrainingEvents li strong')].filter(el => el.textContent === 'Expelliarmus').length === 3);
+    assert.deepEqual(await page.locator('#spellTrainingEvents li strong').filter({hasText:/^Expelliarmus$/}).allTextContents(), ['Expelliarmus','Expelliarmus','Expelliarmus']);
+    assert.deepEqual(await page.locator('#spellTrainingEvents li').filter({has:page.locator('strong', {hasText:/^Expelliarmus$/})}).locator('p').allTextContents(), Array(3).fill('10 damage · 95% precision'));
     assert.equal(await page.locator('#spellTrainingEvents').evaluate(list => list.getAnimations().length), 0);
     assert.equal(await page.locator('#practiceArenaEvents li').count(), 0, 'Spell Training events stay separate');
     await page.waitForFunction(() => document.querySelector('#spellTrainingEffects').childElementCount === 0
       && document.querySelector('#spellTrainingDummyActor').dataset.disarmed === 'false', null, {timeout:10000});
-    // Clear transient reactions and show the stable completed-lesson message.
-    await page.locator('#spellTrainingSpell').selectOption('protego');
-    await page.locator('#spellTrainingSpell').selectOption(id);
+    // The completed lesson is stable after its flights and disarm end.
     assert.deepEqual(await page.locator('#spellTrainingView .combatant-card strong').allTextContents(), ['Player','Dummy']);
     assert.deepEqual(await page.locator('#spellTrainingView .practice-arena-health').evaluateAll(bars =>
-      bars.map(bar => ({value:bar.value,max:bar.max}))), [{value:200,max:200},{value:110,max:200}]);
+      bars.map(bar => ({value:bar.value,max:bar.max}))), [{value:200,max:200},{value:170,max:200}]);
     await capture(prefix);
     await openMode('Practice Arena');
     assert.equal(await page.locator('#practiceArenaEvents li').count(), 0);
     await openMode('Spell Training');
-    assert.equal(await page.locator('#spellTrainingEvents li').count(), 3);
+    await page.evaluate(async () => (await import('/input-state.js')).updateInputState({camera:'Stop camera',cameraState:'Camera on',cameraDisabled:false}));
     await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
       detail:{id:crypto.randomUUID(), type:'reject', reason:'Draw a larger shape', cause:'too_small'}
     })));
     assert.equal(await page.locator('#spellTrainingEvents li strong').first().textContent(), 'Spell not cast');
     assert.equal(await page.locator('#spellTrainingEvents li p').first().textContent(), 'Draw a larger shape');
-    assert.equal(await page.locator('#spellTrainingCount').textContent(), '3 / 3');
+    assert.equal(await page.locator('#spellTrainingCount').textContent(), '0 / 3', 'camera readiness starts a new attempt');
     assert.equal(await page.evaluate(() => window.cameraCalls), 0);
     assert.equal(await page.locator('#practiceArenaEvents li').count(), 0, 'reload clears Practice Arena events and Spell Training casts do not add them');
   }
@@ -321,13 +328,17 @@ try {
   await page.keyboard.press('Escape');
   await openMode('Spell Training');
   // Accepted Spell Training spells play once, including Protego and an unselected spell.
-  await page.evaluate(() => {
-    window.playedAudio = [];
-    for (const shape of ['Protego', 'Basic Cast', 'Confringo', 'Expelliarmus']) {
+  await startSimulatedLesson(page);
+  await page.evaluate(() => { window.playedAudio = []; });
+  for (const shape of ['Protego', 'Basic Cast', 'Confringo', 'Expelliarmus']) {
+    await page.evaluate(shape => {
       const detail = {id:crypto.randomUUID(), type:'cast', accepted:true, shape, score:95};
       document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {detail}));
       document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {detail}));
-    }
+    }, shape);
+    await page.waitForTimeout(shape === 'Confringo' ? 2050 : 1150);
+  }
+  await page.evaluate(() => {
     for (const type of ['reject', 'cancel']) document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
       detail:{id:crypto.randomUUID(), type, accepted:false, shape:'Protego'}
     }));
@@ -335,6 +346,7 @@ try {
   assert.deepEqual(await page.evaluate(() => playedAudio.filter(url => url.includes('/spells/')).map(url => new URL(url).pathname)),
     ['/spells/protego/cast.wav', '/spells/basic-cast/cast.wav', '/spells/confringo/cast.wav', '/spells/expelliarmus/cast.wav']);
   await toggleEffects(0);
+  await startSimulatedLesson(page);
   const soundCount = await page.evaluate(() => playedAudio.length);
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
     detail:{id:crypto.randomUUID(), type:'cast', accepted:true, shape:'Protego', score:95}

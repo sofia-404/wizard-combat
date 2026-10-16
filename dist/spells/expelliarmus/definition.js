@@ -1,3 +1,4 @@
+import {COMBAT_SPELLS, COMBAT_RULES} from '../../combat/rules.js';
 export default {
   id: 'expelliarmus', label: 'Expelliarmus', kind: 'spell', version: 1,
   description: 'Start at the dot. Right, then down. Do not pause at the corner.',
@@ -7,8 +8,8 @@ export default {
     elements: [['circle', {cx: 10, cy: 10, r: 3}], ['path', {d: 'M13 10H48V50M28 6L33 10L28 14M43 44L48 50L53 44'}]]
   },
   effects: [
-    {type: 'damage', tiers: [{minScore: 88, value: 30}, {minScore: 78, value: 25}, {minScore: 0, value: 20}]},
-    {type: 'disarm', durationMs: 2000, repeat: 'refresh'}
+    {type: 'damage', tiers: [{minScore: 0, value: COMBAT_SPELLS['Expelliarmus'].damage}]},
+    {type: 'disarm', durationMs: COMBAT_RULES.disarmMs, repeat: 'ignore'}
   ],
   visuals: {cast: 'dummy-hit', color: '#ff927e'},
   sound: '/spells/expelliarmus/cast.wav',

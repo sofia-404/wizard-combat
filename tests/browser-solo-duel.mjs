@@ -1,3 +1,4 @@
+import {startSelectedMode, startSimulatedArena} from './browser-game-mode.mjs';
 import assert from 'node:assert/strict';
 
 export async function checkSoloDuel(page, base) {
@@ -14,30 +15,36 @@ export async function checkSoloDuel(page, base) {
   const cast = shape => page.evaluate(shape => document.dispatchEvent(new CustomEvent('wizard:cast', {
     detail:{id:crypto.randomUUID(), shape, score:95}
   })), shape);
+  await startSimulatedArena(page, 'soloDuel', false);
   await cast('Expelliarmus');
-  await page.waitForFunction(() => document.querySelector('#soloDuelDummyHealth').value === 170);
+  await page.waitForTimeout(3500);
+  await cast('Expelliarmus');
+  await page.waitForFunction(() => document.querySelector('#soloDuelDummyHealth').value === 190);
   assert.equal(await page.locator('#soloDuelDummyActor').getAttribute('data-disarmed'), 'true');
   assert.equal(await health('practiceArena'), 200);
   assert.equal(await page.locator('#practiceArenaEvents li').count(), 0);
+  await page.waitForTimeout(600);
   await cast('Protego');
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:player-hit', {
     detail:{view:'soloDuel',id:crypto.randomUUID(),damage:30}
   })));
   assert.equal(await page.locator('#soloDuelPlayerHealth').evaluate(node => node.value), 200);
   await page.locator('#gameBack').click();
-  await page.getByRole('button', {name:'Practice Arena',exact:true}).click();
+  await page.getByRole('button', {name:'Practice Arena',exact:true}).click(); await startSelectedMode(page);
+  await startSimulatedArena(page, 'practiceArena', false);
   await cast('Basic Cast');
   await page.waitForFunction(() => document.querySelector('#practiceArenaDummyHealth').value === 170);
-  assert.equal(await health('soloDuel'), 170);
+  assert.equal(await health('soloDuel'), 190);
   const timer = await page.locator('#soloDuelTimer').textContent();
   await page.waitForTimeout(1100);
   assert.equal(await page.locator('#soloDuelTimer').textContent(), timer, 'Hidden Solo Duel timer pauses');
   await page.locator('#gameBack').click();
-  await page.getByRole('button', {name:'Solo Duel',exact:true}).click();
-  for (let i = 0; i < 6; i++) {
-    await cast('Basic Cast');
-    await page.waitForFunction(value => document.querySelector('#soloDuelDummyHealth').value === value, Math.max(0, 170 - 30 * (i + 1)));
-  }
+  await page.getByRole('button', {name:'Solo Duel',exact:true}).click(); await startSelectedMode(page);
+  await startSimulatedArena(page, 'soloDuel', false);
+  await page.waitForTimeout(3100);
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail:{view:'soloDuel',id:crypto.randomUUID(),damage:200}})));
+  await page.waitForFunction(() => document.querySelector('#soloDuelView .practice-arena').dataset.roundPhase === 'active');
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail:{view:'soloDuel',id:crypto.randomUUID(),damage:200}})));
   assert.equal(await page.locator('#soloDuelDefeat').isVisible(), true);
   await page.locator('#soloDuelResetDummy').click();
   assert.equal(await health('soloDuel'), 200);

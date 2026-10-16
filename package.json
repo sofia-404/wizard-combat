@@ -15,6 +15,7 @@
     "test:navigation": "node tests/browser-navigation.mjs",
     "test:input": "node tests/browser-input-settings.mjs",
     "test:protego-training": "node tests/browser-protego-training.mjs",
+    "test:rounds": "node tests/browser-rounds.mjs",
     "test:solo-duel": "node tests/browser-solo-combat.mjs"
   },
   "devDependencies": {

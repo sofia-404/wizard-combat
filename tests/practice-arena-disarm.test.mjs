@@ -38,18 +38,12 @@ test('Practice Arena wand returns two seconds after an impact', () => {
   assert.equal(f.status.textContent, 'Wand ready');
 });
 
-test('a repeat Expelliarmus impact restarts the shared disarm deadline', () => {
-  const f = fixture();
-  f.disarm.hit(cast());
-  f.advance(1500);
-  f.disarm.hit(cast());
-  assert.equal(f.timers.size, 1);
-  f.advance(500);
-  assert.equal(f.actor.dataset.disarmed, 'true');
-  f.advance(1499);
-  assert.equal(f.actor.dataset.disarmed, 'true');
-  f.advance(1);
-  assert.equal(f.actor.dataset.disarmed, 'false');
+test('repeated disarm cannot extend the deadline or bypass return protection', () => {
+  const f=fixture(); f.disarm.hit(cast()); f.advance(1500); f.disarm.hit(cast());
+  f.advance(500); assert.equal(f.actor.dataset.disarmed,'false');
+  f.disarm.hit(cast()); assert.equal(f.actor.dataset.disarmed,'false');
+  f.advance(3999); f.disarm.hit(cast()); assert.equal(f.actor.dataset.disarmed,'false');
+  f.advance(1); f.disarm.hit(cast()); assert.equal(f.actor.dataset.disarmed,'true');
 });
 
 test('other spells do not restore or extend disarm', () => {
@@ -102,6 +96,7 @@ test('view refresh preserves remaining time and catches throttled return timers'
   assert.equal(f.actor.dataset.disarmed, 'true');
   f.advance(1);
   assert.equal(f.actor.dataset.disarmed, 'false');
+  f.advance(4000);
   f.disarm.hit(cast());
   f.advance(5000, false);
   assert.equal(f.actor.dataset.disarmed, 'true');

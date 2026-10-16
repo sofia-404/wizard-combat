@@ -1,3 +1,5 @@
+import {startSimulatedArena} from './browser-game-mode.mjs';
+import {startSelectedMode} from './browser-game-mode.mjs';
 import assert from 'node:assert/strict';
 import {startSimulatedLesson} from './browser-health-checks.mjs';
 import {createServer} from 'node:http';
@@ -89,14 +91,14 @@ export async function checkSiteHistory(browser, base, cached) {
     }
     // Return to an earlier hash entry in the cached document, not its last screen.
     await page.goto(base + '#menu');
-    await page.getByRole('button', {name:'Spell Training',exact:true}).click();
+    await page.getByRole('button', {name:'Spell Training',exact:true}).click(); await startSelectedMode(page);
     await page.locator('#gameBack').click();
-    await page.getByRole('button', {name:'Practice Arena',exact:true}).click();
+    await page.getByRole('button', {name:'Practice Arena',exact:true}).click(); await startSelectedMode(page);
     await saved();
     const id = await page.evaluate(() => historyTest.id);
     await page.goto(away);
     await page.evaluate(() => history.go(-3));
-    await page.waitForURL(base + '#spellTraining', {waitUntil:'commit'});
+    await page.waitForURL(url => url.hash === '#spellTraining', {waitUntil:'commit'});
     // Chromium may reload when jumping over several entries. Check either path.
     const earlier = await checkReturn('spellTraining', id, cached ? null : false);
     await page.goForward({waitUntil:'commit'}); await checkScreen('menu');
@@ -113,6 +115,7 @@ export async function checkSiteHistory(browser, base, cached) {
         })));
         assert.equal(await page.locator('#spellTrainingCount').textContent(), '1 / 3');
       } else {
+        await startSimulatedArena(page, 'practiceArena', false);
         await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {
           detail:{id:crypto.randomUUID(),shape:'Basic Cast',score:95}
         })));
@@ -126,7 +129,7 @@ export async function checkSiteHistory(browser, base, cached) {
       else assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(element => element.value), cached ? 170 : 200);
       // The returned screen can still change modes and handle controls.
       await page.locator('#gameBack').click(); await checkScreen('menu');
-      await page.getByRole('button', {name:name === 'practiceArena' ? 'Spell Training' : 'Practice Arena',exact:true}).click();
+      await page.getByRole('button', {name:name === 'practiceArena' ? 'Spell Training' : 'Practice Arena',exact:true}).click(); await startSelectedMode(page);
       await checkScreen(name === 'practiceArena' ? 'spellTraining' : 'practiceArena');
     }
 

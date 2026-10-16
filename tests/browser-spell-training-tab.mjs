@@ -7,7 +7,7 @@ import {spawn} from 'node:child_process';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {resample} from '../dist/gesture.js';
-import {openGameMode} from './browser-game-mode.mjs';
+import {openGameMode, startSelectedMode} from './browser-game-mode.mjs';
 
 const root = path.dirname(fileURLToPath(new URL('../package.json', import.meta.url)));
 const output = path.join(root, '.tmp/browser-check');
@@ -90,7 +90,7 @@ try {
   await page.keyboard.press('Escape');
   for (const [name, id] of [['Practice Arena','practiceArenaView'],['Spell Training','spellTrainingView']]) {
     const trigger=page.getByRole('button',{name,exact:true});
-    await trigger.focus();await page.keyboard.press('Enter');
+    await trigger.focus();await page.keyboard.press('Enter');await startSelectedMode(page, true);
     for(const other of ['spellTrainingView','practiceArenaView'])assert.equal(await page.locator('#'+other).isVisible(),other===id);
     assert.equal(await page.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
     assert.equal(await page.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
@@ -101,11 +101,13 @@ try {
     assert.equal(await page.locator('#mainMenu').isVisible(), true);
     assert.equal(await page.getByRole('button', {name,exact:true}).evaluate(el => el === document.activeElement), true);
   }
-  await page.getByRole('button',{name:'Spell Training',exact:true}).click();
+  await page.getByRole('button',{name:'Spell Training',exact:true}).click(); await startSelectedMode(page);
   await page.waitForFunction(() => document.querySelector('#spellTrainingSpell').options.length === 4);
   // Spell Training shows the same idle wizard and dummy as Practice Arena.
-  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#spellTrainingView .idle')].map(group => group.getAnimations().map(animation => animation.animationName).join())),
-    ['player-breathe', 'player-sway', 'player-back-arm', 'player-wand-arm', 'dummy-breathe', 'dummy-sway', 'dummy-wand']);
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#spellTrainingView .idle')]
+    .filter(group => !group.classList.contains('player-back-arm') && !group.classList.contains('player-wand-arm'))
+    .map(group => group.getAnimations().map(animation => animation.animationName).join())),
+    ['player-breathe', 'player-sway', 'dummy-breathe', 'dummy-sway', 'dummy-wand']);
   const text = id => page.locator('#' + id).textContent();
   const count = async value => assert.equal(await text('spellTrainingCount'), `${value} / 3`);
   const exp = resample([{x:.25,y:.2},{x:.55,y:.2},{x:.55,y:.5}], 40);
@@ -152,12 +154,14 @@ try {
   assert.equal(await page.locator('#spellTrainingView .practice-arena-camera-panel + .spell-training-selection #spellTrainingSpell').count(), 1);
   assert.equal(await page.locator('#spellTrainingView .practice-arena-live #spellTrainingEvents').count(), 1);
   assert.equal(await page.locator('#spellTrainingMessage').textContent(), 'Hold still. Follow the guide.');
+  assert.equal(await page.locator('#spellTrainingMessage').isVisible(), false);
   assert.equal(await page.locator('#spellTrainingStop').count(), 0);
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {detail:{id:'hidden-reject',type:'reject'}})));
   assert.equal(await page.locator('#spellTrainingMessage').isHidden(), true);
   await draw(basic, 'Basic Cast');
   await count(0);
   assert.ok(await page.evaluate(() => window.effectSpells.includes('Basic Cast')));
+  await page.waitForFunction(() => document.querySelector('#spellTrainingEvents li strong')?.textContent === 'Basic Cast');
   assert.equal(await page.locator('#spellTrainingEvents li strong').first().textContent(), 'Basic Cast');
   assert.match(await page.locator('#spellTrainingEvents li p').first().textContent(), /damage · .*% precision/);
   const effectCount = await page.evaluate(() => window.effectSpells.length);
@@ -190,19 +194,19 @@ try {
   assert.equal(await page.locator('#mainMenu').isVisible(), true);
   assert.equal(await page.locator('#video').evaluate(el => el.srcObject), null);
   assert.equal(await page.evaluate(() => window.cameraStream.getVideoTracks()[0].readyState), 'ended');
-  await page.getByRole('button', {name:'Spell Training',exact:true}).click();
+  await page.getByRole('button', {name:'Spell Training',exact:true}).click(); await startSelectedMode(page);
   await count(0);
   assert.equal(await text('spellTrainingCamera'), 'Start camera');
   await page.locator('#gameBack').click();
   assert.equal(await page.locator('#mainMenu').isVisible(), true);
-  await page.getByRole('button', {name:'Spell Training',exact:true}).click();
+  await page.getByRole('button', {name:'Spell Training',exact:true}).click(); await startSelectedMode(page);
   await count(0);
   await send(Array(20).fill(exp[0]));
   await page.locator('#spellTrainingCamera').click();
   await page.waitForFunction(() => document.querySelector('#phase').textContent === 'READY');
   for (let i = 0; i < 3; i++) await draw(exp, 'Expelliarmus');
   await count(3);
-  assert.equal(await page.locator('#spellTrainingCompletion').isVisible(), true);
+  assert.equal(await page.locator('#spellTrainingCompletion').isVisible(), false);
   assert.equal(await text('spellTrainingLearnedTitle'), 'Expelliarmus learned');
   assert.equal(await text('spellTrainingLearnedTotal'), '1 of 4 spells learned');
   assert.equal(await page.locator('#spellTrainingProgress').evaluate(el => el.value), 3);
@@ -212,7 +216,7 @@ try {
   await count(0); // A shield cast counts only after it blocks an opponent attack.
   await page.locator('#spellTrainingSpell').selectOption('expelliarmus');
   await count(3);
-  assert.equal(await page.locator('#spellTrainingCompletion').isVisible(), true);
+  assert.equal(await page.locator('#spellTrainingCompletion').isVisible(), false);
   assert.equal(await text('spellTrainingLearnedTitle'), 'Expelliarmus learned');
   assert.deepEqual(await page.evaluate(() => ({dummy:document.querySelector('#practiceArenaDummyHealth').value,
     player:document.querySelector('#practiceArenaPlayerHealth').value,practiceArenaHits:document.querySelector('#practiceArenaHits').textContent})), baseline);
@@ -221,6 +225,7 @@ try {
   for (const [name, width, height] of [['desktop',1920,1080],['small-desktop',1100,900],['mobile',390,844],['small-mobile',320,740]]) {
     await page.setViewportSize({width,height});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.equal(await page.locator('#spellTrainingView .spell-training-guide-area').isVisible(), false);
     const layout = await page.evaluate(() => {
       const box = selector => document.querySelector(selector).getBoundingClientRect();
       return {
@@ -236,7 +241,7 @@ try {
       };
     });
     assert.ok(layout.camera.bottom < layout.selection.top && layout.selection.bottom < layout.events.top, 'spell selection sits between camera and events');
-    if (width >= 1100) assert.ok(Math.abs(layout.events.bottom - layout.arena.bottom) < 1, 'events end at the battlefield bottom, above lesson feedback');
+    if (width >= 1100) assert.ok(Math.abs(layout.events.bottom - layout.arena.bottom) < 1, 'events end at the battlefield bottom');
     assert.ok(layout.guide.bottom < layout.arena.bottom && layout.guide.top > layout.actionBottom, 'guide stays inside the arena below the central action');
     assert.ok(Math.abs(layout.guide.x + layout.guide.width / 2 - layout.arena.x - layout.arena.width / 2) < 1, 'guide stays centered');
     assert.ok(layout.actionTop >= layout.hudBottom, 'central action clears the health and progress row');
