@@ -126,7 +126,9 @@ async function recover(reason){
   catch{if(run===token)stopCamera('Tracking failed. Restart the camera.');}
 }
 function trackerHands(){
-  return $('soloDuelView')?.hidden===false ? 1 : 2;
+  const gameView=['soloDuelView','practiceArenaView','spellTrainingView']
+    .some(id=>$(id)?.hidden===false);
+  return gameView ? 1 : 2;
 }
 export async function toggleGameCamera(event){
   if(loading)return;

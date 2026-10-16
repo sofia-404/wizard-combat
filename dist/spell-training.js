@@ -26,7 +26,7 @@ const health = new PracticeArenaHealth();
 const opponent = new SoloOpponent({attacksOnly:true});
 const opponentCharge = createOpponentCharge($('spellTrainingDummyWand'), SOLO_RULES.warningMs);
 const incoming = new Set();
-let opponentTick = null;
+let opponentTick = null, chargeVisible = false;
 let pageHidden = false;
 const RESTART_DELAY_MS = 2000;
 let restartAt = 0;
@@ -77,6 +77,7 @@ function stopOpponent() {
   opponentTick = null;
   opponent.stop();
   opponentCharge.clear();
+  chargeVisible = false;
   incomingEffects.clear();
   incoming.clear();
   $('spellTrainingDummyState').hidden = true;
@@ -87,7 +88,13 @@ function syncOpponent() {
   const now = performance.now();
   const disarmed = $('spellTrainingDummyActor').dataset.disarmed === 'true';
   const action = opponent.update(now, {active:true, disarmed});
-  opponentCharge.refresh(opponent.preparing, now);
+  if (opponent.preparing) {
+    opponentCharge.refresh(opponent.preparing, now);
+    chargeVisible = true;
+  } else if (chargeVisible) {
+    opponentCharge.clear();
+    chargeVisible = false;
+  }
   if (opponentTick === null) opponentTick = setInterval(syncOpponent, 50);
   if (action?.type === 'prepare') {
     events.add(`Opponent prepares ${action.shape}`, 'Cast Protego before the spell hits.');
@@ -99,8 +106,9 @@ function syncOpponent() {
     document.dispatchEvent(new CustomEvent('wizard:opponent-cast', {detail:{...cast, view:'spellTraining'}}));
   }
   const text = disarmed ? 'Disarmed' : opponent.preparing ? `Casting ${opponent.preparing.shape}` : '';
-  set('spellTrainingDummyState', text);
-  $('spellTrainingDummyState').hidden = !text;
+  const state = $('spellTrainingDummyState');
+  if (state.textContent !== text) state.textContent = text;
+  if (state.hidden !== !text) state.hidden = !text;
 }
 const effects = createSpellEffects($('spellTrainingEffects'), cast => {
   const hit = health.hit(cast);
