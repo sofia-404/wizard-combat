@@ -1,8 +1,10 @@
 # Wizard Combat
 
-Use your camera to draw spells, train on a dummy, and duel a computer opponent. This is a local browser game prototype with four spells. Multiplayer is not available yet.
+Wizard Combat turns hand movements into spells through your camera.
 
-## Start the game
+This browser game prototype lets you learn four spells, train on a dummy, and duel a computer opponent. Draw a shape with your hand, then pause to cast. The game runs on your own computer. Online multiplayer is the main next step.
+
+## How to Run
 
 You need a desktop or laptop with a camera, a browser, and [Node.js 24 or later](https://nodejs.org/).
 
@@ -19,7 +21,7 @@ Start the local server:
 npm start
 ```
 
-No `npm install` is needed to play. Open the URL printed in the terminal, usually `http://127.0.0.1:5185/`. Keep the terminal open while you play. Press Ctrl+C there to stop the server.
+No `npm install` or build step is needed to play. Open the URL printed in the terminal, usually `http://127.0.0.1:5185/`. Use this address instead of opening `dist/index.html` directly. Keep the terminal open while you play. Press Ctrl+C there to stop the server.
 
 ## Cast your first spell
 
@@ -38,7 +40,9 @@ If a spell does not cast, check your selected hand, keep it in view, and try a l
 
 Use **Stop camera** to pause camera input. **Back to menu** leaves the mode and stops the camera.
 
-## Choose a mode
+## What is working
+
+The prototype has three playable modes:
 
 | Mode | What to do |
 | --- | --- |
@@ -47,6 +51,10 @@ Use **Stop camera** to pause camera input. **Back to menu** leaves the mode and 
 | **Solo Duel** | Fight an opponent that attacks and uses shields. Use Protego to block and Expelliarmus to interrupt it. |
 
 **Options** also controls difficulty, music volume, and sound effects volume. Difficulty changes spell recognition and the Solo Duel opponent's timing.
+
+Combat includes health, spell impacts, shields, disarming, defeat, and restart. Music, sound effects, and character animations give feedback during play. Input and audio settings stay saved in your browser.
+
+These features are implemented, but physical player testing is still needed. Mobile camera play has not been validated. Online play and saved progression are not available yet.
 
 ## Learn the spells
 
@@ -59,13 +67,52 @@ Use **Stop camera** to pause camera input. **Back to menu** leaves the mode and 
 
 Follow the on-screen guides with either hand. For Protego training, finish your circle before the incoming spell hits.
 
+Attack spells currently deal 20, 25, or 30 damage, based on the gesture match score. Protego blocks all incoming damage while active. It has no damage limit yet.
+
+## How it works
+
+The browser uses a bundled MediaPipe hand model to track your selected hand. It follows your index fingertip or knuckles and collects a path as you move. When you pause, the game checks the path against the spell shapes. An accepted shape triggers the spell's effects.
+
+```text
+Camera -> Hand tracking -> Drawn path -> Spell match -> Combat effect
+```
+
+The game uses HTML, CSS, and JavaScript. Hand tracking runs in a browser worker. Shared spell definitions keep gesture rules and combat effects consistent across modes. A small Node.js server serves the local files and saves play records. The application source and runtime assets are in `dist/`; no bundler is required.
+
 ## Camera and saved data
 
 Camera input is processed locally. Gameplay uses bundled files and no external service. The game does not save camera images or video.
 
 It saves results, timing, input settings, and tracking details under `play-data/`. Practice Arena and Solo Duel also save drawings of captured paths there.
 
-Options stay saved in your browser. Reloading the page resets the game and lesson progress; local records do not restore them. This prototype still needs physical player testing. Mobile camera play has not been validated.
+Reloading the page resets the game and lesson progress; local records do not restore them.
+
+## Short build log
+
+These milestones summarize the repository's commit history:
+
+| Date | What was built |
+| --- | --- |
+| 2026-10-15 | Added camera gesture casting and four spells. Added a practice dummy, shared spell rules, training lessons, shields, and disarming. |
+| 2026-10-15 | Added the main menu, saved options, music, spell sounds, and idle character motion. |
+| 2026-10-16 | Added Solo Duel with opponent attacks and shields, difficulty-based combat timing, and expanded training health mechanics and event logs. |
+| 2026-10-16 | Added separate audio volume controls and a looping menu animation. Updated camera processing and opponent rendering to reduce repeated work. |
+
+## What comes next
+
+**The main priority is online multiplayer:** duel another player over the internet.
+
+Further planned work:
+
+- Refine how gesture accuracy affects spell damage, and make shield reliability depend on it too. Damage already uses three score tiers; shield reliability does not yet depend on accuracy.
+- Give shields a damage limit, so they can block only a limited amount of damage.
+- Let players create custom spells.
+- Offer character models with different stats that affect combat, beyond visual skins.
+- Add a character scoreboard.
+- Require players to say a spell aloud before drawing its gesture.
+- Add fatalities: finishing moves at the end of a duel.
+
+These are planned features, not a release schedule.
 
 ## Project details
 
