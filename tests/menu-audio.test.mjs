@@ -15,14 +15,21 @@ test('game audio follows scenes, mute, visibility, defeat, and page exit', t => 
     pause() { this.paused = true; }
   });
   mockGlobal('document', {hidden:false});
-  const settings = {music:true, sfx:true, muted:false};
+  const settings = {music:true, musicVolume:25, sfx:true, sfxVolume:35, muted:false};
   const audio = createMenuAudio(() => settings);
   const menu = sounds.get('/audio/menu-night-vigil.mp3');
   const practiceArena = sounds.get('/audio/duel-clash-defiant.mp3');
   const spell = sounds.get('/spells/protego/cast.wav');
   const victory = sounds.get('/audio/duel-victory.mp3');
+  const hover = sounds.get('/audio/menu-hover.wav');
+  const click = sounds.get('/audio/menu-click.wav');
   audio.sync(); assert.equal(menu.paused, true);
   audio.unlock(); assert.equal(menu.paused, false);
+  assert.equal(menu.volume, .25);
+  settings.musicVolume=60; audio.sync(); assert.equal(menu.volume, .6); assert.equal(practiceArena.volume, .6);
+  settings.sfxVolume=20; audio.sync(); assert.equal(click.volume, .2); assert.equal(spell.volume, .2);
+  audio.play('hover'); assert.equal(hover.paused, false);
+  audio.play('click'); assert.equal(hover.paused, true); assert.equal(click.plays, 1);
   audio.setScene('duel'); assert.equal(menu.paused, true); assert.equal(practiceArena.paused, false);
   audio.play('Protego'); assert.equal(spell.plays, 1);
   document.hidden = true; audio.sync();

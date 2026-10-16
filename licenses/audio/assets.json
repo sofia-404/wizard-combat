@@ -53,9 +53,9 @@
   },
   {
     "path": "dist/audio/menu-click.wav",
-    "bytes": 40616,
-    "sha256": "08974c864c1c87b2931c969f9aaf325247dd941c5f125f28774e079b0eaeed80",
-    "duration_seconds": 0.46,
+    "bytes": 15920,
+    "sha256": "948c6f980ae4ecedb3ae9680cdd7bba001c8a46b2a0b7a62ad8f142598f7cec2",
+    "duration_seconds": 0.18,
     "streams": [
       {
         "codec_name": "pcm_s16le",

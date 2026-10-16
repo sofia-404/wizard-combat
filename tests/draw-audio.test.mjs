@@ -33,7 +33,7 @@ test('drawing audio stops without another animation frame and can restart', asyn
   mockGlobal('document', document); mockGlobal('window', window);
   mockGlobal('AudioContext', AudioContext);
   mockGlobal('fetch', async () => ({arrayBuffer:async () => new ArrayBuffer(0)}));
-  const settings = {sfx:true, muted:false};
+  const settings = {sfx:true, sfxVolume:35, muted:false};
   const audio = createDrawAudio(() => settings);
   document.dispatchEvent(new Event('pointerdown'));
   await new Promise(resolve => setImmediate(resolve));

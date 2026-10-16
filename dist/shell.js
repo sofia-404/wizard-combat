@@ -12,7 +12,7 @@ let current=null,returnFocus=null;
 const help={easy:'9 seconds to draw. More forgiving shape tolerance.',normal:'6 seconds to draw. Standard shape tolerance.',hard:'3.5 seconds to draw. Tighter shape tolerance.'};
 function renderSettings(){
   const settings=getSettings();
-  $('musicSetting').checked=settings.music;$('sfxSetting').checked=settings.sfx;
+  for(const key of ['musicVolume','sfxVolume']){$(key).value=settings[key];$(key+'Value').textContent=settings[key]+'%';}
   $('handSetting').value=settings.hand;$('pointSetting').value=settings.point;
   $('difficultySetting').value=settings.difficulty;$('difficultyHelp').textContent=help[settings.difficulty];
   audio.sync();
@@ -54,7 +54,8 @@ for(const button of document.querySelectorAll('[data-view]:not(:disabled)'))butt
 setupMenuBack(moveFocus=>navigate('menu',null,moveFocus));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&current!=='menu'){event.preventDefault();navigate('menu');}});
 $('optionsForm').addEventListener('submit',event=>event.preventDefault());
-for(const [id,key] of [['musicSetting','music'],['sfxSetting','sfx'],['handSetting','hand'],['pointSetting','point'],['difficultySetting','difficulty']])$(id).addEventListener('change',event=>updateSettings({[key]:event.target.type==='checkbox'?event.target.checked:event.target.value}));
+for(const [id,key] of [['handSetting','hand'],['pointSetting','point'],['difficultySetting','difficulty']])$(id).addEventListener('change',event=>updateSettings({[key]:event.target.value}));
+for(const key of ['musicVolume','sfxVolume'])$(key).addEventListener('input',event=>updateSettings({[key]:Number(event.target.value)}));
 for(const type of ['wizard:game-cast','wizard:opponent-cast','wizard:spell-training-cast'])document.addEventListener(type,({detail})=>{if(detail.view===current)audio.play(detail.shape);});
 document.addEventListener('wizard:duel-defeat',({detail})=>{if(detail.view===current)audio.setDefeated(true,!detail.player);});
 document.addEventListener('wizard:duel-state',({detail})=>{if(detail.view===current)audio.setDefeated(detail.over,false);});

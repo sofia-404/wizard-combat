@@ -27,7 +27,7 @@ Keep one desktop/narrow pair for the shared Spell Training layout. Keep a guide 
 
 Game captures use desktop 1920x1080 and narrow 390x844 viewports. Brandbook captures use a 1920x1080 viewport. Image height follows the full page or cropped element. All captures use Chromium, device scale factor 1, reduced motion, and loaded fonts. Browser versions can change pixel output.
 
-The browser test blocks `getUserMedia` and checks that no camera call occurs. Game settings are Drawing hand Left and Track point Index fingertip. Options uses separate Music and Sound effects switches. Practice Arena and Spell Training show Start camera in the arena center. Idle motion is disabled for these captures. Lesson setup briefly simulates camera readiness to start the lesson automatically without a stream. The camera stays off in the saved previews; mode navigation updates the camera status message Spell guide crops have no live input.
+The browser test blocks `getUserMedia` and checks that no camera call occurs. Game settings are Drawing hand Left and Track point Index fingertip. Options uses separate Music volume and Sound effects volume sliders. Practice Arena and Spell Training show Start camera in the arena center. Idle motion is disabled for these captures. Lesson setup briefly simulates camera readiness to start the lesson automatically without a stream. The camera stays off in the saved previews; mode navigation updates the camera status message Spell guide crops have no live input.
 
 ## Capture and review
 

@@ -67,7 +67,8 @@ the retrieval date.
 
 `dist/audio/menu-hover.wav` and `dist/audio/menu-click.wav` are original
 procedural tones made for Wizard Combat by the included Python script.
-They contain sine partials and quiet delayed reflections. They use no
+The hover uses sine partials and quiet delayed reflections. The click is a
+short, low tap with a falling pitch. They use no
 third-party recordings, sound libraries, or external AI music service.
 
 To the extent copyright applies, the original generated WAV sounds are

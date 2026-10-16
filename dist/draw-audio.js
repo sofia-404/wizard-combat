@@ -28,7 +28,7 @@ export function createDrawAudio(getSettings){
     const state=getSettings(),level=drawing&&!document.hidden&&state.sfx&&!state.muted?trailLevel(speed):0;
     if(level>0&&context.state==='suspended')context.resume().catch(()=>{});
     // Fade in quickly when the stroke moves, and fade out a little slower so the end is smooth.
-    gain.gain.setTargetAtTime(MAX_GAIN*level,context.currentTime,level>0?.03:.06);
+    gain.gain.setTargetAtTime(MAX_GAIN*level*state.sfxVolume/35,context.currentTime,level>0?.03:.06);
     source.playbackRate.setTargetAtTime(.92+.16*level,context.currentTime,.08);
   }};
 }

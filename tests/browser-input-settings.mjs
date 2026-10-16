@@ -296,22 +296,25 @@ try {
   assert.ok(records.length > 0);
   assert.ok(records.every(record => !Object.hasOwn(record, 'swap')));
 
-  // Music and Sound effects are the only visible sound controls.
+  // Old master mute becomes two zero volume sliders.
   assert.equal(await page.locator('#gameSoundToggle, #soundToggle').count(), 0);
   await openOptions();
   await page.evaluate(() => localStorage.setItem('wizard-combat-settings', JSON.stringify({music:true,sfx:true,muted:true})));
   await page.reload();
-  assert.equal(await page.locator('#musicSetting').isChecked(), false);
-  assert.equal(await page.locator('#sfxSetting').isChecked(), false);
-  await page.locator('#musicSetting').check();
-  await page.locator('#sfxSetting').check();
+  const setVolume = (id, value) => page.locator('#' + id).evaluate((input, value) => {input.value=String(value);input.dispatchEvent(new Event('input',{bubbles:true}));}, value);
+  assert.equal(await page.locator('#musicVolume').inputValue(), '0');
+  assert.equal(await page.locator('#sfxVolume').inputValue(), '0');
+  await setVolume('musicVolume', 60);
+  await setVolume('sfxVolume', 40);
   await page.reload();
-  assert.equal(await page.locator('#musicSetting').isChecked(), true);
-  assert.equal(await page.locator('#sfxSetting').isChecked(), true);
+  assert.equal(await page.locator('#musicVolume').inputValue(), '60');
+  assert.equal(await page.locator('#musicVolumeValue').textContent(), '60%');
+  assert.equal(await page.locator('#sfxVolume').inputValue(), '40');
+  assert.equal(await page.locator('#sfxVolumeValue').textContent(), '40%');
   assert.equal(await page.evaluate(async () => (await import('/settings.js')).getSettings().muted), false);
-  const toggleEffects = async () => {
+  const toggleEffects = async value => {
     await openOptions();
-    await page.locator('#sfxSetting').click();
+    await setVolume('sfxVolume', value);
     await page.keyboard.press('Escape');
     await openMode('Spell Training');
   };
@@ -331,13 +334,13 @@ try {
   });
   assert.deepEqual(await page.evaluate(() => playedAudio.filter(url => url.includes('/spells/')).map(url => new URL(url).pathname)),
     ['/spells/protego/cast.wav', '/spells/basic-cast/cast.wav', '/spells/confringo/cast.wav', '/spells/expelliarmus/cast.wav']);
-  await toggleEffects();
+  await toggleEffects(0);
   const soundCount = await page.evaluate(() => playedAudio.length);
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
     detail:{id:crypto.randomUUID(), type:'cast', accepted:true, shape:'Protego', score:95}
   })));
   assert.equal(await page.evaluate(() => playedAudio.length), soundCount);
-  await toggleEffects();
+  await toggleEffects(40);
 
   await checkGameAudio(page, base);
   await page.setViewportSize({width:1920,height:1080});
@@ -349,7 +352,7 @@ try {
   }
   assert.equal(await page.evaluate(() => window.cameraCalls), 0);
   assert.deepEqual(errors, []);
-  console.log('PASS: input settings, sound switches and saved mute migration, menu icon, Spell Training spell audio and duplicate checks, mirrored preview, records, desktop/narrow layout. No camera access.');
+  console.log('PASS: input settings, sound volume sliders and saved mute migration, menu icon, Spell Training spell audio and duplicate checks, mirrored preview, records, desktop/narrow layout. No camera access.');
 } finally {
   await browser?.close();
   if (api && api.exitCode === null && api.signalCode === null) {

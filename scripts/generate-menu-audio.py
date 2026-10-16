@@ -47,6 +47,27 @@ def tone(name, duration, voices, peak):
                                    for value in samples))
 
 
+def menu_click():
+    """Render a short low tap with a falling pitch, unlike the hover chime."""
+    duration = 0.18
+    count = round(duration * RATE)
+    samples = []
+    phase = 0.0
+    for index in range(count):
+        t = index / RATE
+        frequency = 370 - 170 * min(t / 0.075, 1.0)
+        phase += math.tau * frequency / RATE
+        envelope = min(t / 0.003, 1.0) * math.exp(-t / 0.032)
+        samples.append(math.sin(phase) * envelope)
+    scale = 0.26 / max(abs(value) for value in samples)
+    with wave.open(str(OUTPUT / 'menu-click.wav'), 'wb') as audio:
+        audio.setnchannels(1)
+        audio.setsampwidth(2)
+        audio.setframerate(RATE)
+        audio.writeframes(b''.join(struct.pack('<h', round(value * scale * 32767))
+                                   for value in samples))
+
+
 def loop(source, name, title, start, end, fade, curve, gain):
     # Join the closing fade to the opening fade. The loop starts at source time
     # start + fade, continues through end - fade, then returns through this join.
@@ -92,9 +113,7 @@ def main():
     # D and A partials make a soft, brief magical interval without a noise bed.
     tone('menu-hover.wav', 0.26, [(0, 587.33, 1, 0.07),
                                 (0.024, 880, 0.22, 0.065)], 0.20)
-    tone('menu-click.wav', 0.46, [(0, 293.66, 0.40, 0.10),
-                                (0.012, 587.33, 1, 0.11),
-                                (0.048, 880, 0.30, 0.12)], 0.24)
+    menu_click()
     if options.music_source:
         music(options.music_source)
     if options.battle_source:

@@ -74,15 +74,14 @@ try {
 
   assert.equal(await page.locator('#mainMenu').isVisible(), true);
   await page.getByRole('button', {name:'Options',exact:true}).click();
-  await page.locator('#musicSetting').uncheck();
-  await page.locator('#sfxSetting').uncheck();
+  for(const id of ['musicVolume','sfxVolume'])await page.locator('#'+id).evaluate(input=>{input.value='0';input.dispatchEvent(new Event('input',{bubbles:true}));});
   await page.locator('#handSetting').selectOption('Right');
   await page.locator('#difficultySetting').selectOption('hard');
   await page.keyboard.press('Escape');
   await page.reload();
   await page.getByRole('button', {name:'Options',exact:true}).click();
-  assert.equal(await page.locator('#musicSetting').isChecked(), false);
-  assert.equal(await page.locator('#sfxSetting').isChecked(), false);
+  assert.equal(await page.locator('#musicVolume').inputValue(), '0');
+  assert.equal(await page.locator('#sfxVolume').inputValue(), '0');
   assert.equal(await page.locator('#handSetting').inputValue(), 'Right');
   assert.equal(await page.locator('#difficultySetting').inputValue(), 'hard');
   assert.match(await page.locator('#difficultyHelp').textContent(), /3.5 seconds/);
