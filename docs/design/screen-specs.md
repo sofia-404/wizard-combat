@@ -161,3 +161,7 @@ Open decisions for full practice arena mode: attacking opponents, player damage 
 ## UI copy
 
 Use literal instructions first. Short atmosphere lines can appear in menus, but never replace an error or input cue. Prefer “Hand lost” to “Your magic has faded.” Prefer “Allow camera access, then retry” to “Something went wrong.” Retain the implemented spell names unless a separate naming change is approved.
+
+The main-menu scene uses the supplied `menu-animation.mp4` as a muted, looping background video. It plays at 1x speed and repeats from the start. It continues through Options and Credits, pauses when a game view or hidden page is active, and stops under reduced motion. The original `menu-wizard.webp` remains the CSS fallback. The app copy has no audio track because menu music is handled separately.
+
+Menu, Options, and Credits reserve the same scrollbar space. The video stays fixed to the viewport when longer content scrolls.

@@ -1,11 +1,13 @@
 import {getSettings,updateSettings} from './settings.js';
 import {createMenuAudio} from './menu-audio.js';
+import {createMenuVideo} from './menu-video.js';
 import {setupMenuBack} from './presentation/menu-back.js';
 import {stopGameCamera} from './app.js';
 import {selectGameView} from './practice-arena.js';
 import './spell-training.js';
 const $=id=>document.getElementById(id);
 const audio=createMenuAudio(getSettings);
+const menuVideo=createMenuVideo(document.querySelector('.menu-art'));
 const views={menu:$('mainMenu'),options:$('optionsView'),credits:$('creditsView'),game:$('gameView')};
 const routes=['menu','spellTraining','practiceArena','soloDuel','options','credits'];
 let current=null,returnFocus=null;
@@ -28,6 +30,7 @@ function show(name,trigger,moveFocus=true){
   for(const [key,view] of Object.entries(views))view.hidden=key!==viewName;
   $('menuShell').hidden=game;
   current=name;
+  menuVideo.setActive(!game);
   if(game)selectGameView(name);
   audio.setScene(game?music[name]:'menu',game?name:'menu');window.scrollTo(0,0);
   if(initial)return;

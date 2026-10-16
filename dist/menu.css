@@ -64,3 +64,14 @@ body.practice-arena-open #gameView{background:#10181d;color:#ede9df}
 .menu-nav .menu-description + button{margin-top:8px}
 
 @media(max-width:600px){.menu-nav .menu-description{margin-top:-10px;margin-bottom:-11px}}
+
+/* The supplied menu video replaces the portrait only after it can play. */
+.menu-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none}
+.menu-art.is-video{animation:none;transform:none;background-image:linear-gradient(90deg,var(--wc-ink) 20%,transparent 55%)}
+.menu-art.is-video::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,var(--wc-ink) 20%,transparent 55%);pointer-events:none}
+@media(prefers-reduced-motion:reduce){.menu-video{display:none}.menu-art.is-video{background-image:linear-gradient(90deg,var(--wc-ink) 20%,transparent 55%),url('/brand/assets/menu-wizard.webp')}}
+@media(max-width:600px){.menu-art.is-video .menu-video{object-position:70% center}}
+
+/* Keep menu scenes stable when Credits adds a vertical scrollbar. */
+html:has(#menuShell:not([hidden])){scrollbar-gutter:stable}
+#menuShell > .menu-art.is-video{position:fixed;bottom:auto;height:100svh}
