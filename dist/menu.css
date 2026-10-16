@@ -32,6 +32,7 @@ body.practice-arena-open #gameView{background:#10181d;color:#ede9df}
 @media(min-width:601px) and (min-height:701px){#mainMenu{padding-top:24vh;padding-bottom:48px}}
 
 .options-form #pointSetting{width:230px;max-width:100%}
+.options-form select,.options-form #pointSetting{width:200px;max-width:100%}
 
 /* Screen title typography is shared; each screen owns its spacing and color. */
 .screen-title{font:400 24px/normal Georgia,'Times New Roman',serif;letter-spacing:-.3px;text-transform:uppercase}
