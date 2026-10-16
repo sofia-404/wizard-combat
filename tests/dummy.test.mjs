@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {TrainingDummy} from '../dist/dummy.js';
+import {PracticeDummy} from '../dist/dummy.js';
 import {GestureController,resample} from '../dist/gesture.js';
 
 test('Disarm timing and gesture integration', () => {
 
-const dummy=new TrainingDummy(),exp={type:'cast',accepted:true,shape:'Expelliarmus'};
+const dummy=new PracticeDummy(),exp={type:'cast',accepted:true,shape:'Expelliarmus'};
 assert.equal(dummy.disarmed,false);
 for(const event of [
   ...['Protego','Basic Cast','Confringo'].map(shape=>({...exp,shape})),

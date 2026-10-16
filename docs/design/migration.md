@@ -2,17 +2,17 @@
 
 Scope: requested migrations under `DESIGN.md`.
 
-The brandbook supplies a design reference and reusable assets. Training and the static-dummy Fight use their existing styles. Preserve current recognition and game rules during any requested migration. The main menu, Options, and Credits already use the brandbook system; their implementation is not pending work.
+The brandbook supplies a design reference and reusable assets. Spell Training and the static-dummy Practice Arena use their existing styles. Preserve current recognition and game rules during any requested migration. The main menu, Options, and Credits already use the brandbook system; their implementation is not pending work.
 
 ## Adoption order
 
 1. Read `PRODUCT.md`, `DESIGN.md`, and `screen-specs.md`. Keep existing input and lesson behavior as the baseline.
 2. Import the token stylesheet into the new player surface. Use its local fonts and `--wc-*` custom properties; do not duplicate hex values throughout components.
 3. Build a shared button, field, status, and gesture-guide layer with keyboard and reduced-motion support.
-4. Recompose training around the current camera, lesson, and dummy state. Preserve existing IDs or update their JavaScript bindings deliberately.
+4. Recompose spell training around the current camera, lesson, and dummy state. Preserve existing IDs or update their JavaScript bindings deliberately.
 5. Put technical settings and event logs behind an explicit diagnostics view. Keep them available for trials.
 6. Preserve the implemented main-menu routes. Add a route only when the requested work needs it and its action leads to a working screen.
-7. Preserve the implemented dummy Fight rules. Define opponent attacks and other full-fight mechanics separately before extending the fight concept. Treat mockup numbers and states as illustrative.
+7. Preserve the implemented dummy Practice Arena rules. Define opponent attacks and other full-combat mechanics separately before extending the practice arena concept. Treat mockup numbers and states as illustrative.
 
 ## Current migration gaps
 
@@ -61,15 +61,15 @@ SVG assets live in `dist/brand/assets/`: `emblem.svg`, `mark.svg` (the mark alia
 | Start, end, timeout, and loss rules | `dist/gesture.js` |
 | Right-then-down spell direction | `dist/gestures/ordered-corner.js` |
 | Spell definitions, damage, and colors | `dist/spells/`, `dist/combat/cast.js` |
-| Three-cast progress and completion actions | `dist/training/lesson.js` |
-| Two-second wand return | `dist/combat/training-dummy.js` |
-| Shared camera view, Fight health, and effects | `dist/fight.js`, `dist/fight-health.js`, `dist/fight-effects.js` |
+| Three-cast progress and completion actions | `dist/spell-training/lesson.js` |
+| Two-second wand return | `dist/combat/practice-dummy.js` |
+| Shared camera view, Practice Arena health, and effects | `dist/practice-arena.js`, `dist/practice-arena-health.js`, `dist/practice-arena-effects.js` |
 | Captured path drawing and recording limits | `dist/result-card.js` |
 
 ## Verification before migration ships
 
-- Run `npm test`, `npm run test:fight`, `npm run test:training`, `npm run test:input`, and `npm run test:navigation` for a migration that affects all game views. Adapt selectors deliberately if the layout changes.
-- Check shared camera controls, mode changes, damage at impact, cancelled flights, defeat, reset, separate Fight and Training state, and Training's per-spell lesson progress.
+- Run `npm test`, `npm run test:practice-arena`, `npm run test:spell-training`, `npm run test:input`, and `npm run test:navigation` for a migration that affects all game views. Adapt selectors deliberately if the layout changes.
+- Check shared camera controls, mode changes, damage at impact, cancelled flights, defeat, reset, separate Practice Arena and Spell Training state, and Spell Training's per-spell lesson progress.
 - Inspect at 1920×1080 and a narrow viewport. Check 200% zoom and keyboard focus.
 - Check camera off, starting, blocked, absent hand, ready, drawing, accepted, rejected, lost tracking, and 3/3 completion.
 - Check both hands and both control points. The displayed Expelliarmus guide stays right then down.

@@ -77,11 +77,11 @@ test('local server serves files and validates stored events and result cards', {
   for(const swap of [2, '1', null, {}])assert.equal((await post('api/events', {...event, swap})).status, 400);
   assert.equal((await post('api/events', {...event, reason: 'x'.repeat(201)})).status, 400);
   assert.equal((await post('api/events', {...event, reason: 'x'.repeat(5000)})).status, 413);
-  const fight = {id: randomUUID(), type: 'fight', source: 'fight', cause: 'hit', activeTab: 'fight',
-    previousTab: 'training', castId: event.id, castToHitMs: 131, playerHealth: 200,
+  const practiceArena = {id: randomUUID(), type: 'practiceArena', source: 'practiceArena', cause: 'hit', activeTab: 'practiceArena',
+    previousTab: 'spellTraining', castId: event.id, castToHitMs: 131, playerHealth: 200,
     dummyHealth: 170, previousDummyHealth: 200, maxHealth: 200, damage: 30, hits: 1};
-  assert.equal((await post('api/events', fight)).status, 201);
-  assert.equal((await post('api/events', {...fight, unexpected: 'value'})).status, 400);
+  assert.equal((await post('api/events', practiceArena)).status, 201);
+  assert.equal((await post('api/events', {...practiceArena, unexpected: 'value'})).status, 400);
   const confringo = {id: randomUUID(), type: 'cast', shape: 'Confringo', expected: 'Confringo', score: 90, difficulty: 'normal',
     matchCandidates: 'Confringo', confringoDistance: .01, confringoGate: 'ok', confringoLimit: .045,
     confringoBend: .02, confringoEfficiency: .95, confringoOrientation: 'normal', confringoTrim: 0};
@@ -95,11 +95,11 @@ test('local server serves files and validates stored events and result cards', {
   const protego = {id: randomUUID(), type: 'cast', shape: 'Protego', expected: 'Protego', score: 90,
     matchCandidates: 'Protego', protegoDistance: .01, protegoGate: 'ok'};
   assert.equal((await post('api/events', protego)).status, 201);
-  const shield = {id: randomUUID(), type: 'fight', cause: 'shield', shape: 'Protego',
+  const shield = {id: randomUUID(), type: 'practiceArena', cause: 'shield', shape: 'Protego',
     castId: protego.id, damage: 0, duration: 3000, playerHealth: 200, dummyHealth: 200, hits: 0};
   assert.equal((await post('api/events', shield)).status, 201);
   const records = (await readFile(path.join(folder, 'play-data/events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
-  assert.deepEqual(records, [event, ...legacyEvents.map(({swap, ...record}) => record), fight, confringo, basiccast, legacyV, protego, shield]);
+  assert.deepEqual(records, [event, ...legacyEvents.map(({swap, ...record}) => record), practiceArena, confringo, basiccast, legacyV, protego, shield]);
   const bytes = png(720, 440), card = {id: event.id, png: 'data:image/png;base64,' + bytes.toString('base64')};
   assert.equal((await post('api/results', card)).status, 201);
   assert.deepEqual(await readFile(path.join(folder, 'play-data/results', event.id + '.png')), bytes);

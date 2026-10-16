@@ -5,6 +5,8 @@ import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {startSimulatedLesson} from './browser-health-checks.mjs';
+import {checkSoloDuel} from './browser-solo-duel.mjs';
 import {checkSiteHistory} from './browser-history.mjs';
 import {checkReloadRendering} from './browser-reload-rendering.mjs';
 
@@ -72,15 +74,16 @@ try {
   await context.route('**/api/results', route => route.fulfill({status:201, contentType:'application/json', body:'{"saved":true}'}));
   const page = await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
-  const screens = {menu:'mainMenu', training:'trainingView', fight:'fightView', options:'optionsView', credits:'creditsView'};
+  await checkSoloDuel(page, base);
+  const screens = {menu:'mainMenu', spellTraining:'spellTrainingView', practiceArena:'practiceArenaView', soloDuel:'soloDuelView', options:'optionsView', credits:'creditsView'};
   const checkScreen = async (name, expectFocus = true) => {
     await page.locator('#' + screens[name]).waitFor({state:'visible'});
     for (const [other, id] of Object.entries(screens)) assert.equal(await page.locator('#' + id).isVisible(), other === name);
-    assert.deepEqual(await page.locator('#gameView [role="region"]').evaluateAll(nodes => nodes.map(node => node.id)), ['fightView', 'trainingView']);
-    const focus = name === 'menu' ? '#mainMenu button' : ['fight','training'].includes(name) ? '#gameBack' : '#' + name + 'Title';
+    assert.deepEqual(await page.locator('#gameView [role="region"]').evaluateAll(nodes => nodes.map(node => node.id)), ['practiceArenaView', 'soloDuelView', 'spellTrainingView']);
+    const focus = name === 'menu' ? '#mainMenu button' : ['practiceArena','spellTraining','soloDuel'].includes(name) ? '#gameBack' : '#' + name + 'Title';
     if (expectFocus) assert.equal(await page.locator(focus).evaluateAll(elements => elements.includes(document.activeElement)), true);
-    if (['fight','training'].includes(name)) {
-      await page.locator('#' + name + 'View .fight-arena').waitFor({state:'visible'});
+    if (['practiceArena','spellTraining','soloDuel'].includes(name)) {
+      await page.locator('#' + name + 'View .practice-arena').waitFor({state:'visible'});
       assert.equal(await page.locator('#viewport').evaluate(element => element.parentElement.id), name + 'CameraMount');
       assert.equal(await page.locator('#video').evaluate(element => element.srcObject), null);
     }
@@ -108,11 +111,24 @@ try {
       await checkStartup(name);
       assert.equal(await page.locator(':focus-visible').count(), 0);
       assert.equal(await page.evaluate(() => window.cameraCalls), 0);
-      if (['fight','training'].includes(name)) {
-        const arena = await page.locator('#' + name + 'View .fight-arena').boundingBox();
-        const button = await page.locator('#' + name + 'View .fight-arena > #' + name + 'Camera').boundingBox();
+      if (name === 'menu') {
+        assert.deepEqual(await page.locator('.menu-nav button').allTextContents(),
+          ['Spell Training','Practice Arena','Solo Duel','Multiplayer','Options','Credits']);
+        for (const label of ['Multiplayer']) {
+          const button = page.getByRole('button', {name:label, exact:true});
+          assert.equal(await button.isDisabled(), true);
+          await button.evaluate(element => element.click());
+          assert.equal(await page.locator('#mainMenu').isVisible(), true);
+        }
+      }
+      if (['practiceArena','spellTraining','soloDuel'].includes(name)) {
+        const arena = await page.locator('#' + name + 'View .practice-arena').boundingBox();
+        const button = await page.locator('#' + name + 'View .practice-arena > #' + name + 'Camera').boundingBox();
         assert.ok(Math.abs(button.x + button.width / 2 - arena.x - arena.width / 2) < 1);
-        assert.ok(Math.abs(button.y + button.height / 2 - arena.y - arena.height / 2) < 1);
+        if (name === 'spellTraining' && viewport.width === 390) {
+          const guide = await page.locator('#spellTrainingGuide').boundingBox();
+          assert.ok(button.y >= arena.y && button.y + button.height <= guide.y, 'Training camera control stays above its guide');
+        } else assert.ok(Math.abs(button.y + button.height / 2 - arena.y - arena.height / 2) < 1);
       }
       await page.reload();
       await checkStartup(name);
@@ -120,13 +136,13 @@ try {
       assert.equal(new URL(page.url()).hash, '#' + name);
       assert.equal(await page.evaluate(() => window.cameraCalls), 0);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-      const first = ['fight','training'].includes(name) ? '#gameBack' : name === 'menu' ? '[data-view="fight"]' : '#' + name + 'View [data-back]';
+      const first = ['practiceArena','spellTraining','soloDuel'].includes(name) ? '#gameBack' : name === 'menu' ? '[data-view="spellTraining"]' : '#' + name + 'View [data-back]';
       await page.keyboard.press('Tab');
       await checkKeyboardFocus(first);
       await page.keyboard.press('Tab');
       await page.keyboard.press('Shift+Tab');
       await checkKeyboardFocus(first);
-      if (['fight','training'].includes(name)) {
+      if (['practiceArena','spellTraining','soloDuel'].includes(name)) {
         await page.keyboard.press('Space');
         await checkScreen('menu');
         await page.keyboard.press('Enter');
@@ -135,24 +151,24 @@ try {
       }
     }
     // Pointer navigation must not carry a keyboard outline to the next screen.
-    await page.goto(base + '?pointer=' + viewport.width + '#fight');
+    await page.goto(base + '?pointer=' + viewport.width + '#practiceArena');
     await page.keyboard.press('Tab');
     await checkKeyboardFocus('#gameBack');
-    for (const name of ['Training','Fight','Options','Credits','Training']) {
+    for (const name of ['Spell Training','Practice Arena','Options','Credits','Spell Training']) {
       await page.getByRole('button', {name:'Back to menu', exact:true}).click();
       await checkScreen('menu', false);
       assert.equal(await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle), 'none');
       await page.keyboard.press('Tab');
-      await checkKeyboardFocus('[data-view="fight"]');
+      await checkKeyboardFocus('[data-view="spellTraining"]');
       await page.getByRole('button', {name, exact:true}).click();
-      await checkScreen(name.toLowerCase(), false);
+      await checkScreen(({'Practice Arena':'practiceArena','Solo Duel':'soloDuel','Spell Training':'spellTraining'}[name] || name.toLowerCase()), false);
       assert.equal(await page.locator(':focus-visible:visible').count(), 0);
     }
     await page.keyboard.press('Tab');
     await checkKeyboardFocus('#gameBack');
   }
   // Camera startup restores keyboard focus only while the user stays put.
-  for (const name of ['fight','training']) for (const outcome of ['failure','success']) {
+  for (const name of ['practiceArena','spellTraining','soloDuel']) for (const outcome of ['failure','success']) {
     for (const action of ['stay','stay-space','tab','focus-away','pointer-away','leave','pointer-start']) {
       await page.goto(base + '?camera-focus=' + name + '-' + outcome + '-' + action + '#' + name);
       await page.evaluate(outcome => {
@@ -166,12 +182,16 @@ try {
       else {
         await page.keyboard.press('Tab');
         await page.keyboard.press('Tab');
+        if (name === 'spellTraining') await page.keyboard.press('Tab');
         await checkKeyboardFocus('#' + name + 'Camera');
         await page.keyboard.press(action === 'stay-space' ? 'Space' : 'Enter');
       }
       await page.waitForFunction(outcome => typeof window[outcome === 'success' ? 'resolveCamera' : 'rejectCamera'] === 'function', outcome);
       assert.equal(await button.isDisabled(), true);
-      if (action === 'tab') await page.keyboard.press('Shift+Tab');
+      if (action === 'tab') {
+        await page.keyboard.press('Shift+Tab');
+        if (name === 'spellTraining') await page.keyboard.press('Shift+Tab');
+      }
       if (action === 'focus-away') {
         await page.locator('#gameBack').focus();
         await page.locator('#gameBack').evaluate(element => element.blur());
@@ -188,7 +208,7 @@ try {
         if (action === 'leave') await page.waitForFunction(() => window.cameraStream.getVideoTracks()[0].readyState === 'ended');
         else await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().camera === 'Stop camera');
       }
-      await page.waitForFunction(() => !document.querySelector(location.hash === '#fight' ? '#fightCamera' : '#trainingCamera').disabled);
+      await page.waitForFunction(() => !document.querySelector(location.hash + 'Camera').disabled);
       // Let stale promise handlers finish before checking that they kept focus.
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const stayed = action === 'stay' || action === 'stay-space';
@@ -226,55 +246,55 @@ try {
     };
     const completeLesson = async prefix => page.evaluate(async prefix => {
       const {spells} = await import('/spells/index.js');
-      const shape = spells[document.querySelector('#trainingSpell').value].label;
-      for (let i = 0; i < 3; i++) document.dispatchEvent(new CustomEvent('wizard:training-gesture', {
+      const shape = spells[document.querySelector('#spellTrainingSpell').value].label;
+      for (let i = 0; i < 3; i++) document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
         detail:{id:prefix + i, type:'cast', accepted:true, shape, score:99}
       }));
     }, prefix);
-    await page.goto(base + '?lesson-focus=' + action + '#training');
-    await page.locator('#trainingCamera').waitFor({state:'visible'});
-    if (action !== 'mouse') for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
-    await activate('#trainingStart');
-    await checkReplacement('#trainingStop');
-    await activate('#trainingStop');
-    await checkReplacement('#trainingStart');
-    await activate('#trainingStart');
-    await completeLesson('finish-');
-    await checkReplacement('#trainingStop');
-    assert.equal(await page.locator('#trainingStop').textContent(), 'Finish lesson');
-    await activate('#trainingStop');
-    await checkReplacement('#trainingStart');
-    await activate('#trainingStart');
-    await completeLesson('practice-');
-    if (action !== 'mouse') await page.keyboard.press('Shift+Tab');
-    assert.equal(await page.locator('#trainingStart').textContent(), 'Practice again');
-    await activate('#trainingStart');
-    await checkReplacement('#trainingStop');
+    await page.goto(base + '?lesson-focus=' + action + '#spellTraining');
+    await page.locator('#spellTrainingCamera').waitFor({state:'visible'});
+    await page.evaluate(async () => (await import('/input-state.js')).updateInputState({camera:'Stop camera', cameraDisabled:false}));
+    assert.equal(await page.locator('#spellTrainingStart').count(), 0);
+    if (action !== 'mouse') {
+      for (let i = 0; i < 8 && !await page.locator('#spellTrainingCamera').evaluate(node => node === document.activeElement); i++) await page.keyboard.press('Tab');
+    } else await page.locator('#spellTrainingSpell').click();
+    const focused = await page.evaluate(() => document.activeElement.id);
+    await completeLesson('complete-');
+    assert.equal(await page.evaluate(() => document.activeElement.id), focused);
+    await page.evaluate(async () => {
+      const {updateInputState} = await import('/input-state.js');
+      updateInputState({cameraState:'Camera on'});
+      updateInputState({camera:'Start camera',cameraState:'Camera stopped'});
+      updateInputState({camera:'Stop camera',cameraState:'Camera on'});
+    });
+    assert.equal(await page.locator('#spellTrainingCount').textContent(), '0 / 3');
+    assert.equal(await page.locator('#spellTrainingCompletion').isHidden(), true);
+    assert.equal(await page.evaluate(() => document.activeElement.id), focused);
     await page.locator('#gameBack').focus();
     await completeLesson('away-');
     assert.equal(await page.locator('#gameBack').evaluate(element => element === document.activeElement), true);
 
-    await page.goto(base + '?defeat-focus=' + action + '#fight');
-    await page.locator('#fightCamera').waitFor({state:'visible'});
+    await page.goto(base + '?defeat-focus=' + action + '#practiceArena');
+    await page.locator('#practiceArenaCamera').waitFor({state:'visible'});
     await page.evaluate(() => { window.allowCamera = true; });
     if (action !== 'mouse') { await page.keyboard.press('Tab'); await page.keyboard.press('Tab'); }
-    await activate('#fightCamera');
+    await activate('#practiceArenaCamera');
     await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().camera === 'Stop camera');
     // Simulated casts exercise the UI state without a real camera or detector.
     for (let i = 0; i < 7; i++) {
       await page.evaluate(i => document.dispatchEvent(new CustomEvent('wizard:cast', {
         detail:{id:'focus-hit-' + i, shape:'Expelliarmus', score:99}
       })), i);
-      await page.waitForFunction(i => document.querySelector('#fightDummyHealth').value === Math.max(0, 200 - (i + 1) * 30), i);
+      await page.waitForFunction(i => document.querySelector('#practiceArenaDummyHealth').value === Math.max(0, 200 - (i + 1) * 30), i);
     }
-    await activate('#fightCamera');
-    assert.equal(await page.locator('#fightCamera').isHidden(), true);
-    await checkReplacement('#fightResetDummy');
-    await activate('#fightResetDummy');
-    await checkReplacement('#fightCamera');
-    assert.equal(await page.locator('#fightCamera').textContent(), 'Start camera');
+    await activate('#practiceArenaCamera');
+    assert.equal(await page.locator('#practiceArenaCamera').isHidden(), true);
+    await checkReplacement('#practiceArenaResetDummy');
+    await activate('#practiceArenaResetDummy');
+    await checkReplacement('#practiceArenaCamera');
+    assert.equal(await page.locator('#practiceArenaCamera').textContent(), 'Start camera');
   }
-  for (const fragment of ['', '#unknown', '#game', '#constructor', '#%E0%A4%A']) {
+  for (const fragment of ['', '#unknown', '#game', '#multiplayer', '#constructor', '#%E0%A4%A']) {
     await page.goto(base + '?invalid=' + encodeURIComponent(fragment) + fragment);
     await checkStartup('menu');
     assert.equal(new URL(page.url()).hash, fragment ? '#menu' : '');
@@ -283,82 +303,82 @@ try {
   await page.getByRole('button', {name:'Back to menu', exact:true}).click();
   assert.equal(new URL(page.url()).search, '?check=keep');
   await page.goto(base + '?keyboard#menu');
-  for (const name of ['Fight','Training','Options','Credits']) {
+  for (const name of ['Spell Training','Practice Arena','Solo Duel','Options','Credits']) {
     await page.keyboard.press('Tab');
     assert.equal(await page.getByRole('button', {name, exact:true}).evaluate(element => element === document.activeElement && element.matches(':focus-visible')), true);
     await page.keyboard.press('Enter');
-    await checkScreen(name.toLowerCase());
+    await checkScreen(({'Practice Arena':'practiceArena','Solo Duel':'soloDuel','Spell Training':'spellTraining'}[name] || name.toLowerCase()));
     await page.keyboard.press('Escape');
     await checkScreen('menu');
     assert.equal(await page.getByRole('button', {name, exact:true}).evaluate(element => element === document.activeElement), true);
   }
   // Both popstate and hashchange may fire for one history move. Apply it once.
   await page.goto(base + '#menu');
-  await page.getByRole('button', {name:'Training', exact:true}).click();
+  await page.getByRole('button', {name:'Spell Training', exact:true}).click();
   await page.locator('#gameBack').click();
-  await page.getByRole('button', {name:'Fight', exact:true}).click();
+  await page.getByRole('button', {name:'Practice Arena', exact:true}).click();
   await page.goBack(); await checkScreen('menu');
-  await page.goBack(); await checkScreen('training');
+  await page.goBack(); await checkScreen('spellTraining');
   const changes = await page.evaluate(() => window.viewChanges.length);
   const historyLength = await page.evaluate(() => history.length);
   await page.evaluate(() => {
     window.dispatchEvent(new PopStateEvent('popstate'));
     window.dispatchEvent(new HashChangeEvent('hashchange'));
-    document.querySelector('[data-view="training"]').click();
+    document.querySelector('[data-view="spellTraining"]').click();
   });
   assert.equal(await page.evaluate(() => window.viewChanges.length), changes);
   assert.equal(await page.evaluate(() => history.length), historyLength);
   await page.goForward(); await checkScreen('menu');
-  await page.goForward(); await checkScreen('fight');
-  assert.deepEqual(await page.evaluate(() => window.viewChanges), ['training',null,'fight',null,'training',null,'fight']);
+  await page.goForward(); await checkScreen('practiceArena');
+  assert.deepEqual(await page.evaluate(() => window.viewChanges), ['spellTraining',null,'practiceArena',null,'spellTraining',null,'practiceArena']);
 
   // Navigation keeps state; reload clears state while keeping the screen.
   await page.locator('#gameBack').click();
   await page.getByRole('button', {name:'Options', exact:true}).click();
   await page.locator('#handSetting').selectOption('Right');
   await page.keyboard.press('Escape');
-  await page.getByRole('button', {name:'Training', exact:true}).click();
-  await page.locator('#trainingStart').click();
+  await page.getByRole('button', {name:'Spell Training', exact:true}).click();
+  await startSimulatedLesson(page);
   await page.evaluate(() => {
-    for (let i=0;i<3;i++) document.dispatchEvent(new CustomEvent('wizard:training-gesture', {
+    for (let i=0;i<3;i++) document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
       detail:{id:crypto.randomUUID(),type:'cast',accepted:true,shape:'Expelliarmus',score:95}
     }));
   });
-  assert.equal(await page.locator('#trainingCount').textContent(), '3 / 3');
-  await hash('fight');
-  await hash('training');
-  assert.equal(await page.locator('#trainingCount').textContent(), '3 / 3');
-  await page.locator('#trainingSpell').selectOption('protego');
-  await page.reload(); await checkStartup('training');
-  assert.equal(await page.locator('#trainingSpell').inputValue(), 'expelliarmus');
-  assert.equal(await page.locator('#trainingCount').textContent(), '0 / 3');
-  assert.equal(await page.locator('#trainingLearnedTotal').textContent(), '0 of 4 spells learned');
+  assert.equal(await page.locator('#spellTrainingCount').textContent(), '3 / 3');
+  await hash('practiceArena');
+  await hash('spellTraining');
+  assert.equal(await page.locator('#spellTrainingCount').textContent(), '3 / 3');
+  await page.locator('#spellTrainingSpell').selectOption('protego');
+  await page.reload(); await checkStartup('spellTraining');
+  assert.equal(await page.locator('#spellTrainingSpell').inputValue(), 'expelliarmus');
+  assert.equal(await page.locator('#spellTrainingCount').textContent(), '0 / 3');
+  assert.equal(await page.locator('#spellTrainingLearnedTotal').textContent(), '0 of 4 spells learned');
   assert.equal(await page.locator('#handSetting').inputValue(), 'Right');
-  await hash('fight');
+  await hash('practiceArena');
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {detail:{id:crypto.randomUUID(),shape:'Basic Cast',score:95}})));
-  await page.waitForFunction(() => document.querySelector('#fightDummyHealth').value === 170);
-  await hash('training'); await hash('fight');
-  assert.equal(await page.locator('#fightDummyHealth').evaluate(element => element.value), 170);
-  await page.reload(); await checkStartup('fight');
-  assert.equal(await page.locator('#fightDummyHealth').evaluate(element => element.value), 200);
-  assert.equal(await page.locator('#fightHits').textContent(), '0 hits');
+  await page.waitForFunction(() => document.querySelector('#practiceArenaDummyHealth').value === 170);
+  await hash('spellTraining'); await hash('practiceArena');
+  assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(element => element.value), 170);
+  await page.reload(); await checkStartup('practiceArena');
+  assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(element => element.value), 200);
+  assert.equal(await page.locator('#practiceArenaHits').textContent(), '0 hits');
 
   // A direct game-to-game route must stop an active or pending camera.
   await page.evaluate(() => { window.allowCamera = true; });
-  assert.equal(await page.locator('.fight-arena > #fightCamera').isVisible(), true);
+  assert.equal(await page.locator('.practice-arena > #practiceArenaCamera').isVisible(), true);
   await page.evaluate(() => { window.delayCamera = true; });
-  await page.locator('#fightCamera').click();
+  await page.locator('#practiceArenaCamera').click();
   await page.waitForFunction(() => typeof window.resolveCamera === 'function');
-  assert.equal(await page.locator('#fightCamera').textContent(), 'Start camera');
-  assert.equal(await page.locator('#fightCamera').isDisabled(), true);
+  assert.equal(await page.locator('#practiceArenaCamera').textContent(), 'Start camera');
+  assert.equal(await page.locator('#practiceArenaCamera').isDisabled(), true);
   await page.evaluate(() => { window.delayCamera = false; window.resolveCamera(); });
   await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().camera === 'Stop camera');
-  assert.equal(await page.locator('.game-navigation > #fightCamera').isVisible(), true);
-  assert.equal(await page.locator('#fightCamera').textContent(), 'Stop camera');
+  assert.equal(await page.locator('.game-navigation > #practiceArenaCamera').isVisible(), true);
+  assert.equal(await page.locator('#practiceArenaCamera').textContent(), 'Stop camera');
   await mkdir(path.join(root, '.tmp/camera-controls'), {recursive:true});
   for (const width of [1920, 390]) {
     await page.setViewportSize({width, height:1080});
-    const position = await page.locator('#fightCamera').evaluate(button => {
+    const position = await page.locator('#practiceArenaCamera').evaluate(button => {
       const bar = button.parentElement, box = button.getBoundingClientRect(), bounds = bar.getBoundingClientRect();
       const style = getComputedStyle(bar);
       return {right:bounds.right - parseFloat(style.paddingRight) - box.right, top:box.top - bounds.top - parseFloat(style.paddingTop)};
@@ -374,25 +394,25 @@ try {
   });
   assert.equal(await page.evaluate(() => document.querySelector('#video').srcObject === window.cameraStream), true);
   assert.equal(await page.evaluate(() => window.cameraStream.getVideoTracks()[0].readyState), 'live');
-  await hash('training');
+  await hash('spellTraining');
   assert.equal(await page.evaluate(() => window.cameraStream.getVideoTracks()[0].readyState), 'ended');
   await page.evaluate(() => { window.delayCamera = true; });
-  await page.locator('#trainingCamera').click();
+  await page.locator('#spellTrainingCamera').click();
   await page.waitForFunction(() => typeof window.resolveCamera === 'function');
-  await hash('fight');
+  await hash('practiceArena');
   await page.evaluate(() => window.resolveCamera());
   await page.waitForFunction(() => window.cameraStream.getVideoTracks()[0].readyState === 'ended');
   assert.equal(await page.locator('#video').evaluate(element => element.srcObject), null);
   await page.evaluate(() => { window.delayCamera = false; });
-  await page.locator('#fightCamera').click();
+  await page.locator('#practiceArenaCamera').click();
   await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().camera === 'Stop camera');
-  await page.goBack(); await checkScreen('training');
+  await page.goBack(); await checkScreen('spellTraining');
   assert.equal(await page.evaluate(() => window.cameraStream.getVideoTracks()[0].readyState), 'ended');
   await page.evaluate(() => { location.hash = 'unsupported'; });
   await checkScreen('menu');
   assert.equal(new URL(page.url()).hash, '#menu');
 
-  await page.goBack(); await checkScreen('training');
+  await page.goBack(); await checkScreen('spellTraining');
 
   // Route restoration does not depend on browser storage.
   const isolated = await browser.newContext({permissions:[], hasTouch:true});
@@ -405,17 +425,17 @@ try {
   fresh.on('pageerror', error => errors.push(error.message));
   await fresh.goto(base);
   assert.equal(await fresh.locator('#mainMenu').isVisible(), true);
-  await fresh.goto(base + '#training');
+  await fresh.goto(base + '#spellTraining');
   await fresh.reload();
-  assert.equal(await fresh.locator('#trainingView').isVisible(), true);
+  assert.equal(await fresh.locator('#spellTrainingView').isVisible(), true);
   assert.equal(await fresh.locator('#video').evaluate(element => element.srcObject), null);
-  for (const name of ['Fight','Training','Options','Credits','Training']) {
+  for (const name of ['Practice Arena','Spell Training','Solo Duel','Options','Credits','Spell Training']) {
     await fresh.getByRole('button', {name:'Back to menu', exact:true}).tap();
     assert.equal(await fresh.evaluate(() => getComputedStyle(document.activeElement).outlineStyle), 'none');
     await fresh.keyboard.press('Tab');
-    assert.equal(await fresh.locator('[data-view="fight"]').evaluate(element => element === document.activeElement && element.matches(':focus-visible')), true);
+    assert.equal(await fresh.locator('[data-view="spellTraining"]').evaluate(element => element === document.activeElement && element.matches(':focus-visible')), true);
     await fresh.getByRole('button', {name, exact:true}).tap();
-    await fresh.locator('#' + screens[name.toLowerCase()]).waitFor({state:'visible'});
+    await fresh.locator('#' + screens[({'Practice Arena':'practiceArena','Solo Duel':'soloDuel','Spell Training':'spellTraining'}[name] || name.toLowerCase())]).waitFor({state:'visible'});
     assert.equal(await fresh.locator(':focus-visible:visible').count(), 0);
   }
   await isolated.close();
@@ -423,7 +443,7 @@ try {
   // Full Chromium supports cache restores; the default headless shell disables them.
   const cachedBrowser = await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE, channel:'chromium', headless:true, ignoreDefaultArgs:['--disable-back-forward-cache']});
   try { await checkSiteHistory(cachedBrowser, base, true); } finally { await cachedBrowser.close(); }
-  assert.ok(records.some(record => record.cause === 'tab_change' && record.activeTab === 'training'));
+  assert.ok(records.some(record => record.cause === 'tab_change' && record.activeTab === 'spellTraining'));
   assert.deepEqual(errors, []);
   console.log('PASS: routes, reload, history, focus, invalid routes, camera cleanup, game resets, blocked storage, desktop and narrow layout. Simulated input only.');
 } finally {

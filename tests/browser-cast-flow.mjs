@@ -58,12 +58,12 @@ try{
  await page.goto(base);
  const openMode=(name,target=page)=>openGameMode(target,name);
 
- await openMode('Fight');
+ await openMode('Practice Arena');
  page.setDefaultTimeout(20000);
  const exp=resample([{x:.25,y:.2},{x:.55,y:.2},{x:.55,y:.5}],40);
  const circle=Array.from({length:40},(_,i)=>({x:.55+.1*(Math.cos(i/39*2*Math.PI)-1),y:.5+.1*Math.sin(i/39*2*Math.PI)}));
  await page.evaluate(point=>{window.steps=Array(20).fill(point);window.step=0;},exp[0]);
- await page.locator('#fightCamera').click();
+ await page.locator('#practiceArenaCamera').click();
  await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
  const start=records.length;
  // Start the second spell on the first frame after the first accepted cast.
@@ -77,16 +77,16 @@ try{
  const casts=records.slice(start).filter(e=>e.type==='cast');
  assert.deepEqual(casts.map(e=>e.shape),['Expelliarmus','Protego']);
  assert.equal(await page.evaluate(()=>window.acceptedCasts),2,'holding must not repeat a cast');
- assert.equal(await page.locator('#fightHits').textContent(),'1 hit');
- assert.equal(await page.locator('#fightDummyHealth').evaluate(el=>el.value),170);
- assert.equal(await page.locator('#fightShield').evaluate(el=>el.classList.contains('shield-active')),true);
+ assert.equal(await page.locator('#practiceArenaHits').textContent(),'1 hit');
+ assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(el=>el.value),170);
+ assert.equal(await page.locator('#practiceArenaShield').evaluate(el=>el.classList.contains('shield-active')),true);
  const stored=(await readFile(path.join(folder,'play-data/events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
  for(const cast of casts){
-  assert.ok(stored.some(e=>e.id===cast.id&&e.activeTab==='fight'&&e.version===3));
+  assert.ok(stored.some(e=>e.id===cast.id&&e.activeTab==='practiceArena'&&e.version===3));
   assert.ok((await readFile(path.join(folder,'play-data',cast.resultImage))).length>0);
  }
  assert.deepEqual(errors,[]);
- console.log('PASS: immediate Expelliarmus-to-Protego, no extra hold, no duplicate cast, Fight effects, saved records and path cards. Simulated input only.');
+ console.log('PASS: immediate Expelliarmus-to-Protego, no extra hold, no duplicate cast, Practice Arena effects, saved records and path cards. Simulated input only.');
 }finally{
  await browser?.close();
  if(api&&api.exitCode===null&&api.signalCode===null){const exited=once(api,'exit');api.kill();await exited;}

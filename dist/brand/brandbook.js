@@ -2,10 +2,10 @@
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const descriptions = {
   menu: "The main menu invites a first action. A gesture mark takes the place of a crest, while the quiet composition leaves room for imagination.",
-  training:
-    "Training separates the gesture area from instructions. Cool light shows the path, and three marks make progress clear.",
-  fight:
-    "The fight concept keeps the center clear. Status and spell controls stay at the edges. The target and feedback are visual demonstrations only.",
+  'spell-training':
+    "Spell Training separates the gesture area from instructions. Cool light shows the path, and three marks make progress clear.",
+  'practice-arena':
+    "The practice arena concept keeps the center clear. Status and spell controls stay at the edges. The target and feedback are visual demonstrations only.",
 };
 function showScreen(name, focus = false) {
   tabs.forEach((tab) => {
@@ -57,9 +57,9 @@ function updateCast() {
   castButton.disabled = casts === 3;
   castButton.textContent =
     casts === 3 ? "Three gestures complete" : "Show precise gesture";
-  document.getElementById("training-instruction").textContent =
+  document.getElementById("spell-training-instruction").textContent =
     casts === 3 ? "Precision established." : "Right. Then down.";
-  document.getElementById("training-status").textContent =
+  document.getElementById("spell-training-status").textContent =
     casts === 3
       ? "Demo complete. Start again to repeat it."
       : casts
@@ -75,17 +75,17 @@ document.getElementById("reset-cast").addEventListener("click", () => {
   updateCast();
   castButton.focus();
 });
-let fightOn = false;
-document.getElementById("simulate-fight").addEventListener("click", (event) => {
-  fightOn = !fightOn;
-  document.getElementById("screen-fight").classList.toggle("is-cast", fightOn);
-  document.getElementById("fight-message").textContent = fightOn
+let practiceArenaOn = false;
+document.getElementById("simulate-practice-arena").addEventListener("click", (event) => {
+  practiceArenaOn = !practiceArenaOn;
+  document.getElementById("screen-practice-arena").classList.toggle("is-cast", practiceArenaOn);
+  document.getElementById("practice-arena-message").textContent = practiceArenaOn
     ? "Gesture complete."
     : "Choose your moment.";
-  document.getElementById("fight-badge").textContent = fightOn
+  document.getElementById("practice-arena-badge").textContent = practiceArenaOn
     ? "Demo feedback"
     : "Awaiting gesture";
-  event.currentTarget.textContent = fightOn
+  event.currentTarget.textContent = practiceArenaOn
     ? "Reset feedback"
     : "Show feedback";
 });

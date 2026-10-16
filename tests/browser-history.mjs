@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {startSimulatedLesson} from './browser-health-checks.mjs';
 import {createServer} from 'node:http';
 import {once} from 'node:events';
 
@@ -44,13 +45,13 @@ export async function checkSiteHistory(browser, base, cached) {
     });
     const page = await context.newPage(), errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    const screens = {menu:'mainMenu', training:'trainingView', fight:'fightView', options:'optionsView', credits:'creditsView'};
+    const screens = {menu:'mainMenu', spellTraining:'spellTrainingView', practiceArena:'practiceArenaView', soloDuel:'soloDuelView', options:'optionsView', credits:'creditsView'};
     const checkScreen = async name => {
       await page.waitForFunction(id => window.historyTest?.shows.length && document.getElementById(id)?.hidden === false, screens[name], {timeout:5000});
       assert.equal(new URL(page.url()).hash, '#' + name);
       for (const [other, id] of Object.entries(screens)) assert.equal(await page.locator('#' + id).isVisible(), other === name);
       assert.equal(await page.locator('#video').evaluate(element => element.srcObject), null);
-      if (['training','fight'].includes(name)) {
+      if (['spellTraining','practiceArena','soloDuel'].includes(name)) {
         assert.equal(await page.locator('#viewport').evaluate(element => element.parentElement.id), name + 'CameraMount');
         assert.equal(await page.locator('#' + name + 'Camera').textContent(), 'Start camera');
       }
@@ -74,7 +75,7 @@ export async function checkSiteHistory(browser, base, cached) {
       await page.goForward({waitUntil:'commit'});
       id = (await checkReturn(name, id)).id;
       await saved();
-      const focusTarget = ['training','fight'].includes(name) ? '#gameBack' : name === 'menu' ? '[data-view="fight"]' : '#' + name + 'View [data-back]';
+      const focusTarget = ['spellTraining','practiceArena','soloDuel'].includes(name) ? '#gameBack' : name === 'menu' ? '[data-view="spellTraining"]' : '#' + name + 'View [data-back]';
       await page.locator(focusTarget).focus();
       await page.goto(away);
       await page.goBack({waitUntil:'commit'});
@@ -88,58 +89,58 @@ export async function checkSiteHistory(browser, base, cached) {
     }
     // Return to an earlier hash entry in the cached document, not its last screen.
     await page.goto(base + '#menu');
-    await page.getByRole('button', {name:'Training',exact:true}).click();
+    await page.getByRole('button', {name:'Spell Training',exact:true}).click();
     await page.locator('#gameBack').click();
-    await page.getByRole('button', {name:'Fight',exact:true}).click();
+    await page.getByRole('button', {name:'Practice Arena',exact:true}).click();
     await saved();
     const id = await page.evaluate(() => historyTest.id);
     await page.goto(away);
     await page.evaluate(() => history.go(-3));
-    await page.waitForURL(base + '#training', {waitUntil:'commit'});
+    await page.waitForURL(base + '#spellTraining', {waitUntil:'commit'});
     // Chromium may reload when jumping over several entries. Check either path.
-    const earlier = await checkReturn('training', id, cached ? null : false);
+    const earlier = await checkReturn('spellTraining', id, cached ? null : false);
     await page.goForward({waitUntil:'commit'}); await checkScreen('menu');
-    await page.goForward({waitUntil:'commit'}); await checkScreen('fight');
+    await page.goForward({waitUntil:'commit'}); await checkScreen('practiceArena');
     await page.goForward({waitUntil:'commit'});
     assert.equal(await page.title(), 'Other site');
     // Cached game state stays in memory. A fresh history load keeps normal resets.
-    for (const name of ['training','fight']) {
+    for (const name of ['spellTraining','practiceArena']) {
       await page.goto(base + '?state=' + name + '#' + name);
-      if (name === 'training') {
-        await page.locator('#trainingStart').click();
-        await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:training-gesture', {
+      if (name === 'spellTraining') {
+        await startSimulatedLesson(page);
+        await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture', {
           detail:{id:crypto.randomUUID(),type:'cast',accepted:true,shape:'Expelliarmus',score:95}
         })));
-        assert.equal(await page.locator('#trainingCount').textContent(), '1 / 3');
+        assert.equal(await page.locator('#spellTrainingCount').textContent(), '1 / 3');
       } else {
         await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {
           detail:{id:crypto.randomUUID(),shape:'Basic Cast',score:95}
         })));
-        await page.waitForFunction(() => document.querySelector('#fightDummyHealth').value === 170);
+        await page.waitForFunction(() => document.querySelector('#practiceArenaDummyHealth').value === 170);
       }
       await saved();
       const stateId = await page.evaluate(() => historyTest.id);
       await page.goto(away); await page.goBack({waitUntil:'commit'});
       await checkReturn(name, stateId);
-      if (name === 'training') assert.equal(await page.locator('#trainingCount').textContent(), cached ? '1 / 3' : '0 / 3');
-      else assert.equal(await page.locator('#fightDummyHealth').evaluate(element => element.value), cached ? 170 : 200);
+      if (name === 'spellTraining') assert.equal(await page.locator('#spellTrainingCount').textContent(), cached ? '1 / 3' : '0 / 3');
+      else assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(element => element.value), cached ? 170 : 200);
       // The returned screen can still change modes and handle controls.
       await page.locator('#gameBack').click(); await checkScreen('menu');
-      await page.getByRole('button', {name:name === 'fight' ? 'Training' : 'Fight',exact:true}).click();
-      await checkScreen(name === 'fight' ? 'training' : 'fight');
+      await page.getByRole('button', {name:name === 'practiceArena' ? 'Spell Training' : 'Practice Arena',exact:true}).click();
+      await checkScreen(name === 'practiceArena' ? 'spellTraining' : 'practiceArena');
     }
 
     for (const pending of [false,true]) {
-      await page.goto(base + '?camera=' + pending + '#training');
+      await page.goto(base + '?camera=' + pending + '#spellTraining');
       await saved();
       await page.evaluate(pending => { historyTest.allowCamera = true; historyTest.delayCamera = pending; }, pending);
-      await page.locator('#trainingCamera').click();
+      await page.locator('#spellTrainingCamera').click();
       if (pending) await page.waitForFunction(() => typeof historyTest.resolveCamera === 'function');
       else await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().camera === 'Stop camera');
       const cameraId = await page.evaluate(() => historyTest.id);
       await page.goto(away); await page.goBack({waitUntil:'commit'});
       // Media streams can make a page ineligible for the browser cache.
-      const state = await checkReturn('training', cameraId, cached ? null : false);
+      const state = await checkReturn('spellTraining', cameraId, cached ? null : false);
       assert.equal(state.cameraCalls, state.show.persisted ? 1 : 0);
       if (state.show.persisted) {
         if (pending) await page.evaluate(() => historyTest.resolveCamera());
@@ -147,10 +148,10 @@ export async function checkSiteHistory(browser, base, cached) {
       }
       // Starting input again needs an explicit user action.
       await page.evaluate(() => { historyTest.allowCamera = true; historyTest.delayCamera = false; });
-      await page.locator('#trainingCamera').click();
+      await page.locator('#spellTrainingCamera').click();
       await page.waitForFunction(async () => (await import('/input-state.js')).getInputState().camera === 'Stop camera');
-      await page.locator('#trainingCamera').click();
-      await checkScreen('training');
+      await page.locator('#spellTrainingCamera').click();
+      await checkScreen('spellTraining');
       assert.equal(await page.evaluate(() => historyTest.stream.getTracks().every(track => track.readyState === 'ended')), true);
     }
     assert.deepEqual(errors, []);

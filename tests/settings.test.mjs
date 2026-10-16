@@ -4,10 +4,18 @@ import {loadSettings,saveSettings,normalizeSettings,SETTINGS_KEY} from '../dist/
 import {recognize,resample,GestureController} from '../dist/gesture.js';
 test('settings persist independent sound choices and selected hand, track point, and difficulty',()=>{
   const store=new Map();const storage={getItem:key=>store.get(key),setItem:(key,value)=>store.set(key,value)};
-  const expected={music:false,sfx:true,muted:true,hand:'Right',point:'grip',difficulty:'hard'};
+  const expected={music:false,sfx:true,muted:false,hand:'Right',point:'grip',difficulty:'hard'};
   assert.equal(saveSettings(storage,expected),true);assert.deepEqual(loadSettings(storage),expected);
   assert.equal(normalizeSettings({hand:'Right'}).point,'tip');
   storage.setItem(SETTINGS_KEY,'bad JSON');assert.equal(loadSettings(storage).hand,'Left');
+});
+test('saved master mute becomes two off switches without blocking later sound changes',()=>{
+  const store=new Map([[SETTINGS_KEY,JSON.stringify({music:true,sfx:true,muted:true,hand:'Right'})]]);
+  const storage={getItem:key=>store.get(key),setItem:(key,value)=>store.set(key,value)};
+  const migrated=loadSettings(storage);
+  assert.deepEqual({music:migrated.music,sfx:migrated.sfx,muted:migrated.muted,hand:migrated.hand},{music:false,sfx:false,muted:false,hand:'Right'});
+  saveSettings(storage,{...migrated,music:true});
+  assert.deepEqual(loadSettings(storage),{...migrated,music:true});
 });
 test('unavailable storage and invalid settings safely use defaults',()=>{
   const storage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};

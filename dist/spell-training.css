@@ -1,0 +1,54 @@
+/* Spell Training reuses the Practice Arena layout and the shared movement diagrams. */
+#spellTrainingView[hidden],#spellTrainingView [hidden]{display:none}
+#spellTrainingDummyActor{transform-box:view-box;transform-origin:1404px 773px}
+#spellTrainingDummyWand{transform-box:view-box;transform-origin:1348px 534px;transform:translate(0,0) rotate(0deg)}
+#spellTrainingDummyActor[data-disarmed="true"] #spellTrainingDummyWand{transform:translate(-35px,230px) rotate(54deg);animation:practice-arena-wand-drop 520ms ease-out}
+body.spell-training-open{--game-sidebar-width:290px}
+#spellTrainingView .spell-training-selection{flex-shrink:0;color:#b9c6cb;text-align:left}
+#spellTrainingSpell{width:100%;background:#101a21;border-color:#52616b;color:#e6e8df}
+#spellTrainingMessage{font-size:11px;line-height:1.6;color:#c5d4dd;margin:10px 0}
+.spell-training-guide-area{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:14px}
+#spellTrainingGuide{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:240px;max-width:100%;margin:0;padding:12px;background:#1d302bcc;pointer-events:none}
+.spell-training-guide-area>p{max-width:350px}
+#spellTrainingView .practice-arena-hud{grid-template-columns:minmax(0,1fr) 120px minmax(0,1fr)}
+#spellTrainingView .lesson-progress{align-self:center;min-width:0;margin:0;text-align:center}
+#spellTrainingView .lesson-progress label{display:flex;flex-direction:column;gap:6px;color:#b9c6cb}
+#spellTrainingCount{font-size:17px;color:#e6e8df;font-variant-numeric:tabular-nums}
+#spellTrainingView .practice-arena-live{display:flex;flex-direction:column;gap:14px}
+#spellTrainingView .practice-arena-events-panel{margin-top:0}
+@media(min-width:1100px){
+  #spellTrainingView .practice-arena-stage{row-gap:0}
+  #spellTrainingView .practice-arena-battlefield{display:contents}
+  #spellTrainingView .practice-arena{grid-column:1;grid-row:1}
+  #spellTrainingView .spell-training-guide-area{grid-column:1;grid-row:2}
+  #spellTrainingView .practice-arena-live{grid-column:2;grid-row:1;align-self:stretch;contain:size;min-height:0}
+  #spellTrainingView .practice-arena-camera-panel{flex-shrink:0}
+  #spellTrainingView .practice-arena-events-panel{flex:1;height:auto}
+}
+#spellTrainingView .practice-arena>#spellTrainingCamera{top:min(50%,calc(100% - 260px))}
+@media(max-width:900px){
+  #spellTrainingView .practice-arena{width:100%;min-height:360px}
+  #spellTrainingGuide{width:168px;padding:9px}
+  #spellTrainingView .practice-arena>#spellTrainingCamera{top:min(50%,calc(100% - 194px))}
+}
+@media(max-width:600px){
+  #spellTrainingView .practice-arena{min-height:320px}
+  #spellTrainingGuide{bottom:8px}
+  #spellTrainingView .practice-arena-hud{grid-template-columns:minmax(0,1fr) 90px minmax(0,1fr)}
+}
+.spell-training-completion{font-size:12px;color:#c2f3a0;margin:12px 0}
+.spell-training-completion strong{font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400}
+.spell-training-completion p{font-size:11px;line-height:1.6;margin:6px 0}
+#spellTrainingCameraMount .viewport{width:100%}
+#spellTrainingCameraMount .empty h2{font-size:16px}
+#spellTrainingCameraMount .empty p{font-size:10px}
+#spellTrainingCameraMount .camera-icon{height:35px;width:35px;margin-bottom:10px;font-size:24px;border-radius:10px}
+#spellTrainingCameraMount .cue{bottom:8px;left:8px;right:8px;padding:9px;gap:8px;min-height:42px}
+#spellTrainingCameraMount .cue strong{font-size:10px}
+#spellTrainingCameraMount .cue span{font-size:8px;min-width:40px}
+@media(prefers-reduced-motion:reduce){#spellTrainingDummyActor[data-disarmed="true"] #spellTrainingDummyWand{animation:none}}
+
+#spellTrainingDummyState:not([hidden]){display:block}
+#spellTrainingCompletion.is-popup{z-index:8;top:50%;margin:0;padding:22px 28px}
+#spellTrainingCompletion.is-popup strong{color:inherit}
+#spellTrainingCompletionClose{margin:14px auto 0;min-height:44px;justify-content:center}

@@ -15,9 +15,9 @@ This record contains past results. It does not verify the current files.
 
 - Desktop: 1920×1080. Narrow layout: 390×844. No horizontal overflow in any of the three screen studies.
 - Local Cyrillic/Latin fonts load successfully. SVG assets load locally.
-- Menu, training, and fight tabs work with pointer and arrow keys.
-- Training simulation reaches 3/3, disables the completed action, and resets to 0/3.
-- Fight response toggles and resets. This is a visual simulation, not a combat engine.
+- Menu, spell training, and practice arena tabs work with pointer and arrow keys.
+- Spell Training simulation reaches 3/3, disables the completed action, and resets to 0/3.
+- Practice Arena response toggles and resets. This is a visual simulation, not a combat engine.
 - Example error clears after text input. The sound switch and action examples update their feedback.
 - Color copying returns the displayed HEX value when clipboard permission is available; the UI provides the value when copying fails.
 - Internal section links resolve. Reduced-motion mode preserves visible content and state changes.
@@ -29,10 +29,10 @@ Normal text colors meet 4.5:1 on the four dark surfaces. The lowest approved nor
 
 ## Preview provenance
 
-The [preview guide](previews/README.md) lists the saved images, their source, and their capture steps. Files with the `brandbook-` prefix show illustrative concepts. Training and Fight images show implemented screens with camera access blocked. These images are maintained separately from the historical results above.
+The [preview guide](previews/README.md) lists the saved images, their source, and their capture steps. Files with the `brandbook-` prefix show illustrative concepts. Spell Training and Practice Arena images show implemented screens with camera access blocked. These images are maintained separately from the historical results above.
 
 ## English text checks
 
 The English version was checked at 1920×1080 and 390×844. Preview images contain English text. The checks covered page errors, horizontal overflow, keyboard tabs, gesture completion and reset, duel feedback, and form-error recovery. No page errors or horizontal overflow were found. The interaction checks passed. A scan of tracked text files found no Cyrillic text. The revision for these checks was not recorded.
 
-These checks do not validate physical camera play, a complete fight mode, or a migration of the existing gameplay page.
+These checks do not validate physical camera play, a complete practice arena mode, or a migration of the existing gameplay page.

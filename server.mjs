@@ -32,7 +32,7 @@ const server=http.createServer(async(req,res)=>{
         try{await writeFile(path.join(folder,event.id+'.png'),png,{flag:'wx',mode:0o600});}catch(error){if(error.code!=='EEXIST')throw error;}
         return reply(201,{saved:true});
       }
-      if(!event||Array.isArray(event)||!['cast','reject','cancel','camera','reset','tracking','settings','capture','ignored','fight'].includes(event.type))return reply(400,{error:'Invalid event'});
+      if(!event||Array.isArray(event)||!['cast','reject','cancel','camera','reset','tracking','settings','capture','ignored','practiceArena'].includes(event.type))return reply(400,{error:'Invalid event'});
       // Older open tabs send this removed setting. Accept only its old values.
       if(Object.hasOwn(event,'swap')){
         if(event.swap!==0&&event.swap!==1)return reply(400,{error:'Invalid field'});

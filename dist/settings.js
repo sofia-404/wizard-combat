@@ -4,7 +4,14 @@ export function normalizeSettings(value){
   const input=value&&typeof value==='object'?value:{};
   return {music:typeof input.music==='boolean'?input.music:true,sfx:typeof input.sfx==='boolean'?input.sfx:true,muted:typeof input.muted==='boolean'?input.muted:false,hand:['Left','Right'].includes(input.hand)?input.hand:'Left',point:['tip','grip'].includes(input.point)?input.point:'tip',difficulty:['easy','normal','hard'].includes(input.difficulty)?input.difficulty:'normal'};
 }
-export function loadSettings(storage){try{return normalizeSettings(JSON.parse(storage.getItem(SETTINGS_KEY)));}catch{return {...DEFAULT_SETTINGS};}}
+export function loadSettings(storage){
+  try{
+    const settings=normalizeSettings(JSON.parse(storage.getItem(SETTINGS_KEY)));
+    // Replace the removed master mute with the two visible sound switches.
+    if(settings.muted)return {...settings,music:false,sfx:false,muted:false};
+    return settings;
+  }catch{return {...DEFAULT_SETTINGS};}
+}
 export function saveSettings(storage,value){try{storage.setItem(SETTINGS_KEY,JSON.stringify(normalizeSettings(value)));return true;}catch{return false;}}
 let storage;try{storage=globalThis.localStorage;}catch{}
 let settings=loadSettings(storage);

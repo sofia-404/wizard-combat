@@ -19,7 +19,7 @@ THESIS: Use movement diagrams to explain the casting sequence in three screen st
 
 OWN-WORLD: Midnight navy and teal fields, restrained aged-gold structure, cyan active traces, open measured arcs, anchored strokes, terminal diamonds, engraved serif titles, readable humanist sans-serif controls.
 
-STORY: Understand the mark and palette, switch among menu/training/fight studies, simulate a cast, inspect reusable controls, then use the repository specifications.
+STORY: Understand the mark and palette, switch among menu/spell-training/practice-arena studies, simulate a cast, inspect reusable controls, then use the repository specifications.
 
 FIRST VIEWPORT: A large two-line title and brief explanation sit left. An original anchored gesture study occupies the right. A clear link leads directly to screen previews. The upper navigation gives access to the complete reference.
 
@@ -31,7 +31,7 @@ FINISH: Check changed controls and diagrams. Keep asset source records and desig
 
 Language rules follow `AGENTS.md`. Keep existing spell names. Bundled fonts retain their full character coverage.
 
-Main-menu and fight studies are proposed designs. The training study simulates feedback and does not open a camera. The current game continues at the root route. Do not treat illustrated controls as new gameplay behavior.
+Main-menu and practice arena studies are proposed designs. The spell training study simulates feedback and does not open a camera. The current game continues at the root route. Do not treat illustrated controls as new gameplay behavior.
 
 ## Historical evidence
 

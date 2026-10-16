@@ -1,0 +1,8 @@
+{
+  "tool": "OpenAI built-in image_gen",
+  "model": "Not reported by the tool",
+  "date": "2026-10-16",
+  "source": "practice-arena-background.jpg",
+  "usage": "Only the original player area is revealed through practice-arena-player-plate.png alpha while the player falls or remains defeated. Standing artwork is unchanged.",
+  "prompt": "Edit target: the attached moonlit ruined castle arena background. Produce an exactly aligned clean background plate. REMOVE ONLY the male wizard standing on the left, including his complete body, arms, boots, cloak and wand. Fill the newly exposed area with convincing continuous ruined stone stairs, pillars and wet stone floor matching the neighboring environment and perspective. No people anywhere. Keep the image framing, camera, perspective, crop, moon, sky, every castle building, columns, braziers, blue and gold lighting, and all other pixels unchanged. Do not zoom, pan, restyle or move the environment. This will be composited only through a mask where the wizard was, so exact alignment is essential. Output the same wide aspect ratio as the original 1659 x 948 image. No text, no UI."
+}

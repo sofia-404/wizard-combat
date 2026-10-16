@@ -82,14 +82,14 @@ components:
 
 Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.
 
-Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. The brandbook, main menu, Options, and Credits use this system. Training and the static-dummy Fight use separate gameplay styles.
+Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. The brandbook, main menu, Options, and Credits use this system. Spell Training and the static-dummy Practice Arena use separate gameplay styles.
 
 Follow the task scope in `AGENTS.md`. Apply target values only within requested visual work. A local visual change does not require a full migration.
 
 | Screen or work | Scope |
 | --- | --- |
 | Main menu, Options, Credits | Preserve the existing design outside the requested change. |
-| Training and Fight | Preserve the existing gameplay styles outside the requested change. |
+| Spell Training and Practice Arena | Preserve the existing gameplay styles outside the requested change. |
 | Brandbook | Keep it as a design reference and simulation. Its screen studies do not replace the game screens. |
 | Future migration | Start only on user request. Apply target rules only to the named screens. |
 
@@ -140,7 +140,7 @@ Use tabular numerals for timers and counters. Do not set long instructions or co
 
 Use an 8px spacing rhythm with 16, 24, 32, 48, 64, and 96px steps. Compact 4px and 12px steps support related icon/label gaps. Brandbook sections share a wide reading grid and a clear heading/content division. Screen previews use wide landscape composition; inspect desktop at 1920×1080.
 
-Training and fight layouts prioritize the active scene. Keep key status near the play field. Setup choices and diagnostics belong in a separate region. On narrow screens, stack content in reading order, wrap navigation, and preserve control size. A scaled screen illustration is a reference, not proof that a full mobile game exists.
+Spell Training and practice arena layouts prioritize the active scene. Keep key status near the play field. Setup choices and diagnostics belong in a separate region. On narrow screens, stack content in reading order, wrap navigation, and preserve control size. A scaled screen illustration is a reference, not proof that a full mobile game exists.
 
 Primary actions have a minimum 48px target; compact secondary controls have at least 44px targets. At 200% zoom, text and controls remain usable without overlapping. Do not clip instructions to preserve a decorative frame.
 
@@ -180,7 +180,7 @@ Show start, direction, end, and one short instruction. For Expelliarmus, move ri
 
 ### Combat HUD
 
-Keep the center free for the target and cast. Put current spell and casting state at the perimeter. The static-dummy Fight already implements target health, damage at impact, defeat, and reset; preserve those rules during visual migration. New opponent attacks, player damage, cooldowns, and full-fight victory states require separate product rules. Brandbook examples remain proposed designs, not playable combat.
+Keep the center free for the target and cast. Put current spell and casting state at the perimeter. The static-dummy Practice Arena already implements target health, damage at impact, defeat, and reset; preserve those rules during visual migration. New opponent attacks, player damage, cooldowns, and full-combat victory states require separate product rules. Brandbook examples remain proposed designs, not playable combat.
 
 ## Do's and Don'ts
 

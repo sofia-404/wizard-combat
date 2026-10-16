@@ -1,0 +1,11 @@
+Method: built-in image_gen tool, using the user-provided image as a reference.
+Asset: dist/assets/practice-arena.jpg
+Source: exec-f5b061c9-cccc-496a-b9e2-4529389927c9.png
+Export: JPEG quality 87, original dimensions, using macOS sips.
+Scope: one static scene for the first layout step; characters are part of the scene.
+
+Prompt:
+Use case: stylized-concept. Asset type: background illustration for a browser wizard duel game, landscape 16:9.
+Input image: user's attached duel image is a composition and visual-style reference only.
+Create a new detailed cinematic fantasy arena inspired by its moonlit gothic ruins, distant castle, mountains, stone columns and wet stone floor. A silver-haired adult male wizard in dark navy robes stands at the LEFT quarter, full body visible, facing right, holding a wand forward in a calm ready pose. At the RIGHT quarter stands an adult human-looking female practice dummy in burgundy wizard robes, full body visible, facing left, static calm neutral ready pose, wand lowered. The right character looks like a real person, not a wooden mannequin. Leave clear open space between them. Both stand on the same floor plane. Keep heads below the upper 24% of the frame and feet above the bottom 10%, leaving overlay room. Rich detailed realistic fantasy game concept art, cool blue moonlight on left, soft amber light on right, muted cinematic contrast, atmospheric depth.
+No attacking, no spell beams, no impacts, no magic circles, no flying objects. No UI, text, letters, health bars, timers, portraits, logos, borders or watermarks. Wide 16:9 composition, ideally 1792x1024 or similar.

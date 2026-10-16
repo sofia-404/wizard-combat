@@ -1,0 +1,177 @@
+.view-tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);margin:0 0 24px;padding-bottom:10px}
+.view-tab{display:flex;align-items:center;gap:9px;background:transparent;color:var(--muted);padding:0 20px;border:1px solid transparent}
+.view-tab[aria-selected="true"]{background:#25543e;color:#fff}
+.tab-badge{font-size:8px;letter-spacing:1px;border:1px solid currentColor;padding:3px 5px;border-radius:3px;opacity:.75}
+:is(#practiceArenaView,#soloDuelView)[hidden]{display:none}
+
+/* Arena styles are shared by Practice Arena, Solo Duel, and Spell Training. */
+body.practice-arena-open{background:#10181d;color:#ede9df;min-height:100vh;min-height:100svh}
+.practice-arena-open main{max-width:1600px}
+body.practice-arena-open #gameView main>header{display:none}
+.practice-arena-open header .eyebrow,.practice-arena-open .local{color:#a3b0b5}
+.practice-arena-open h1 span{color:#c6a66e}
+.practice-arena-open .view-tabs{border-color:#ffffff1c}
+.practice-arena-open .view-tab{color:#aeb9bf}
+.practice-arena-open .view-tab[aria-selected="true"]{background:#c5ad7e;color:#171e22;border-color:#dcc799}
+.practice-arena-open .view-tab:hover{border-color:#c5ad7e}
+.practice-arena-open button:focus-visible{outline-color:#e9cf97}
+.practice-arena-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:26px 0 23px}
+:is(#practiceArenaHeading,#spellTrainingHeading,#soloDuelHeading){margin:0;min-width:0;justify-self:center;text-align:center}
+.practice-arena-kicker{font-size:9px;font-weight:650;letter-spacing:2.5px;color:#c5ad7e;margin:0 0 9px}
+.practice-arena-heading h2{margin:0}
+.practice-arena-mode{display:flex;align-items:center;gap:8px;flex-shrink:0;border:1px solid #ffffff20;border-radius:20px;padding:9px 13px;font-size:11px;color:#b9c3c5}
+.practice-arena-mode>span{width:5px;height:5px;background:#c5ad7e;border-radius:50%}
+.practice-arena{position:relative;isolation:isolate;aspect-ratio:16/9;overflow:hidden;border:1px solid #a994655c;border-radius:5px;background:#172330;box-shadow:0 20px 65px #0005}
+.arena-art{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* Keep the arena's space while its separate image layers load. */
+.practice-arena[data-art-state="loading"]{visibility:hidden}
+.practice-arena[data-art-state="failed"] :is(.arena-art,.practice-arena-actors){visibility:hidden}
+.arena-shade{position:absolute;inset:0;background:linear-gradient(180deg,#071019d9 0%,#07101944 22%,transparent 42%,transparent 70%,#071019bd 100%);pointer-events:none}
+.practice-arena-hud{position:absolute;inset:0 0 auto;display:grid;grid-template-columns:1fr 90px 1fr;gap:30px;padding:28px 32px}
+.combatant-card{min-width:0;text-shadow:0 2px 8px #000;display:flex;flex-direction:column;align-items:flex-start}
+.combatant-role{font-size:8px;font-weight:700;letter-spacing:2px;color:#c0cedb}
+.combatant-card strong{font-family:Georgia,'Times New Roman',serif;font-size:29px;font-weight:400;margin:5px 0 12px;line-height:1.1}
+.combatant-rule{height:3px;width:100%;background:linear-gradient(90deg,#84c9ea,#84c9ea10);box-shadow:0 -1px 0 #d2edf333}
+.combatant-detail{font-size:10px;color:#bdcbd5;letter-spacing:.3px;margin-top:10px}
+.combatant-dummy{align-items:flex-end;text-align:right}
+.combatant-dummy .combatant-role{color:#ddcbb4}
+.combatant-dummy .combatant-rule{background:linear-gradient(90deg,#e3a66b10,#e3a66b)}
+.combatant-dummy .combatant-detail{color:#ddcbb4}
+.practice-arena-timer{visibility:hidden;align-self:start;justify-self:center;display:grid;place-items:center;width:42px;height:42px;margin-top:36px;border:2px solid #c6a66e;border-radius:50%;background:#101820;color:#ede9df;font-size:14px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.arena-caption{position:absolute;bottom:23px;left:32px;right:32px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#d9e0e3;font-size:8px;letter-spacing:2px;font-weight:600}
+.arena-caption>span{display:flex;align-items:center;gap:8px}
+.arena-caption i{width:5px;height:5px;border-radius:50%;background:#91cce9;box-shadow:0 0 10px #91cce970}
+.arena-caption .dummy-dot{background:#dfa977;box-shadow:0 0 10px #dfa97770}
+.arena-caption .arena-location{color:#c9bea8;font-size:7px;letter-spacing:3px}
+.practice-arena-bottom{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:23px 0}
+.practice-arena-note{display:flex;align-items:center;gap:14px}
+.note-symbol{color:#c5ad7e;font-size:28px}
+.practice-arena-note strong{font-size:12px;font-weight:500;color:#dce2e4}
+.practice-arena-note p{font-size:11px;color:#9daab3;line-height:1.6;margin:5px 0 0;max-width:530px}
+.practice-arena-back{border:1px solid #ffffff25;background:#ffffff06;color:#d9d8d1;display:flex;align-items:center;gap:12px;font-size:11px;font-weight:500;height:42px}
+.practice-arena-back:hover{background:#ffffff12;border-color:#c5ad7e}
+@media(min-width:1600px){.practice-arena-open main{padding-top:30px}}
+@media(max-width:900px){.practice-arena-hud{padding:22px;gap:18px;grid-template-columns:1fr 65px 1fr}.combatant-card strong{font-size:23px}.arena-caption{left:22px;right:22px;bottom:18px}.practice-arena-bottom{align-items:flex-start}}
+@media(max-width:600px){.practice-arena-heading{flex-wrap:wrap;gap:14px;margin:21px 0 18px}.practice-arena-mode{font-size:10px;padding:7px 10px}.practice-arena-hud{grid-template-columns:1fr 40px 1fr;padding:14px 12px;gap:8px}.practice-arena-timer{width:40px;height:40px;margin-top:17px;font-size:14px}.combatant-role{font-size:6px;letter-spacing:1px}.combatant-card strong{font-size:17px;margin:4px 0 8px}.combatant-detail{display:none}.combatant-rule{height:2px}.arena-caption{bottom:12px;left:12px;right:12px;font-size:6px;letter-spacing:1px}.arena-caption .arena-location{display:none}.arena-caption>span{gap:5px}.practice-arena-bottom{flex-direction:column;gap:16px;padding-top:20px}.practice-arena-note{align-items:flex-start}.practice-arena-back{width:100%;justify-content:center}.view-tab{padding:0 16px}}
+
+/* Live Practice Arena controls use the existing camera view and input handlers. */
+.practice-arena-controls{display:flex;align-items:end;flex-wrap:wrap;gap:14px;padding:16px;margin-bottom:18px;background:#18242b;border:1px solid #ffffff1c;border-radius:7px}
+.practice-arena-controls label{color:#b9c6cb;letter-spacing:.3px}
+.practice-arena-controls select{background:#101a21;border-color:#52616b;color:#e6e8df}
+.practice-arena-start{background:#c5ad7e;color:#171e22;min-width:135px}
+.practice-arena-start:hover{background:#dfc99e}
+.practice-arena-start:disabled{opacity:.6;cursor:wait}
+:is(#practiceArenaCamera,#spellTrainingCamera,#soloDuelCamera){background:#c5ad7e;color:#171e22;border:0;border-radius:7px;width:auto;min-height:44px}
+:is(#practiceArenaCamera,#spellTrainingCamera,#soloDuelCamera):hover{background:#dfc99e}
+.game-navigation :is(#practiceArenaCamera,#spellTrainingCamera,#soloDuelCamera){margin-left:auto}
+.practice-arena>:is(#practiceArenaCamera,#spellTrainingCamera,#soloDuelCamera){position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+/* Match the heading to the battlefield column, including its stacked layout. */
+/* Halve the outside space, including the centered margin on wide screens. */
+body.practice-arena-open .game-navigation,
+body.practice-arena-open #gameView>main{max-width:calc(50% + 800px);padding-inline:19px}
+body.practice-arena-open .game-navigation{display:grid;grid-template-columns:minmax(0,1fr);column-gap:18px}
+body.practice-arena-open .game-navigation>#gameBack{grid-column:1;grid-row:1;justify-self:start}
+:is(#practiceArenaHeading,#spellTrainingHeading,#soloDuelHeading){grid-column:1;grid-row:1}
+.game-navigation :is(#practiceArenaCamera,#spellTrainingCamera,#soloDuelCamera){grid-column:1;grid-row:1;justify-self:end}
+body.practice-arena-open #gameView>main{padding-top:16px}
+@media(min-width:1100px){body.practice-arena-open .game-navigation{grid-template-columns:minmax(0,1fr) var(--game-sidebar-width,270px)}.game-navigation :is(#practiceArenaCamera,#spellTrainingCamera,#soloDuelCamera){grid-column:2}}
+@media(max-width:900px) and (min-width:721px){body.practice-arena-open .game-navigation,body.practice-arena-open #gameView>main{padding-inline:11px}}
+@media(max-width:720px){body.practice-arena-open .game-navigation,body.practice-arena-open #gameView>main{padding-inline:8px}}
+@media(max-width:600px){:is(#practiceArenaHeading,#spellTrainingHeading,#soloDuelHeading){grid-row:2}body.practice-arena-open #gameView>main{padding-top:8px}}
+.practice-arena-camera-state{color:#b9c6cb;font-size:11px;align-self:center;margin-left:auto;max-width:280px;line-height:1.5}
+.practice-arena-effects{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.practice-arena-spell{filter:drop-shadow(0 0 10px #b7e8ff)}
+.practice-arena-live{display:grid;grid-template-columns:minmax(230px,340px) minmax(0,1fr);gap:20px;margin-top:20px}
+.practice-arena-camera-panel,.practice-arena-cast-panel{background:#162129;border:1px solid #ffffff20;border-radius:7px;overflow:hidden}
+.practice-arena-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid #ffffff18;color:#afbec6;font-size:9px;letter-spacing:1px}
+:is(#practiceArenaCameraMount,#soloDuelCameraMount) .viewport{width:100%}
+:is(#practiceArenaCameraMount,#soloDuelCameraMount) .empty h2{font-size:16px}
+:is(#practiceArenaCameraMount,#soloDuelCameraMount) .empty p{font-size:10px}
+:is(#practiceArenaCameraMount,#soloDuelCameraMount) .camera-icon{height:35px;width:35px;margin-bottom:10px;font-size:24px;border-radius:10px}
+:is(#practiceArenaCameraMount,#soloDuelCameraMount) .cue{bottom:8px;left:8px;right:8px;padding:9px;gap:8px;min-height:42px}
+:is(#practiceArenaCameraMount,#soloDuelCameraMount) .cue strong{font-size:10px}
+:is(#practiceArenaCameraMount,#soloDuelCameraMount) .cue span{font-size:8px;min-width:40px}
+.practice-arena-cast-panel.practice-arena-events-panel{display:flex;flex-direction:column;height:320px;min-height:0;padding-bottom:0}
+.practice-arena-events-panel>.practice-arena-panel-heading{flex-shrink:0}
+.practice-arena-events-panel>[role="log"]{flex:1;min-height:0;overflow:hidden;mask-image:linear-gradient(to bottom,#000 calc(100% - 20px),transparent)}
+.practice-arena-events-empty{font-size:12px;line-height:1.6;color:#c5d4dd;margin:18px 16px}
+.practice-arena-events{list-style:none;margin:0;padding:0 16px}
+.practice-arena-events li{padding:10px 0;overflow-wrap:anywhere}
+.practice-arena-events li+li{border-top:1px solid #ffffff18}
+.practice-arena-event-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.practice-arena-events time{flex-shrink:0;font-size:10px;color:#afbec6;font-variant-numeric:tabular-nums;white-space:nowrap}
+.practice-arena-events strong{display:block;font-size:13px;font-weight:600;line-height:1.4;color:#e6ece8}
+.practice-arena-events li:first-child strong{color:#e7d5b2}
+.practice-arena-events p{font-size:11px;line-height:1.5;color:#c5d4dd;margin:4px 0 0}
+.practice-arena-spell-guide{display:flex;flex-wrap:wrap;gap:12px 22px;padding:0 20px;margin:16px 0}
+.practice-arena-spell-guide span{display:flex;gap:7px;align-items:center;font-size:11px;color:#c2cdd3}
+.practice-arena-spell-guide b{font-size:24px;font-weight:400;color:#a9dff3;line-height:1}
+.practice-arena-help{font-size:11px;line-height:1.6;color:#a9b8c0;margin:10px 20px}
+@media(max-width:600px){.practice-arena-live{grid-template-columns:1fr}.practice-arena-controls{gap:12px;padding:13px}.practice-arena-controls label{flex:1;min-width:125px}.practice-arena-controls select{width:100%}.practice-arena-camera-state{margin-left:0}.practice-arena-start{width:100%}.practice-arena-cast-panel{padding-bottom:10px}}
+@media(min-width:1100px){.practice-arena-stage{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}.practice-arena-live{display:flex;flex-direction:column;gap:14px;margin-top:0}.practice-arena-hud{padding:22px;gap:18px;grid-template-columns:1fr 65px 1fr}.combatant-card strong{font-size:24px}.practice-arena-spell-guide{gap:12px;padding:0 16px}.practice-arena-help{margin:10px 16px}.practice-arena-cast-panel{padding-bottom:8px}}
+/* The battlefield sets the side column height, regardless of event count. */
+@media(min-width:1100px){:is(#practiceArenaCameraMount,#soloDuelCameraMount) .empty{padding-bottom:24px}:is(#practiceArenaView,#soloDuelView) .practice-arena-stage{grid-template-columns:minmax(0,1fr) 270px}:is(#practiceArenaView,#soloDuelView) .practice-arena-live{align-self:stretch;contain:size;min-height:0}:is(#practiceArenaView,#soloDuelView) .practice-arena-camera-panel{flex-shrink:0}:is(#practiceArenaView,#soloDuelView) .practice-arena-events-panel{flex:1;height:auto}}
+
+.practice-arena-health{appearance:none;-webkit-appearance:none;display:block;width:100%;height:12px;margin:0;border:1px solid #a6c8d57a;border-radius:3px;background:#091219;overflow:hidden}
+.practice-arena-health::-webkit-progress-bar{background:#091219}
+.practice-arena-health::-webkit-progress-value{background:linear-gradient(180deg,#b6ecff,#4295b9)}
+.practice-arena-health::-moz-progress-bar{background:linear-gradient(180deg,#b6ecff,#4295b9)}
+.combatant-dummy .practice-arena-health{border-color:#d9b18b88}
+.combatant-dummy .practice-arena-health::-webkit-progress-value{background:linear-gradient(180deg,#f9cc91,#c16a43)}
+.combatant-dummy .practice-arena-health::-moz-progress-bar{background:linear-gradient(180deg,#f9cc91,#c16a43)}
+.practice-arena-health-value{font-size:11px;font-weight:650;letter-spacing:.5px;margin-top:6px;color:#eef4f6}
+.practice-arena-defeat{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);padding:22px 28px;text-align:center;background:#10181dee;border:1px solid #d0ad76;border-radius:7px;box-shadow:0 8px 36px #0008;width:max-content;max-width:85%}
+.practice-arena-defeat[hidden]{display:none}
+.practice-arena-defeat strong{display:block;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;color:#f3d6a8}
+.practice-arena-defeat span{display:block;font-size:12px;color:#d4dce1;margin-top:9px}
+.is-player-defeated .combatant-player strong,.is-player-defeated :is(#practiceArenaPlayerHealthText,#soloDuelPlayerHealthText){color:#ffb6a0}
+.is-defeated .combatant-dummy strong,.is-defeated :is(#practiceArenaDummyHealthText,#soloDuelDummyHealthText),.is-defeated :is(#practiceArenaDummyState,#soloDuelDummyState){color:#ffb6a0}
+:is(#practiceArenaResetDummy,#soloDuelResetDummy){margin:14px auto 0;min-height:44px;justify-content:center}
+@media(max-width:600px){.practice-arena-health{height:8px}.practice-arena-health-value{font-size:8px;margin-top:4px}.practice-arena-defeat{padding:7px 10px;top:49%}.practice-arena-defeat strong{font-size:16px}.practice-arena-defeat span{font-size:9px;margin-top:4px}}
+
+/* Character layers move separately from the fixed arena repair plate. */
+.practice-arena-actors{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.practice-arena-player-repair{display:none}
+.practice-arena-player:has([data-pose="falling"],[data-pose="fallen"]) .practice-arena-player-repair{display:block}
+:is(#practiceArenaPlayerActor,#soloDuelPlayerActor),#spellTrainingPlayerActor{transform-box:view-box;transform-origin:295px 773px}
+:is(#practiceArenaDummyActor,#soloDuelDummyActor){transform-box:view-box;transform-origin:1404px 773px}
+:is(#practiceArenaDummyWand,#soloDuelDummyWand){transform-box:view-box;transform-origin:1348px 534px;transform:translate(0,0) rotate(0deg)}
+:is(#practiceArenaDummyActor,#soloDuelDummyActor)[data-disarmed="true"] :is(#practiceArenaDummyWand,#soloDuelDummyWand){transform:translate(-35px,230px) rotate(54deg);animation:practice-arena-wand-drop 520ms ease-out}
+@keyframes practice-arena-wand-drop{
+  0%{transform:translate(0,0) rotate(0deg)}
+  18%{transform:translate(-10px,-6px) rotate(8deg);animation-timing-function:cubic-bezier(.55,0,1,1)}
+  84%{transform:translate(-34px,230px) rotate(54deg);animation-timing-function:ease-out}
+  92%{transform:translate(-35px,225px) rotate(56deg);animation-timing-function:ease-in}
+  100%{transform:translate(-35px,230px) rotate(54deg)}
+}
+@media(prefers-reduced-motion:reduce){:is(#practiceArenaDummyActor,#soloDuelDummyActor)[data-disarmed="true"] :is(#practiceArenaDummyWand,#soloDuelDummyWand){animation:none}}
+/* Idle motion. The figures breathe and sway on planted feet, and their wands
+   drift. Origins are arena pixels at the feet, a shoulder, or a wand grip. The
+   wizard layers cover the wizard painted into the arena art with the same pixels. */
+.idle{transform-box:view-box}
+.player-breathe{transform-origin:240px 776px;animation:player-breathe 2s ease-in-out infinite alternate}
+.player-sway{transform-origin:240px 776px;animation:player-sway 3.4s ease-in-out -1.2s infinite alternate}
+.player-wand-arm{transform-origin:318px 380px;animation:player-wand-arm 2s ease-in-out -.3s infinite alternate}
+.player-back-arm{transform-origin:206px 368px;animation:player-back-arm 3.4s ease-in-out -2.9s infinite alternate}
+.dummy-breathe{transform-origin:1450px 754px;animation:dummy-breathe 2.4s ease-in-out -.9s infinite alternate}
+.dummy-sway{transform-origin:1450px 754px;animation:dummy-sway 4.1s ease-in-out -3s infinite alternate}
+.dummy-wand{transform-origin:1348px 534px;animation:dummy-wand 2.8s ease-in-out -1.6s infinite alternate}
+@keyframes player-breathe{to{transform:scale(1.002,1.008)}}
+@keyframes player-sway{from{transform:skewX(-.45deg)}to{transform:skewX(.45deg)}}
+@keyframes player-wand-arm{from{transform:rotate(.8deg)}to{transform:rotate(-1deg)}}
+@keyframes player-back-arm{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+@keyframes dummy-breathe{to{transform:scale(1.002,1.007)}}
+@keyframes dummy-sway{from{transform:skewX(.3deg)}to{transform:skewX(-.3deg)}}
+@keyframes dummy-wand{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+[data-pose="falling"] .idle,[data-pose="fallen"] .idle,[data-disarmed="true"] .dummy-wand{animation:none}
+@media(prefers-reduced-motion:reduce){.idle{animation:none}}
+.is-defeated .practice-arena-dummy-shadow{transform:translate(-160px,0) scaleX(1.3);transform-box:fill-box;transform-origin:center}
+
+.practice-arena-battlefield{min-width:0}
+.practice-arena-gesture{position:absolute;left:23%;top:24%;width:54%;height:64%;object-fit:contain;pointer-events:none}
+.practice-arena-feedback{border:1px solid #ffffff20;border-top:0;border-radius:0 0 7px 7px;background:#142129;padding:12px 16px;color:#e6ece8}
+.practice-arena-feedback>div{display:flex;align-items:center;gap:12px;font-size:12px;line-height:1.5}
+@media(max-width:600px){.practice-arena-feedback{padding:10px 12px}.practice-arena-feedback>div{font-size:11px;gap:7px}}
+
+/* Solo Duel must show its cast warning at narrow widths too. */
+#soloDuelDummyState:not([hidden]){display:block}

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {spellList, spells, spellForShape, defaultLessonSpell} from '../dist/spells/index.js';
 import {validateDefinitions} from '../dist/spells/validate.js';
 import {castDamage} from '../dist/combat/cast.js';
-import {TrainingDummy} from '../dist/combat/training-dummy.js';
-import {SpellLesson} from '../dist/training/lesson.js';
+import {PracticeDummy} from '../dist/combat/practice-dummy.js';
+import {SpellLesson} from '../dist/spell-training/lesson.js';
 import {ExpelliarmusLesson} from '../dist/lesson.js';
 import {matchExpelliarmus} from '../dist/expelliarmus.js';
 import {matchOrderedCorner} from '../dist/gestures/ordered-corner.js';
@@ -75,7 +75,7 @@ test('attack damage bands stay unchanged; shields do no damage', () => {
 });
 
 test('effect and lesson state stay separate for each player; old imports still work', () => {
-  const first = new TrainingDummy(), second = new TrainingDummy();
+  const first = new PracticeDummy(), second = new PracticeDummy();
   first.cast(cast('Expelliarmus'), 100);
   assert.equal(second.disarmed, false);
   second.cast(cast('Expelliarmus'), 200);

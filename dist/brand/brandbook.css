@@ -318,7 +318,7 @@ svg {
   font-size: 14px;
   color: var(--gold);
 }
-.training-layout {
+.spell-training-layout {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
   gap: 40px;
@@ -411,7 +411,7 @@ svg {
   max-width: 300px;
   margin-bottom: 0;
 }
-.fight-layout {
+.practice-arena-layout {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   align-items: center;
@@ -419,7 +419,7 @@ svg {
   flex: 1;
   padding: 60px 0;
 }
-.fight-side strong {
+.practice-arena-side strong {
   display: block;
   font-size: 25px;
   font-family: var(--font-display);
@@ -436,7 +436,7 @@ svg {
   width: 100%;
   background: var(--gold);
 }
-.fight-side p {
+.practice-arena-side p {
   font-size: 16px;
 }
 .target-field {
@@ -481,23 +481,23 @@ svg {
 .target-field p {
   font-size: 14px;
 }
-.fight-spell h3 {
+.practice-arena-spell h3 {
   font-size: 32px;
   margin-top: 10px;
 }
-.fight-spell svg {
+.practice-arena-spell svg {
   display: block;
   width: 120px;
   margin: 20px 0;
 }
-.fight-spell .arc-button {
+.practice-arena-spell .arc-button {
   font-size: 15px;
   padding: 12px 16px;
 }
-.fight-screen.is-cast .target-reticle {
+.practice-arena-screen.is-cast .target-reticle {
   border-color: var(--magic);
 }
-.fight-screen.is-cast .target-reticle > div {
+.practice-arena-screen.is-cast .target-reticle > div {
   border-color: var(--magic);
 }
 .palette {
@@ -898,7 +898,7 @@ footer .wordmark {
   .swatch span {
     font-size: 16px;
   }
-  .fight-layout {
+  .practice-arena-layout {
     gap: 20px;
   }
   .screen-annotation > span {
@@ -1058,7 +1058,7 @@ footer .wordmark {
     font-size: 14px;
     margin-top: 12px;
   }
-  .training-layout {
+  .spell-training-layout {
     grid-template-columns: 1fr;
     gap: 26px;
     margin: 24px 0;
@@ -1096,7 +1096,7 @@ footer .wordmark {
   .lesson-meter {
     margin: 8px 0 20px;
   }
-  .fight-layout {
+  .practice-arena-layout {
     grid-template-columns: 1fr 1fr;
     gap: 28px 16px;
     padding: 28px 0;
@@ -1120,20 +1120,20 @@ footer .wordmark {
   .target-field p {
     font-size: 14px;
   }
-  .fight-side p {
+  .practice-arena-side p {
     font-size: 14px;
   }
   .guide-label {
     font-size: 14px;
   }
-  .fight-spell h3 {
+  .practice-arena-spell h3 {
     font-size: 24px;
   }
-  .fight-spell svg {
+  .practice-arena-spell svg {
     width: 80px;
     margin: 16px 0;
   }
-  .fight-spell .arc-button {
+  .practice-arena-spell .arc-button {
     font-size: 14px;
     padding: 10px;
     min-height: 44px;

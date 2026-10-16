@@ -38,7 +38,7 @@ SOURCES = {
 }
 
 # Source excerpts in seconds. Each main hit lands about 120 ms after the start,
-# when the Fight flight reaches the dummy (FLIGHT_MS in dist/fight-effects.js).
+# when the Practice Arena flight reaches the dummy (FLIGHT_MS in dist/practice-arena-effects.js).
 SPELLS = {
     'expelliarmus': {'source': 'fire', 'start': 0.06, 'end': 1.40, 'fade': 0.30,
                      # The wand clink lands just after the fire reaches the dummy.

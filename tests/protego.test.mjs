@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Shield} from '../dist/combat/shield.js';
-import {FightHealth} from '../dist/fight-health.js';
-import {TrainingDummy} from '../dist/combat/training-dummy.js';
+import {PracticeArenaHealth} from '../dist/practice-arena-health.js';
+import {PracticeDummy} from '../dist/combat/practice-dummy.js';
 import {castDamage} from '../dist/combat/cast.js';
 import {spells, spellForShape} from '../dist/spells/index.js';
 import {recognize} from '../dist/gesture.js';
@@ -21,7 +21,7 @@ test('Protego keeps the circle path in both directions and records the spell nam
   assert.equal(spells.circle,undefined);
   assert.equal(spellForShape('Circle'),undefined);
   for(const score of [0,77,78,88,100])assert.equal(castDamage({...cast,score}),0);
-  const dummy=new TrainingDummy();
+  const dummy=new PracticeDummy();
   assert.equal(dummy.cast(cast,100),false);
   assert.equal(dummy.disarmed,false);
   assert.equal('expiresAt' in dummy,false,'shield must target the caster');
@@ -44,8 +44,8 @@ test('shield blocks damage for three seconds; repeat casts refresh without stack
   for(const amount of [NaN,Infinity,-1,'30'])assert.equal(shield.damage(amount,3001),0);
 });
 
-test('Fight shield has no hit or projectile, blocks incoming damage, and resets', () => {
-  const health=new FightHealth();
+test('Practice Arena shield has no hit or projectile, blocks incoming damage, and resets', () => {
+  const health=new PracticeArenaHealth();
   assert.equal(health.protect(cast,100),true);
   assert.equal(health.protect(cast,200),false,'duplicate cast cannot extend protection');
   assert.equal(health.shield.expiresAt,3100);

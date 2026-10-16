@@ -7,7 +7,7 @@ export function prepareArena(arena) {
   arena.setAttribute('aria-busy', 'true');
   const background = arena.querySelector('.arena-art');
   background.loading = 'eager';
-  const sources = new Set([...arena.querySelectorAll('.fight-actors image')]
+  const sources = new Set([...arena.querySelectorAll('.practice-arena-actors image')]
     .map(layer => layer.getAttribute('href')));
   const images = [...sources].map(src => {
     const image = new Image();

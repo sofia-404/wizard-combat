@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {GestureController,resample} from '../dist/gesture.js';
 import {ExpelliarmusLesson} from '../dist/lesson.js';
-import {TrainingDummy} from '../dist/dummy.js';
+import {PracticeDummy} from '../dist/dummy.js';
 
 test('Consecutive casts, fresh paths, and recovery', () => {
 
@@ -15,7 +15,7 @@ const shapes={
 };
 const place=(points,p)=>points.map(q=>({x:q.x+p.x,y:q.y+p.y}));
 function trial(){
-  let t=0,disarms=0;const events=[],lesson=new ExpelliarmusLesson(),dummy=new TrainingDummy();
+  let t=0,disarms=0;const events=[],lesson=new ExpelliarmusLesson(),dummy=new PracticeDummy();
   lesson.start();
   const c=new GestureController(e=>{events.push(e);lesson.update(e);if(dummy.cast(e,t))disarms++;});
   const put=p=>c.update(p,t+=33);

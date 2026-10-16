@@ -37,7 +37,7 @@ function set(id,value){
   else updateInputState({[id]:String(value)});
 }
 export function record(data,png=null){
-  const activeTab=$('gameView').hidden?'menu':$('trainingView')?.hidden===false?'training':$('fightView')?.hidden===false?'fight':'menu';
+  const activeTab=$('gameView').hidden?'menu':$('spellTrainingView')?.hidden===false?'spellTraining':$('practiceArenaView')?.hidden===false?'practiceArena':$('soloDuelView')?.hidden===false?'soloDuel':'menu';
   const event={id:crypto.randomUUID(),session,at:new Date().toISOString(),source:'camera',version:3,...inputSettings,lessonState:'idle',lessonCount:0,activeTab,...data};
   saveQueue.push({event,png,eventSaved:false});flush();
 }
@@ -63,9 +63,9 @@ export function cancelGestureCapture(reason){
 }
 function onGesture(event){
   if($('gameView').hidden)return;
-  if($('trainingView')?.hidden===false){
+  if($('spellTrainingView')?.hidden===false){
     lastPath=event.path||[];lastPathUntil=performance.now()+3500;
-    document.dispatchEvent(new CustomEvent('wizard:training-gesture',{detail:{...event,id:crypto.randomUUID()}}));
+    document.dispatchEvent(new CustomEvent('wizard:spell-training-gesture',{detail:{...event,id:crypto.randomUUID()}}));
     return;
   }
   if(event.type==='capture'){record({type:'capture',cause:event.cause,...tracking,...event.diagnostics});return;}
@@ -80,7 +80,7 @@ function onGesture(event){
   updateInputState({lastShape:resultTitle(result),lastReason:event.reason,
     resultTag:event.type==='cast'?'CAST':event.type==='cancel'?(result.endRule==='loss'?'LOST':'STOP'):event.type==='ignored'?'MOVE':'RETRY',
     score:event.shape&&event.shape!=='None'?event.score+'%':'—'});
-  if(event.type!=='cast')document.dispatchEvent(new CustomEvent('wizard:fight-gesture',{detail:{type:event.type,reason:event.reason,cause:event.cause}}));
+  if(event.type!=='cast')document.dispatchEvent(new CustomEvent('wizard:practice-arena-gesture',{detail:{type:event.type,reason:event.reason,cause:event.cause}}));
   if(event.type==='cast'){
     document.dispatchEvent(new CustomEvent('wizard:cast',{detail:{id:result.id,shape:event.shape,score:event.score,damage:castDamage(event)}}));
   }
@@ -92,7 +92,7 @@ function drawPreview(points,accepted){
   pc.beginPath();points.forEach((p,i)=>{const a=map(p);i?pc.lineTo(a.x,a.y):pc.moveTo(a.x,a.y);});pc.strokeStyle=accepted?'#2f7251':'#b77748';pc.lineWidth=3;pc.lineCap='round';pc.lineJoin='round';pc.stroke();
   const first=map(points[0]);pc.beginPath();pc.arc(first.x,first.y,4,0,Math.PI*2);pc.fillStyle='#b77748';pc.fill();
 }
-export function stopGameCamera(){stopCamera('Camera stopped. Lesson progress kept.');}
+export function stopGameCamera(){stopCamera(document.body.classList.contains('spell-training-open') ? 'Camera stopped. Lesson stopped.' : 'Camera stopped. Lesson progress kept.');}
 function stopCamera(reason='Camera stopped'){
   drawAudio.stop();
   if(stream)record({type:'camera',reason});

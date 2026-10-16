@@ -1,4 +1,4 @@
-The menu and Fight use credited music. The menu also uses two original interface
+The menu and Practice Arena use credited music. The menu also uses two original interface
 sounds.
 
 ## Menu music
@@ -30,7 +30,7 @@ URLs. `incompetech-license-evidence.txt` preserves the attribution template
 from the publisher's track page. These are evidence and notices, not a copy
 of the full license; the linked license controls use.
 
-## Fight music
+## Practice Arena music
 
 “Clash Defiant” by Kevin MacLeod (incompetech.com).
 Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
@@ -139,7 +139,7 @@ Sources, retrieved October 15, 2026:
 
 `scripts/generate-spell-audio.py` records the excerpt times and the SHA-256
 of each source recording. Each excerpt starts so that its main hit lands
-about 120 ms after playback starts. That is when the Fight flight reaches the
+about 120 ms after playback starts. That is when the Practice Arena flight reaches the
 dummy. The Expelliarmus sound adds the metal clink at half gain, 75 ms after
 the start. The Basic Cast sound adds the Kenney punch at 0.8 gain, 40 ms after the start. Each file has a 5 ms fade-in and a fade-out of 150 to 400 ms. It is
 mixed to mono, normalized to about -16 LUFS with a -1 dBFS peak limit, and

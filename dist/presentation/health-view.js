@@ -1,4 +1,4 @@
-import {MAX_HEALTH} from '../fight-health.js';
+import {MAX_HEALTH} from '../practice-arena-health.js';
 
 export function renderHealthBars(view, health) {
   for (const actor of ['player', 'dummy']) {
@@ -16,6 +16,6 @@ export function listenForPlayerHits(view, health, onHit) {
   document.addEventListener('wizard:player-hit', ({detail}) => {
     if (detail?.view !== view || document.hidden || document.getElementById(view + 'View').hidden) return;
     const hit = health.receiveHit(detail, performance.now());
-    if (hit) onHit(hit);
+    if (hit) onHit(hit, detail);
   });
 }

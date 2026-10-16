@@ -10,17 +10,17 @@ Keep scenery separate from controls. Do not generate logos, labels, counters, or
 
 ## Main-menu background
 
-**Prompt:** Original cinematic dark-fantasy practice chamber for adult players, empty and quiet, midnight navy stone and deep teal mist, a single worn brass training instrument on the right, one subtle cyan point of light tracing a deliberate movement, restrained believable materials, no characters, no text or symbols from an existing franchise. Landscape 16:9. Leave the left 40 percent calm and dark for a vertical menu. Maintain readable low detail behind that menu. No ornate gold border, no castle skyline, no star field.
+**Prompt:** Original cinematic dark-fantasy practice chamber for adult players, empty and quiet, midnight navy stone and deep teal mist, a single worn brass spell training instrument on the right, one subtle cyan point of light tracing a deliberate movement, restrained believable materials, no characters, no text or symbols from an existing franchise. Landscape 16:9. Leave the left 40 percent calm and dark for a vertical menu. Maintain readable low detail behind that menu. No ornate gold border, no castle skyline, no star field.
 
 Deliver 3840×2160 source, a 1920×1080 optimized WebP, and a darker fallback crop. Confirm that the left control area still supports text contrast at the brightest frame.
 
-## Training environment
+## Spell Training environment
 
-**Prompt:** Original sparse magical training room for a mature fantasy game, frontal viewpoint, a simple wooden practice target slightly right of center, navy and deep teal stone, soft practical side light, muted aged brass details, target clearly separated from the background, unobstructed central movement area, no particles across the player input region, no UI, no lettering, no recognizable franchise architecture. Landscape 16:9, grounded proportions and restrained texture.
+**Prompt:** Original sparse magical spell training room for a mature fantasy game, frontal viewpoint, a simple wooden practice target slightly right of center, navy and deep teal stone, soft practical side light, muted aged brass details, target clearly separated from the background, unobstructed central movement area, no particles across the player input region, no UI, no lettering, no recognizable franchise architecture. Landscape 16:9, grounded proportions and restrained texture.
 
 Deliver environment and target separately if the game will animate the dummy. Keep a clean empty-room plate. The existing wand-return behavior needs a movable wand layer rather than painted-in animation.
 
-## Fight environment
+## Practice Arena environment
 
 **Prompt:** Original adult dark-fantasy sparring hall, wide frontal combat view, quiet midnight navy foreground, deep teal distance, narrow aged-gold architectural accents, one clear central target zone with generous uncluttered space, cinematic but readable lighting, no characters or interface, no health bars, no grand castle silhouette, no existing franchise motifs. Leave top corners and lower edge low contrast for a future HUD. Landscape 16:9.
 

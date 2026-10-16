@@ -108,22 +108,22 @@
             Main menu</button
           ><button
             type="button"
-            id="tab-training"
+            id="tab-spell-training"
             role="tab"
             aria-selected="false"
-            aria-controls="screen-training"
+            aria-controls="screen-spell-training"
             tabindex="-1"
           >
-            Training</button
+            Spell Training</button
           ><button
             type="button"
-            id="tab-fight"
+            id="tab-practice-arena"
             role="tab"
             aria-selected="false"
-            aria-controls="screen-fight"
+            aria-controls="screen-practice-arena"
             tabindex="-1"
           >
-            Fight</button
+            Practice Arena</button
           ><span>Interactive mockup</span>
         </div>
         <div class="screen-stage">
@@ -152,10 +152,10 @@
                 </h3>
                 <p>Begin with a precise movement.</p>
                 <div class="menu-actions">
-                  <button class="arc-button" data-screen="training">
-                    Start training <span aria-hidden="true">→</span></button
-                  ><button class="arc-button secondary" data-screen="fight">
-                    Preview fight</button
+                  <button class="arc-button" data-screen="spell-training">
+                    Start spell training <span aria-hidden="true">→</span></button
+                  ><button class="arc-button secondary" data-screen="practice-arena">
+                    Preview practice arena</button
                   ><button class="text-button" data-scroll="components">
                     Interface controls
                   </button>
@@ -199,19 +199,19 @@
             </div>
           </section>
           <section
-            class="game-screen training-screen"
-            id="screen-training"
+            class="game-screen spell-training-screen"
+            id="screen-spell-training"
             role="tabpanel"
-            aria-labelledby="tab-training"
+            aria-labelledby="tab-spell-training"
             hidden
           >
             <div class="screen-top">
-              <span>TRAINING</span
-              ><span class="arc-badge ready" id="training-badge"
+              <span>SPELL TRAINING</span
+              ><span class="arc-badge ready" id="spell-training-badge"
                 >Tracking demo</span
               >
             </div>
-            <div class="training-layout">
+            <div class="spell-training-layout">
               <div class="camera-concept">
                 <div class="camera-corners" aria-hidden="true"></div>
                 <span class="camera-label">Camera area · schematic</span
@@ -247,7 +247,7 @@
                 </svg>
                 <div class="camera-instruction">
                   <span class="arc-badge ready">Hand in view</span
-                  ><strong id="training-instruction">Right. Then down.</strong>
+                  ><strong id="spell-training-instruction">Right. Then down.</strong>
                 </div>
               </div>
               <aside class="spell-guide">
@@ -268,31 +268,31 @@
                 ><button class="text-button" id="reset-cast">
                   Start again
                 </button>
-                <p class="small-note" id="training-status" role="status">
+                <p class="small-note" id="spell-training-status" role="status">
                   Use the button to run this demo. No camera is used.
                 </p>
               </aside>
             </div>
             <div class="screen-bottom">
               <span>Gesture: right → down</span
-              ><span>Training mockup · No camera</span>
+              ><span>Spell Training mockup · No camera</span>
             </div>
           </section>
           <section
-            class="game-screen fight-screen"
-            id="screen-fight"
+            class="game-screen practice-arena-screen"
+            id="screen-practice-arena"
             role="tabpanel"
-            aria-labelledby="tab-fight"
+            aria-labelledby="tab-practice-arena"
             hidden
           >
             <div class="screen-top">
-              <span>FIGHT / CONCEPT</span
-              ><span class="arc-badge ready" id="fight-badge"
+              <span>PRACTICE ARENA / CONCEPT</span
+              ><span class="arc-badge ready" id="practice-arena-badge"
                 >Awaiting gesture</span
               >
             </div>
-            <div class="fight-layout">
-              <div class="fight-side">
+            <div class="practice-arena-layout">
+              <div class="practice-arena-side">
                 <span class="guide-label">Your status</span
                 ><strong>Ready</strong>
                 <div class="readiness"><i></i></div>
@@ -306,11 +306,11 @@
                   <div></div>
                   <i></i>
                 </div>
-                <span>Training target</span
-                ><strong id="fight-message">Choose your moment.</strong>
+                <span>Practice target</span
+                ><strong id="practice-arena-message">Choose your moment.</strong>
                 <p>Scene mockup without combat simulation</p>
               </div>
-              <div class="fight-spell">
+              <div class="practice-arena-spell">
                 <span class="guide-label">Selected spell</span>
                 <h3>Expelliarmus</h3>
                 <svg viewBox="0 0 140 100" fill="none" aria-hidden="true">
@@ -321,7 +321,7 @@
                   />
                   <circle cx="20" cy="20" r="4" fill="var(--magic)" />
                   <path d="m120 72 8 8-8 8-8-8Z" stroke="var(--magic)" /></svg
-                ><button class="arc-button secondary" id="simulate-fight">
+                ><button class="arc-button secondary" id="simulate-practice-arena">
                   Show feedback
                 </button>
               </div>
@@ -410,7 +410,7 @@
             </p>
             <div class="type-scale">
               <div>
-                <span>Screen title</span><b class="scale-title">Training</b
+                <span>Screen title</span><b class="scale-title">Spell Training</b
                 ><small>48 / 52 · serif</small>
               </div>
               <div>
@@ -450,7 +450,7 @@
             <div class="button-samples">
               <div>
                 <button class="arc-button" id="demo-action">
-                  Start training</button
+                  Start spell training</button
                 ><span>Primary · hover to preview</span>
               </div>
               <div>
