@@ -1,4 +1,4 @@
-# Wizard Combat turns hand movements into spells.
+# Wizard Combat
 
 Use your camera to draw spells, train on a dummy, and duel a computer opponent. This is a local browser game prototype with four spells. Multiplayer is not available yet.
 
