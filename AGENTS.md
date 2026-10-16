@@ -51,7 +51,7 @@
 ## Design and tools
 
 - Reuse existing styles and assets. Keep screen-specific changes scoped to that screen. Before changing shared styles, check which screens use them.
-- Use `playwright-cli` for browser interaction. Existing automated browser tests keep their package scripts.
+- Existing automated browser tests keep their package scripts.
 
 ## Checks
 
