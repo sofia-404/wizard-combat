@@ -1,4 +1,4 @@
-The menu and Practice Arena use credited music. The menu also uses two original interface
+The menu and all three game modes use credited music. The menu also uses two original interface
 sounds.
 
 ## Menu music
@@ -30,7 +30,7 @@ URLs. `incompetech-license-evidence.txt` preserves the attribution template
 from the publisher's track page. These are evidence and notices, not a copy
 of the full license; the linked license controls use.
 
-## Practice Arena music
+## Battle music
 
 “Clash Defiant” by Kevin MacLeod (incompetech.com).
 Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
@@ -140,16 +140,15 @@ Sources, retrieved October 15, 2026:
 
 `scripts/generate-spell-audio.py` records the excerpt times and the SHA-256
 of each source recording. Each excerpt starts so that its main hit lands
-about 120 ms after playback starts. That is when the Practice Arena flight reaches the
-dummy. The Expelliarmus sound adds the metal clink at half gain, 75 ms after
+about 120 ms after playback starts. Cast sounds start at release; their main hit
+is not aligned to gameplay impact. Flight times follow the [combat rules](../../docs/combat.md#shared-combat-rules). The Expelliarmus sound adds the metal clink at half gain, 75 ms after
 the start. The Basic Cast sound adds the Kenney punch at 0.8 gain, 40 ms after the start. Each file has a 5 ms fade-in and a fade-out of 150 to 400 ms. It is
 mixed to mono, normalized to about -16 LUFS with a -1 dBFS peak limit, and
 encoded as 44.1 kHz 16-bit WAV.
 
 ## Duel damage sound
 
-`dist/audio/duel-hit.wav` plays when a spell hits the Duel dummy and deals
-damage. It is a short punch impact with no voice. It is an adaptation of a
+`dist/audio/duel-hit.wav` plays when a spell deals damage in any game mode. It is a short punch impact with no voice. It is an adaptation of a
 third-party recording released under CC0 1.0 Universal:
 https://creativecommons.org/publicdomain/zero/1.0/
 
@@ -169,8 +168,10 @@ the spell sounds, so the spell impact stays in front.
 
 ## Duel victory fanfare
 
-`dist/audio/duel-victory.mp3` plays once when the Duel dummy is defeated.
-The battle music stops while the dummy stays defeated. It is an adaptation of
+`dist/audio/duel-victory.mp3` plays once for a player match win in Practice Arena
+or Solo Duel, not for each round. Spell Training plays it on dummy defeat.
+Battle music stops at match completion or training defeat and resumes on reset.
+Player losses do not play the fanfare. It is an adaptation of
 a third-party recording released under CC0 1.0 Universal:
 https://creativecommons.org/publicdomain/zero/1.0/
 
@@ -207,7 +208,7 @@ To recreate the spell sounds, extract the source ZIP files and
 python3 scripts/generate-spell-audio.py /path/to/folder
 ```
 
-Add a spell ID, such as `v`, to rebuild only that spell.
+Add a spell ID, such as `basic-cast`, to rebuild only that spell.
 
 Python 3 and FFmpeg with `libmp3lame` are required for the music edits.
 To recreate the damage sound, extract its source ZIP file and run:

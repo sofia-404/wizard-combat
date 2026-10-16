@@ -344,7 +344,7 @@
       "Do label simulated previews and unimplemented features."
     ],
     "donts": [
-      "Don't copy third-party crests, faction symbols, castle silhouettes, typography, maps, or interface layouts.",
+      "For new original-scene concepts, avoid third-party crests, faction symbols, castle silhouettes, typography, maps, and interface layouts. Preserve shipped themed assets outside a requested change; see DESIGN.md.",
       "Don't use cartoon characters, toy-like controls, or ornamental clutter.",
       "Don't make cyan decoration compete with the live gesture.",
       "Don't hide tracking loss behind a spell-failure message.",

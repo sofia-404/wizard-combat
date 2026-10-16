@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {listenForPlayerHits} from '../dist/presentation/health-view.js';
+import {PracticeArenaHealth} from '../dist/practice-arena-health.js';
+import {replaceGlobal} from './helpers/async.mjs';
+
+test('player hits reach only the visible accepted view and notify once per accepted hit', t => {
+  const panels = {soloDuelView:{hidden:false}, spellTrainingView:{hidden:true}};
+  const document = Object.assign(new EventTarget(), {hidden:false, getElementById:id => panels[id]});
+  replaceGlobal(t, 'document', document);
+  replaceGlobal(t, 'performance', {now:() => 100});
+  const duel = new PracticeArenaHealth(), training = new PracticeArenaHealth(), calls = [];
+  listenForPlayerHits('soloDuel', duel, (hit, cast) => calls.push({view:cast.view, hit}), cast => cast.roundToken === 2);
+  listenForPlayerHits('spellTraining', training, (hit, cast) => calls.push({view:cast.view, hit}));
+  const send = detail => document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail}));
+  const hit = {view:'soloDuel', id:'one-hit', damage:30, roundToken:2};
+  send({...hit, view:'spellTraining'});
+  send({...hit, roundToken:1});
+  panels.soloDuelView.hidden = true;
+  send(hit);
+  panels.soloDuelView.hidden = false;
+  document.hidden = true;
+  send(hit);
+  assert.deepEqual([duel.player, training.player, calls.length], [200, 200, 0]);
+  document.hidden = false;
+  send(hit);
+  send(hit);
+  assert.equal(duel.player, 170, 'ignored delivery must not consume the hit ID');
+  assert.equal(training.player, 200);
+  assert.deepEqual(calls, [{view:'soloDuel', hit:{damage:30, health:170, blocked:false}}]);
+  panels.soloDuelView.hidden = true;
+  panels.spellTrainingView.hidden = false;
+  send({...hit, view:'spellTraining'});
+  assert.deepEqual([duel.player, training.player], [170, 170]);
+  assert.deepEqual(calls[1], {view:'spellTraining', hit:{damage:30, health:170, blocked:false}});
+  assert.equal(calls.length, 2);
+});

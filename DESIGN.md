@@ -82,14 +82,14 @@ components:
 
 Wizard Combat uses the precision of movement notation inside a quiet, mature dark-fantasy world. The anchor marks intent, the trace records movement, and the terminal diamond marks completion. These shapes teach the same action that drives the game.
 
-Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. The brandbook, main menu, Options, and Credits use this system. Spell Training and the static-dummy Practice Arena use separate gameplay styles.
+Navy and teal hold the scene. Aged gold organizes it. Cyan appears when magic or input becomes active. Cormorant Garamond gives titles an engraved character; Source Sans 3 keeps instructions direct. The brandbook, main menu, Options, and Credits use this system. Spell Training, Practice Arena, and Solo Duel use separate gameplay styles.
 
 Follow the task scope in `AGENTS.md`. Apply target values only within requested visual work. A local visual change does not require a full migration.
 
 | Screen or work | Scope |
 | --- | --- |
 | Main menu, Options, Credits | Preserve the existing design outside the requested change. |
-| Spell Training and Practice Arena | Preserve the existing gameplay styles outside the requested change. |
+| Spell Training, Practice Arena, and Solo Duel | Preserve the existing gameplay styles outside the requested change. |
 | Brandbook | Keep it as a design reference and simulation. Its screen studies do not replace the game screens. |
 | Future migration | Start only on user request. Apply target rules only to the named screens. |
 
@@ -148,7 +148,7 @@ Primary actions have a minimum 48px target; compact secondary controls have at l
 
 Use tonal layers and fine rules before shadows. Teal haze belongs behind the scene and never behind dense reading text at full strength. Gold edges are restrained, not embossed chrome. Glows are local feedback around the active trace or impact. Avoid full-panel glass blur and continuous particle storms.
 
-The base interactive transition is 180ms with `cubic-bezier(0.16, 1, 0.3, 1)`. A cast may resolve in 320ms. Reduced-motion mode removes travel, shimmer, and repeated motion while preserving the state change. Do not convey readiness by animation alone or introduce flashing effects.
+The base interactive transition is 180ms with `cubic-bezier(0.16, 1, 0.3, 1)`. The brandbook cast simulation may resolve in 320ms. Game flight timing follows [combat rules](docs/combat.md#shared-combat-rules). Reduced-motion mode removes travel, shimmer, and repeated motion while preserving the state change. Do not convey readiness by animation alone or introduce flashing effects.
 
 ## Shapes
 
@@ -180,7 +180,7 @@ Show start, direction, end, and one short instruction. For Expelliarmus, move ri
 
 ### Combat HUD
 
-Keep the center free for the target and cast. Put current spell and casting state at the perimeter. The static-dummy Practice Arena already implements target health, damage at impact, defeat, and reset; preserve those rules during visual migration. New opponent attacks, player damage, cooldowns, and full-combat victory states require separate product rules. Brandbook examples remain proposed designs, not playable combat.
+Keep the center free for the target and cast. Put current spell and casting state at the perimeter. The static-dummy Practice Arena already implements target health, damage at impact, defeat, and reset; preserve those rules during visual migration. Solo Duel already implements opponent attacks, player damage, cooldowns, and match results. Preserve the [shared combat rules](docs/combat.md). Brandbook examples remain proposed designs, not playable combat.
 
 ## Do's and Don'ts
 
@@ -194,7 +194,7 @@ Keep the center free for the target and cast. Put current spell and casting stat
 
 ### Don't
 
-- Don't copy third-party crests, faction symbols, castle silhouettes, typography, maps, or interface layouts.
+- For new original-scene concepts, avoid third-party crests, faction symbols, castle silhouettes, typography, maps, and interface layouts. The shipped character and stage sets include Harry Potter themes; this rule does not authorize replacing them. See [asset scope](docs/design/asset-prompts.md).
 - Don't use cartoon characters, toy-like controls, or ornamental clutter.
 - Don't make cyan decoration compete with the live gesture.
 - Don't hide tracking loss behind a spell-failure message.

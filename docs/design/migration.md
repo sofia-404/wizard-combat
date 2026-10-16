@@ -2,7 +2,7 @@
 
 Scope: requested migrations under `DESIGN.md`.
 
-The brandbook supplies a design reference and reusable assets. Spell Training and the static-dummy Practice Arena use their existing styles. Preserve current recognition and game rules during any requested migration. The main menu, Options, and Credits already use the brandbook system; their implementation is not pending work.
+The brandbook supplies a design reference and reusable assets. Spell Training, Practice Arena, and Solo Duel use their existing gameplay styles. Preserve current recognition and game rules during any requested migration. The main menu, Options, and Credits already use the brandbook system; their implementation is not pending work.
 
 ## Adoption order
 
@@ -12,7 +12,7 @@ The brandbook supplies a design reference and reusable assets. Spell Training an
 4. Recompose spell training around the current camera, lesson, and dummy state. Preserve existing IDs or update their JavaScript bindings deliberately.
 5. Put technical settings and event logs behind an explicit diagnostics view. Keep them available for trials.
 6. Preserve the implemented main-menu routes. Add a route only when the requested work needs it and its action leads to a working screen.
-7. Preserve the implemented dummy Practice Arena rules. Define opponent attacks and other full-combat mechanics separately before extending the practice arena concept. Treat mockup numbers and states as illustrative.
+7. Preserve the [implemented combat rules](../combat.md), including Solo Duel attacks, shields, and arena rounds. Mockup numbers and states do not change those rules.
 
 ## Current migration gaps
 
@@ -43,8 +43,8 @@ The preview stylesheet `brandbook.css` belongs to the brandbook. Import the toke
 SVG assets live in `dist/brand/assets/`: `emblem.svg`, `mark.svg` (the mark alias), `gesture-expelliarmus.svg`, and `cursor.svg`. The wordmark is live text, not a separate SVG. Keep the native browser cursor for normal controls; the optional cursor asset is for a specific in-scene pointer only. SVG assets can have accessible names when meaningful or empty alternative text when decorative.
 
 ```html
-<button class="arc-button">Start lesson</button>
-<button class="arc-button secondary">Stop lesson</button>
+<button class="arc-button">Start camera</button>
+<button class="arc-button secondary">Back to menu</button>
 <label class="arc-field">
   <span>Drawing hand</span>
   <select class="arc-input"><option>Left hand</option><option>Right hand</option></select>
@@ -56,24 +56,24 @@ SVG assets live in `dist/brand/assets/`: `emblem.svg`, `mark.svg` (the mark alia
 
 | Behavior | Source |
 | --- | --- |
-| Camera lifecycle, mirrored preview, local records | `dist/app.js` |
+| Camera lifecycle, mirrored preview, server records | `dist/app.js` |
 | Hand selection and short label changes | `dist/hand-input.js` |
 | Start, end, timeout, and loss rules | `dist/gesture.js` |
 | Right-then-down spell direction | `dist/gestures/ordered-corner.js` |
 | Spell definitions, damage, and colors | `dist/spells/`, `dist/combat/cast.js` |
-| Three-cast progress and completion actions | `dist/spell-training/lesson.js` |
-| Two-second wand return | `dist/combat/practice-dummy.js` |
-| Shared camera view, Practice Arena health, and effects | `dist/practice-arena.js`, `dist/practice-arena-health.js`, `dist/practice-arena-effects.js` |
+| Cast/block counts and camera-stop behavior | `dist/spell-training/lesson.js`, `dist/spell-training/session.js` |
+| Disarm and wand return | `dist/combat/solo-duel.js`, `dist/practice-arena-disarm.js` |
+| Shared arena, health, effects, and rounds | `dist/arena-view.js`, `dist/practice-arena-health.js`, `dist/practice-arena-effects.js`, `dist/combat/rounds.js` |
 | Captured path drawing and recording limits | `dist/result-card.js` |
 
 ## Verification before migration ships
 
-- Run `npm test`, `npm run test:practice-arena`, `npm run test:spell-training`, `npm run test:input`, and `npm run test:navigation` for a migration that affects all game views. Adapt selectors deliberately if the layout changes.
+- Run `npm test`, `npm run test:practice-arena`, `npm run test:spell-training`, `npm run test:input`, `npm run test:navigation`, `npm run test:solo-duel`, `npm run test:protego-training`, and `npm run test:rounds` for a migration that affects all game views. Adapt selectors deliberately if the layout changes.
 - Check shared camera controls, mode changes, damage at impact, cancelled flights, defeat, reset, separate Practice Arena and Spell Training state, and Spell Training's per-spell lesson progress.
 - Inspect at 1920×1080 and a narrow viewport. Check 200% zoom and keyboard focus.
 - Check camera off, starting, blocked, absent hand, ready, drawing, accepted, rejected, lost tracking, and 3/3 completion.
 - Check both hands and both control points. The displayed Expelliarmus guide stays right then down.
-- Verify that stopping the camera preserves lesson count and that the wand still returns.
+- Verify that camera stops clear active lesson counts and keep completed lessons and learned marks. Check that the wand still returns.
 - Confirm that local-processing and recording copy remains accurate.
 - Run a physical trial only with explicit permission for real camera access. Simulated input cannot prove that a person can comfortably see and use the new layout.
 

@@ -39,7 +39,7 @@ Definitions are checked and frozen at startup. Player state stays in the dummy, 
 
 `dist/combat/solo-duel.js` supplies `DuelFighter` to all three modes, despite its older file name. It owns release gating and the one-spell queue. A ready Protego can replace a queued attack without changing the deadline. `DuelOpponent` adds difficulty-based attacks and reactive defense. The Protego lesson uses it with `attacksOnly:true`. `solo-opponent.js` is a compatibility export.
 
-Health validates and consumes each impact once. Only accepted impacts can apply disarm or perfect-block recovery. Shared effects keep full flight times under reduced motion. Shared shield and disarm effect functions enforce cooldown and disarm protection. Views render state; they do not supply their own balance values. See README.md for the values and timing rules.
+Health validates and consumes each impact once. Only accepted impacts can apply disarm or perfect-block recovery. Shared effects keep full flight times under reduced motion. Shared shield and disarm effect functions enforce cooldown and disarm protection. Views render state; they do not supply their own balance values. See [the combat reference](combat.md#shared-combat-rules) for the values and timing rules.
 
 The event flow is:
 

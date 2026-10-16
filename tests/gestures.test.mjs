@@ -66,3 +66,47 @@ test('a successful cast clears capture and is ready for the next shape', () => {
   assert.equal(controller.state, 'ready');
   assert.equal(controller.path.length, 0);
 });
+
+test('a continuous hold becomes ready at 260 ms, not one frame early', () => {
+  const events = [], controller = new GestureController(event => events.push(event));
+  const point = {x:.3, y:.3};
+  for (const time of [0, 65, 130, 195, 259]) controller.update(point, time);
+  assert.equal(controller.state, 'waiting');
+  controller.update(point, 260);
+  assert.equal(controller.state, 'ready');
+  controller.update(point, 261);
+  assert.equal(controller.state, 'ready');
+  assert.equal(events.length, 0, 'a hold alone is not a spell');
+});
+
+for (const gap of [200, 201]) {
+  test(`a ${gap} ms gap ${gap <= 200 ? 'resumes' : 'cancels'} the current drawing`, () => {
+    const events = [], controller = new GestureController(event => events.push(event));
+    const points = shapes['Basic Cast'];
+    let now = 0;
+    const put = point => controller.update(point, now += 33);
+    for (let i = 0; i < 12; i++) put(points[0]);
+    points.slice(0, 28).forEach(put);
+    assert.equal(controller.state, 'drawing');
+    controller.missing(now + 50);
+    now += gap;
+    controller.update(points[27], now);
+    if (gap <= 200) {
+      assert.equal(controller.state, 'drawing');
+      points.slice(28).forEach(put);
+      for (let i = 0; i < 20; i++) put(points.at(-1));
+      assert.equal(casts(events).length, 1);
+      assert.equal(casts(events)[0].shape, 'Basic Cast');
+      assert.equal(casts(events)[0].diagnostics.gapResumes, 1);
+      assert.equal(events.filter(event => event.type === 'cancel').length, 0);
+    } else {
+      assert.equal(controller.state, 'waiting');
+      assert.equal(events.filter(event => event.type === 'cancel').length, 1);
+      assert.equal(casts(events).length, 0);
+      for (let i = 0; i < 12; i++) put(points[0]);
+      points.forEach(put);
+      for (let i = 0; i < 20; i++) put(points.at(-1));
+      assert.equal(casts(events).length, 1, 'a fresh drawing works after cancellation');
+    }
+  });
+}

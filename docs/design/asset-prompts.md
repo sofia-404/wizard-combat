@@ -1,6 +1,8 @@
 # Build original assets around the player’s movement.
 
-The shipped brandbook uses authored vector assets and local fonts. The prompts below are production briefs for optional future scene art. They do not claim that scene images have been generated or licensed.
+The shipped brandbook uses authored vector assets and local fonts. The prompts below are production briefs for optional future scene art. They do not describe the shipped arena, character, or stage art. Those assets have separate [source records](../../evidence/asset-sources.md).
+
+The shipped game includes Harry Potter house themes and settings. The original-art limits below apply to these optional future briefs, not to replacement of shipped assets. Stage PNG originals currently live beside runtime JPEGs in `dist/assets/stages/`; preserve them unless a separate task changes that structure.
 
 ## Shared art direction
 
@@ -32,9 +34,9 @@ One cyan path follows actual input. It has a small bright core, a soft bounded h
 
 ## Asset acceptance
 
-- Record the tool, model, exact prompt, date, and source references for generated assets.
+- Record the tool, model, exact prompt, date, and source references for generated assets. Mark missing facts as unknown; do not infer them from commit dates.
 - Record the author, source URL, license, and allowed use for sourced assets.
 - Inspect at actual display size, including the brightest state.
-- Remove accidental text, logos, and franchise resemblance.
+- For these original-art briefs, remove accidental text, logos, and franchise resemblance.
 - Supply a static fallback, optimized file, dimensions, and descriptive filename.
-- Keep originals outside the runtime bundle; ship only the sizes used.
+- For new assets, keep originals outside the runtime bundle and ship only the sizes used. Existing stage originals are an exception, as noted above.
