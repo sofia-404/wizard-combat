@@ -14,7 +14,12 @@ export async function checkSiteHistory(browser, base, cached) {
   const context = await browser.newContext({permissions:[], reducedMotion:'reduce', viewport:{width:1920,height:1080}});
   try {
     await context.addInitScript(() => {
-      window.historyTest = {id:crypto.randomUUID(), shows:[], views:[], cameraCalls:0};
+      window.historyTest = {id:crypto.randomUUID(), shows:[], views:[], cameraCalls:0, focusCalls:[]};
+      const focus = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function(...args) {
+        window.historyTest.focusCalls.push(this.id || this.dataset.view);
+        return focus.apply(this, args);
+      };
       addEventListener('pageshow', event => window.historyTest.shows.push({persisted:event.persisted, hash:location.hash}));
       document.addEventListener('wizard:view', event => window.historyTest.views.push(event.detail.view));
       navigator.mediaDevices.getUserMedia = async () => {
@@ -56,6 +61,7 @@ export async function checkSiteHistory(browser, base, cached) {
       const state = await page.evaluate(() => ({id:historyTest.id, show:historyTest.shows.at(-1), cameraCalls:historyTest.cameraCalls, notRestored:performance.getEntriesByType('navigation')[0]?.notRestoredReasons?.toJSON()}));
       if (expectCache !== null) assert.equal(state.show.persisted, expectCache, JSON.stringify(state));
       assert.equal(state.id === previousId, state.show.persisted);
+      if (!state.show.persisted) assert.deepEqual(await page.evaluate(() => historyTest.focusCalls), []);
       return state;
     };
     for (const name of Object.keys(screens)) {
@@ -68,9 +74,12 @@ export async function checkSiteHistory(browser, base, cached) {
       await page.goForward({waitUntil:'commit'});
       id = (await checkReturn(name, id)).id;
       await saved();
+      const focusTarget = ['training','fight'].includes(name) ? '#gameBack' : name === 'menu' ? '[data-view="fight"]' : '#' + name + 'View [data-back]';
+      await page.locator(focusTarget).focus();
       await page.goto(away);
       await page.goBack({waitUntil:'commit'});
       const state = await checkReturn(name, id);
+      if (state.show.persisted) assert.equal(await page.locator(focusTarget).evaluate(element => element === document.activeElement), true);
       assert.equal(state.cameraCalls, 0);
       await page.goForward({waitUntil:'commit'});
       assert.equal(await page.title(), 'Other site');

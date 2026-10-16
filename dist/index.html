@@ -2,13 +2,9 @@
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/fight.css"><link rel="stylesheet" href="/menu.css"><link rel="stylesheet" href="/presentation/shield.css"><link rel="stylesheet" href="/training.css"></head>
 <body>
-<div id="menuShell" class="menu-shell">
+<div id="menuShell" class="menu-shell" hidden>
   <div class="menu-art" aria-hidden="true"></div>
-  <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m15 9 6 6m0-6-6 6"/></svg>
-    <span id="soundToggleLabel">Mute sound</span>
-  </button>
-  <section id="mainMenu" class="menu-screen" aria-labelledby="menuTitle">
+  <section id="mainMenu" class="menu-screen" aria-labelledby="menuTitle" tabindex="-1">
     <div class="menu-masthead"><h1 id="menuTitle">Wizard Combat</h1></div>
     <nav class="menu-nav" aria-label="Main menu">
       <button type="button" data-view="fight"><span>Fight</span></button>
@@ -20,6 +16,10 @@
   <section id="optionsView" class="menu-screen detail-view" hidden aria-labelledby="optionsTitle">
     <button type="button" class="menu-back" data-back>Back to menu</button>
     <h2 id="optionsTitle" tabindex="-1">Options</h2>
+  <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m15 9 6 6m0-6-6 6"/></svg>
+    <span id="soundToggleLabel">Mute sound</span>
+  </button>
     <form id="optionsForm" class="options-form">
       <label class="switch-row" for="musicSetting"><span>Music</span><input id="musicSetting" type="checkbox" role="switch" checked></label>
       <label class="switch-row" for="sfxSetting"><span>Sound effects</span><input id="sfxSetting" type="checkbox" role="switch" checked></label>
@@ -41,7 +41,7 @@
     <p class="setting-note">Camera images and video are not saved. Training saves result and lesson records. Fight also saves captured path drawings.</p>
   </section>
 </div>
-<div id="gameView" hidden><div class="game-navigation"><button id="gameBack" type="button">Back to menu</button><span id="gameViewName">Training</span><button id="gameSoundToggle" class="game-sound-toggle" type="button" aria-pressed="false" aria-label="Mute sound">Mute sound</button></div>
+<div id="gameView" hidden><div class="game-navigation"><button id="gameBack" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m10 5-7 7 7 7M3 12h18"/></svg><span>Back to menu</span></button><span id="gameViewName">Training</span><div id="fightHeading" class="fight-heading" hidden><h2>PRACTICE ARENA</h2></div><div id="trainingHeading" class="fight-heading" hidden><h2>SPELL TRAINING</h2></div><button id="fightCamera" class="fight-start" type="button" hidden>Start camera</button></div>
 <main>
   <header><div><p class="eyebrow">WIZARD COMBAT / CAMERA CONTROLS</p><h1>Wizard Combat<span>.</span></h1></div></header>
   <div id="cameraHome" hidden>
@@ -65,18 +65,9 @@
       </svg>
   </template>
   <section id="fightView" role="region" aria-label="Fight" hidden>
-    <div class="fight-heading">
-      <div><p class="fight-kicker">THE TRAINING GROUNDS</p><h2>A place to master your magic.</h2></div>
-      <span class="fight-mode"><span aria-hidden="true"></span> Static dummy</span>
-    </div>
-    <div class="fight-controls" aria-label="Fight camera controls">
-      <button id="fightCamera" class="fight-start" type="button">Start camera</button>
-      <button id="fightResetDummy" class="fight-back" type="button">Reset dummy</button>
-      <span id="fightCameraState" class="fight-camera-state" role="status">Camera off</span>
-    </div>
     <div class="fight-stage">
     <div class="fight-battlefield">
-    <div class="fight-arena">
+    <div class="fight-arena" data-art-state="loading" aria-busy="true">
       <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard in blue robes stands on the left of a stone floor in a moonlit ruined castle." loading="lazy">
       <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
         <g class="fight-player" aria-hidden="true">
@@ -102,17 +93,11 @@
       <svg id="fightShield" class="shield-sphere" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
       <canvas id="fightGesture" class="fight-gesture" width="640" height="480" aria-label="Live hand path on the battlefield"></canvas>
       <div class="fight-hud">
-        <div class="fighter-card fighter-player"><span class="fighter-role">YOUR WIZARD</span><strong>Player</strong><progress id="fightPlayerHealth" class="fight-health" max="200" value="200" aria-label="Player health">200 of 200</progress><span id="fightPlayerHealthText" class="fight-health-value">200 / 200</span><span class="fighter-detail">Static dummy does not attack</span></div>
+        <div class="fighter-card fighter-player"><span class="fighter-role">YOUR WIZARD</span><strong>Player</strong><progress id="fightPlayerHealth" class="fight-health" max="200" value="200" aria-label="Player health">200 of 200</progress><span id="fightPlayerHealthText" class="fight-health-value">200 / 200</span></div>
         <div id="fightTimer" class="fight-timer" role="timer" aria-label="Fight time remaining in seconds" aria-live="off">100</div>
-        <div class="fighter-card fighter-dummy"><span class="fighter-role">YOUR TARGET</span><strong>Training dummy</strong><progress id="fightDummyHealth" class="fight-health" max="200" value="200" aria-label="Dummy health">200 of 200</progress><span id="fightDummyHealthText" class="fight-health-value">200 / 200</span><span id="fightDummyState" class="fighter-detail">Static · No return fire</span></div>
+        <div class="fighter-card fighter-dummy"><span class="fighter-role">TARGET</span><strong>Dummy</strong><progress id="fightDummyHealth" class="fight-health" max="200" value="200" aria-label="Dummy health">200 of 200</progress><span id="fightDummyHealthText" class="fight-health-value">200 / 200</span><span id="fightDummyState" class="fighter-detail" hidden></span></div>
       </div>
-      <div id="fightDefeat" class="fight-defeat" hidden><strong>Dummy defeated</strong><span>Select Reset dummy to continue.</span></div>
-      <div class="arena-caption"><span><i class="player-dot" aria-hidden="true"></i> PLAYER</span><span class="arena-location">THE MOONLIT COURT</span><span>STATIC DUMMY <i class="dummy-dot" aria-hidden="true"></i></span></div>
-    </div>
-    <div class="fight-arena-feedback">
-      <div><b id="fightArenaPhase">OFF</b><span id="fightArenaInstruction">Start the camera to begin.</span></div>
-      <p id="fightArenaResult">Start the camera. Hold still until READY.</p>
-      <p id="fightShieldStatus" class="shield-status" role="status">Shield inactive</p>
+      <div id="fightDefeat" class="fight-defeat" hidden><strong>Dummy defeated</strong><button id="fightResetDummy" class="fight-back" type="button">Restart</button></div>
     </div>
     </div>
     <div class="fight-live">
@@ -120,32 +105,20 @@
         <div class="fight-panel-heading"><span>YOUR CAMERA</span><span id="fightTracking">Off</span></div>
         <div id="fightCameraMount"></div>
       </section>
-      <section class="fight-cast-panel" aria-label="Spell feedback">
-        <div class="fight-panel-heading"><span>SPELL CONTROL</span><span id="fightHits">0 hits</span></div>
-        <p id="fightCastStatus" role="status" aria-live="polite">Start the camera. Hold still until READY.</p>
-        <p id="fightResult">Draw one shape, then pause to cast.</p>
-        <p id="fightWandStatus" class="fight-help" role="status">Wand ready</p>
-        <div class="fight-spell-guide" aria-label="Spell shapes">
-          <span><b>○</b> Protego</span><span><b aria-hidden="true">V</b> Basic Cast</span><span><b aria-hidden="true"><svg viewBox="0 0 60 60" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3"><path d="M10 10H50L10 50H50"/></svg></b> Confringo</span><span><b>┐</b> Expelliarmus</span>
+      <section class="fight-cast-panel fight-events-panel" aria-label="Recent Fight events">
+        <div class="fight-panel-heading"><span>RECENT EVENTS</span><span id="fightHits">0 hits</span></div>
+        <p id="fightEventsEmpty" class="fight-events-empty">No events yet. Start the camera to begin.</p>
+        <div role="log" aria-label="Recent Fight events, newest first" aria-live="polite" aria-relevant="additions">
+          <ol id="fightEvents" class="fight-events"></ol>
         </div>
-        <p class="fight-help">Expelliarmus: move right, then down. Pause only at the end. Use the same direction with either hand.</p>
-        <p class="fight-help">The camera follows your hand, not the wand tip. Use Knuckles when you hold a wand.</p>
       </section>
     </div>
     </div>
-    <div class="fight-bottom">
-      <div class="fight-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>Attack spells fly to the dummy. Protego protects you. Fight and Training use the same camera controls and settings. Training keeps separate lesson progress.</p></div></div>
-    </div>
   </section>
   <section id="trainingView" role="region" aria-label="Training" hidden>
-    <div class="fight-heading"><div><p class="fight-kicker">THE TRAINING GROUNDS</p><h2>Learn a spell.</h2></div><span class="fight-mode"><span aria-hidden="true"></span><output id="trainingLearnedTotal">0 of 4 spells learned</output></span></div>
-    <div class="fight-controls" aria-label="Training camera controls">
-      <button id="trainingCamera" class="fight-start" type="button">Start camera</button>
-      <span id="trainingCameraState" class="fight-camera-state" role="status">Camera off</span>
-    </div>
     <div class="fight-stage">
       <div class="fight-battlefield">
-        <div class="fight-arena">
+        <div class="fight-arena" data-art-state="loading" aria-busy="true">
           <img class="arena-art" src="/assets/fight-arena-background.jpg" width="1659" height="948" alt="A wizard faces a stationary training dummy in the moonlit arena." loading="lazy">
           <svg class="fight-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
             <g class="fight-player" aria-hidden="true">
@@ -169,17 +142,19 @@
           <svg id="trainingShield" class="shield-sphere" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
           <canvas id="trainingGesture" class="fight-gesture" width="640" height="480" aria-label="Live hand path in the training arena"></canvas>
           <div class="fight-hud">
-            <div class="fighter-card fighter-player"><span class="fighter-role">YOUR SPELL</span><strong id="trainingArenaSpell">Expelliarmus</strong><span class="fighter-rule"></span><span class="fighter-detail">Follow the path. Make three correct casts.</span></div>
+            <div class="fighter-card fighter-player"><span class="fighter-role">YOUR WIZARD</span><strong>Player</strong><progress id="trainingPlayerHealth" class="fight-health" max="200" value="200" aria-label="Player health">200 of 200</progress><span id="trainingPlayerHealthText" class="fight-health-value">200 / 200</span></div>
             <div></div>
-            <div class="fighter-card fighter-dummy"><span class="fighter-role">YOUR TARGET</span><strong>Training dummy</strong><span class="fighter-rule"></span><span class="fighter-detail">Static · No return fire</span></div>
+            <div class="fighter-card fighter-dummy"><span class="fighter-role">TARGET</span><strong>Dummy</strong><progress id="trainingDummyHealth" class="fight-health" max="200" value="200" aria-label="Dummy health">200 of 200</progress><span id="trainingDummyHealthText" class="fight-health-value">200 / 200</span></div>
           </div>
-          <div class="arena-caption"><span><i class="player-dot" aria-hidden="true"></i> PLAYER</span><span class="arena-location">THE MOONLIT COURT</span><span>STATIC DUMMY <i class="dummy-dot" aria-hidden="true"></i></span></div>
+          <button id="trainingCamera" class="fight-start" type="button">Start camera</button>
         </div>
-        <div class="fight-arena-feedback">
-          <div><b id="trainingArenaPhase">OFF</b><span id="trainingArenaInstruction">Start the camera to begin.</span></div>
-          <p id="trainingArenaResult">Start a lesson to count correct casts.</p>
-        </div>
-        <div class="training-target-status"><span id="trainingWandStatus" role="status">Wand ready</span><span id="trainingShieldStatus" role="status">Shield inactive</span></div>
+        <section class="fight-cast-panel fight-events-panel" aria-label="Recent Training events">
+          <div class="fight-panel-heading"><span>RECENT EVENTS</span><output id="trainingLearnedTotal">0 of 4 spells learned</output></div>
+          <p id="trainingEventsEmpty" class="fight-events-empty">No events yet. Start the camera to begin.</p>
+          <div role="log" aria-label="Recent Training events, newest first" aria-live="polite" aria-relevant="additions">
+            <ol id="trainingEvents" class="fight-events"></ol>
+          </div>
+        </section>
       </div>
       <div class="fight-live">
         <section class="fight-camera-panel" aria-label="Mirrored camera preview"><div class="fight-panel-heading"><span>YOUR CAMERA</span><span id="trainingTracking">Off</span></div><div id="trainingCameraMount"></div></section>
@@ -199,9 +174,6 @@
         </div>
       </section>
       </div>
-    </div>
-    <div class="fight-bottom">
-      <div class="fight-note"><span class="note-symbol" aria-hidden="true">◇</span><div><strong>Hold. Draw. Pause to cast.</strong><p>The camera follows your hand, not the wand tip. Select Knuckles when you hold a wand. Camera and lesson controls are separate. Progress stays when you return to the menu or stop the camera. Reloading the page clears it.</p><p>Camera processing stays on this device. Training results save locally. Camera images and video are not saved.</p></div></div>
     </div>
   </section>
 </main></div><script type="module" src="/shell.js"></script>

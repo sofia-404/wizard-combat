@@ -15,9 +15,9 @@ export function createGestureMirror({source, target, video, panel, phase, instru
     if (target.height !== source.height) target.height = source.height;
     ctx.clearRect(0, 0, target.width, target.height);
     if (video.srcObject) ctx.drawImage(source, 0, 0);
-    copyText(phase, status.phase);
-    copyText(instruction, status.instruction);
-    copyText(result, status.result);
+    if (phase && status?.phase) copyText(phase, status.phase);
+    if (instruction && status?.instruction) copyText(instruction, status.instruction);
+    if (result && status?.result) copyText(result, status.result);
     frame = requestAnimationFrame(draw);
   }
 

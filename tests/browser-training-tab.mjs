@@ -151,7 +151,8 @@ try {
   await draw(basic, 'Basic Cast');
   await count(0);
   assert.ok(await page.evaluate(() => window.effectSpells.includes('Basic Cast')));
-  assert.match(await text('trainingArenaResult'), /Basic Cast hit the dummy/);
+  assert.equal(await page.locator('#trainingEvents li strong').first().textContent(), 'Basic Cast');
+  assert.match(await page.locator('#trainingEvents li p').first().textContent(), /damage · .*% precision/);
   const effectCount = await page.evaluate(() => window.effectSpells.length);
   await draw(circle, 'Protego');
   await count(0);
@@ -195,7 +196,7 @@ try {
   await page.locator('#trainingSpell').selectOption('expelliarmus');
   await count(3);
   assert.equal(await page.locator('#trainingCompletion').isVisible(), true);
-  assert.equal(await text('trainingArenaResult'), 'Expelliarmus learned. Lesson complete.');
+  assert.equal(await text('trainingLearnedTitle'), 'Expelliarmus learned');
   assert.deepEqual(await page.evaluate(() => ({dummy:document.querySelector('#fightDummyHealth').value,
     player:document.querySelector('#fightPlayerHealth').value,fightHits:document.querySelector('#fightHits').textContent})), baseline);
   assert.ok(!records.some(event => event.type === 'fight' && event.cause === 'hit'));

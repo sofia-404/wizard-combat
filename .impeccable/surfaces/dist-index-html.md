@@ -19,7 +19,7 @@ OWN-WORLD: Preserve Arc & Anchor, midnight navy, teal fog, aged gold, cyan focus
 
 STORY: Fight opens the static dummy. Training opens its separate four-spell lessons. Each game view shows only its own screen, with no internal mode tab bar, and opens with the camera off. Options save sound, hand, and difficulty choices. Back or Escape returns to the menu and stops camera capture without resetting the lesson.
 
-FIRST VIEWPORT: Use the menu specification above. Keep the separate master sound control easy to reach.
+FIRST VIEWPORT: Use the menu specification above. Keep master mute in Options only.
 
 FORM: Place the menu on the left and a large character on the right within full-screen artwork. Retain original artwork, identity, fonts, and controls. Use code with the supplied raster asset.
 

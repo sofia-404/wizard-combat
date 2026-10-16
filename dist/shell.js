@@ -15,15 +15,14 @@ function renderSettings(){
   $('handSetting').value=settings.hand;$('pointSetting').value=settings.point;
   $('difficultySetting').value=settings.difficulty;$('difficultyHelp').textContent=help[settings.difficulty];
   const label=settings.muted?'Unmute sound':'Mute sound';
-  $('soundToggleLabel').textContent=label;$('gameSoundToggle').textContent=label;
-  for(const id of ['soundToggle','gameSoundToggle']){
-    $(id).setAttribute('aria-pressed',String(settings.muted));$(id).setAttribute('aria-label',label);
-  }
+  $('soundToggleLabel').textContent=label;
+  $('soundToggle').setAttribute('aria-pressed',String(settings.muted));$('soundToggle').setAttribute('aria-label',label);
   audio.sync();
 }
 const music={fight:'duel',training:null};
-function show(name,trigger){
+function show(name,trigger,moveFocus=true){
   if(!routes.includes(name)||name===current)return;
+  const initial=current===null;
   const game=['training','fight'].includes(name);
   const viewName=game?'game':name;
   if(['training','fight'].includes(current)){stopGameCamera();if(!game)selectGameView(null);}
@@ -33,14 +32,17 @@ function show(name,trigger){
   current=name;
   if(game)selectGameView(name);
   audio.setScene(game?music[name]:'menu');window.scrollTo(0,0);
+  if(initial)return;
+  // Pointer returns start Tab at the menu without selecting a button.
+  if(!moveFocus){if(name==='menu')views.menu.focus({preventScroll:true});return;}
   if(name==='menu')(returnFocus||document.querySelector('[data-view="training"]')).focus();
   else if(game)$('gameBack').focus();
   else views[name].querySelector('h2').focus();
 }
-function navigate(name,trigger){
+function navigate(name,trigger,moveFocus=true){
   if(!routes.includes(name))return;
   if(location.hash!=='#'+name)history.pushState(null,'','#'+name);
-  show(name,trigger);
+  show(name,trigger,moveFocus);
 }
 function restoreRoute(){
   const requested=location.hash.slice(1),name=routes.includes(requested)?requested:'menu';
@@ -49,13 +51,14 @@ function restoreRoute(){
 }
 window.addEventListener('popstate',restoreRoute);
 window.addEventListener('hashchange',restoreRoute);
-for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>navigate(button.dataset.view,button));
-for(const button of document.querySelectorAll('[data-back]'))button.addEventListener('click',()=>navigate('menu'));
-$('gameBack').addEventListener('click',()=>navigate('menu'));
+// Keyboard and assistive activation have no pointer click count.
+for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',event=>navigate(button.dataset.view,button,event.detail===0));
+for(const button of document.querySelectorAll('[data-back]'))button.addEventListener('click',event=>navigate('menu',null,event.detail===0));
+$('gameBack').addEventListener('click',event=>navigate('menu',null,event.detail===0));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&current!=='menu'){event.preventDefault();navigate('menu');}});
 $('optionsForm').addEventListener('submit',event=>event.preventDefault());
 for(const [id,key] of [['musicSetting','music'],['sfxSetting','sfx'],['handSetting','hand'],['pointSetting','point'],['difficultySetting','difficulty']])$(id).addEventListener('change',event=>updateSettings({[key]:event.target.type==='checkbox'?event.target.checked:event.target.value}));
-for(const id of ['soundToggle','gameSoundToggle'])$(id).addEventListener('click',()=>updateSettings({muted:!getSettings().muted}));
+$('soundToggle').addEventListener('click',()=>updateSettings({muted:!getSettings().muted}));
 document.addEventListener('wizard:cast',event=>audio.play(event.detail.shape));
 document.addEventListener('wizard:training-cast',event=>audio.play(event.detail.shape));
 document.addEventListener('wizard:duel-defeat',()=>audio.setDefeated(true));

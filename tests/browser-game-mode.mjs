@@ -9,5 +9,5 @@ export async function openGameMode(page,name) {
   const selected={'Training':'trainingView','Fight':'fightView'}[name];
   for(const id of ['trainingView','fightView'])assert.equal(await page.locator('#'+id).isVisible(),id===selected);
   assert.equal(await page.locator('#gameView [role="tablist"], #gameView [role="tab"], #gameView .view-tabs').count(),0);
-  assert.equal(await page.locator('#gameBack').evaluate(el=>el===document.activeElement),true);
+  assert.equal(await page.locator('#gameBack').evaluate(el=>el.matches(':focus-visible')),false);
 }

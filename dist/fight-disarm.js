@@ -9,7 +9,7 @@ export function createFightDisarm(actor, status, {
   function render() {
     actor.dataset.disarmed = String(dummy.disarmed);
     const text = dummy.disarmed ? 'Disarmed · Wand returns in 2 seconds' : 'Wand ready';
-    if (status.textContent !== text) status.textContent = text;
+    if (status && status.textContent !== text) status.textContent = text;
   }
 
   function refresh() {

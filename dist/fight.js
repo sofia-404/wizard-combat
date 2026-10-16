@@ -1,11 +1,15 @@
 import {createSpellEffects} from './fight-effects.js';
 import {FightHealth, MAX_HEALTH} from './fight-health.js';
+import {renderHealthBars, listenForPlayerHits} from './presentation/health-view.js';
 import {createDummyReactions} from './fight-reactions.js';
 import {createGestureMirror} from './fight-gesture.js';
 import {createFightDisarm} from './fight-disarm.js';
 import {record, cancelGestureCapture, toggleGameCamera} from './app.js';
 import {createShieldView} from './presentation/shield-view.js';
 import {spellColor} from './presentation/spell-color.js';
+import {createFightEvents} from './presentation/fight-events.js';
+import {syncGameCamera} from './presentation/game-camera.js';
+import {prepareArena} from './presentation/arena-ready.js';
 
 import {getInputState} from './input-state.js';
 
@@ -13,8 +17,8 @@ const $ = id => document.getElementById(id);
 const gameViews = {training: $('trainingView'), fight: $('fightView')};
 let activeView = null;
 const viewport = $('viewport');
-let lastCastId = null;
-let resetNotice = false;
+const events = createFightEvents($('fightEvents'), $('fightEventsEmpty'));
+let previousCameraState = getInputState().cameraState;
 const health = new FightHealth();
 let timeRemaining = 100000;
 let timerDeadline = null;
@@ -37,17 +41,15 @@ function syncTimer() {
     timerTick = setInterval(renderTimer, 100);
   }
 }
-const shieldView = createShieldView($('fightShield'), $('fightShieldStatus'), health.shield, {cx:295, cy:520, rx:260, ry:325});
+const shieldView = createShieldView($('fightShield'), null, health.shield, {cx:295, cy:520, rx:260, ry:325});
 function logFight(cause, data = {}) {
   record({type: 'fight', source: 'fight', cause, playerHealth: health.player,
     dummyHealth: health.dummy, maxHealth: MAX_HEALTH, hits: health.hits, ...data});
 }
 const dummyReactions = createDummyReactions($('fightDummyActor'));
-const dummyDisarm = createFightDisarm($('fightDummyActor'), $('fightWandStatus'));
+const dummyDisarm = createFightDisarm($('fightDummyActor'), null);
 const gestureMirror = createGestureMirror({
-  source: $('overlay'), target: $('fightGesture'), video: $('video'), panel: $('fightView'),
-  phase: $('phase'), instruction: $('instruction'), result: $('fightCastStatus'),
-  status: {phase: $('fightArenaPhase'), instruction: $('fightArenaInstruction'), result: $('fightArenaResult')}
+  source: $('overlay'), target: $('fightGesture'), video: $('video'), panel: $('fightView')
 });
 const effects = createSpellEffects($('fightEffects'), cast => {
   const previousDummyHealth = health.dummy;
@@ -60,13 +62,14 @@ const effects = createSpellEffects($('fightEffects'), cast => {
   renderHealth();
   logFight('hit', {castId: cast.id, shape: cast.shape, score: cast.score,
     castToHitMs, damage: hit.damage, previousDummyHealth});
+  events.add(cast.shape, `${hit.damage} damage · ${cast.score}% precision`);
   if (health.defeated) {
     pauseTimer();
     effects.cancelFlights();
-    showDefeat();
+    events.add('Dummy defeated', `${health.hits} hits · Select Restart to continue.`);
     document.dispatchEvent(new CustomEvent('wizard:duel-defeat'));
     logFight('defeat', {castId: cast.id});
-  } else if (cast.id === lastCastId) $('fightCastStatus').textContent = `${cast.shape} hit the dummy · ${hit.damage} damage`;
+  }
 });
 
 function clearEffects(cause) {
@@ -74,28 +77,26 @@ function clearEffects(cause) {
   effects.clear();
   health.cancelFlights();
   dummyReactions.settle();
-  lastCastId = null;
 }
 
 function renderHealth() {
-  for (const [id, value] of [['fightPlayerHealth', health.player], ['fightDummyHealth', health.dummy]]) {
-    $(id).max = MAX_HEALTH;
-    $(id).value = value;
-    $(id).textContent = `${value} of ${MAX_HEALTH}`;
-    $(id + 'Text').textContent = `${value} / ${MAX_HEALTH}`;
-  }
+  renderHealthBars('fight', health);
   $('fightHits').textContent = `${health.hits} ${health.hits === 1 ? 'hit' : 'hits'}`;
   $('fightDefeat').hidden = !health.defeated;
-  $('fightDummyState').textContent = health.defeated ? 'Defeated' : 'Static · No return fire';
+  syncCameraControl();
+  $('fightDummyState').textContent = health.defeated ? 'Defeated' : '';
+  $('fightDummyState').hidden = !health.defeated;
   document.querySelector('.fight-arena').classList.toggle('is-defeated', health.defeated);
 }
 
-function showDefeat() {
-  $('fightCastStatus').textContent = 'Dummy defeated. Select Reset dummy.';
-  $('fightResult').textContent = `${health.hits} hits · Dummy health: 0 / ${MAX_HEALTH}`;
-}
+listenForPlayerHits('fight', health, hit => {
+  renderHealth();
+  events.add(hit.blocked ? 'Protego blocked the hit' : 'Player hit', `${hit.damage} damage`);
+  logFight('player_hit', {damage:hit.damage});
+});
 
 $('fightResetDummy').addEventListener('click', () => {
+  const restoreFocus = document.activeElement === $('fightResetDummy');
   const previousDummyHealth = health.dummy;
   clearEffects('dummy_reset');
   health.resetDummy();
@@ -107,8 +108,10 @@ $('fightResetDummy').addEventListener('click', () => {
   dummyDisarm.reset();
   renderHealth();
   document.dispatchEvent(new CustomEvent('wizard:duel-reset'));
-  resetNotice = true;
+  events.clear();
+  events.add('Fight restarted', `Dummy health: ${MAX_HEALTH} / ${MAX_HEALTH}`);
   syncControls();
+  if (restoreFocus) $('fightCamera').focus({preventScroll:true});
   logFight('reset', {previousDummyHealth});
 });
 
@@ -117,6 +120,7 @@ export function selectGameView(view) {
   if (view !== null && !Object.hasOwn(gameViews, view)) throw new Error(`Unknown game view: ${view}`);
   const fight = view === 'fight';
   const training = view === 'training';
+  if (view) prepareArena(gameViews[view].querySelector('.fight-arena'));
   const previousTab = activeView || 'menu';
   cancelGestureCapture('View changed. Hold still to start.');
   // Move the same video and overlay. Keep one camera controller and detector.
@@ -127,6 +131,9 @@ export function selectGameView(view) {
   dummyDisarm.refresh();
   shieldView.refresh();
   for (const [name, panel] of Object.entries(gameViews)) panel.hidden = name !== view;
+  $('fightHeading').hidden = !fight;
+  $('trainingHeading').hidden = !training;
+  $('gameViewName').hidden = true;
   activeView = view;
   document.body.classList.toggle('fight-open', fight || training);
   document.body.classList.toggle('training-open', training);
@@ -145,51 +152,53 @@ function copyText(from, to) {
   if ($(to).textContent !== text) $(to).textContent = text;
 }
 
+function syncCameraControl() {
+  const button = $('fightCamera');
+  const hadFocus = document.activeElement === button;
+  syncGameCamera(button, document.querySelector('#fightView .fight-arena'), {
+    active: activeView === 'fight', unavailable: health.defeated
+  });
+  if (hadFocus && button.hidden && activeView === 'fight') $('fightResetDummy').focus({preventScroll:true});
+}
+
 function syncControls() {
-  copyText('camera', 'fightCamera');
-  $('fightCamera').disabled = getInputState().cameraDisabled;
-  copyText('cameraState', 'fightCameraState');
+  syncCameraControl();
   copyText('tracking', 'fightTracking');
-  if (health.defeated) { showDefeat(); return; }
-  if (resetNotice) {
-    $('fightCastStatus').textContent = 'Dummy reset. Hold still until READY.';
-    $('fightResult').textContent = `Dummy health restored to ${MAX_HEALTH}.`;
-    return;
-  }
-  $('fightResult').textContent = getInputState().resultTag === 'CAST'
-    ? `${getInputState().lastShape} · ${getInputState().score} match`
-    : getInputState().lastReason;
-  if (getInputState().resultTag !== 'CAST') {
-    lastCastId = null;
-    $('fightCastStatus').textContent = getInputState().resultTag === 'Waiting'
-      ? (getInputState().camera === 'Stop camera' ? 'Hold still until READY. Draw one shape.' : 'Start the camera. Hold still until READY.')
-      : getInputState().lastReason;
-  } else if (!lastCastId) $('fightCastStatus').textContent = `Last spell: ${getInputState().lastShape}`;
 }
 
 $('fightCamera').addEventListener('click', toggleGameCamera);
 document.addEventListener('wizard:input-state', ({detail}) => {
-  if (detail.changed.some(key => ['lastReason','lastShape','score','resultTag'].includes(key))) resetNotice = false;
+  if (detail.changed.includes('cameraState')) {
+    const state = getInputState().cameraState;
+    const stopped = state.startsWith('Camera stopped');
+    if (activeView === 'fight' && (!stopped || previousCameraState === 'Camera on' || previousCameraState === 'Switching to CPU…')) {
+      events.add(stopped ? 'Camera stopped' : state);
+    }
+    previousCameraState = state;
+  }
   syncControls();
+});
+
+document.addEventListener('wizard:fight-gesture', ({detail}) => {
+  if (activeView !== 'fight' || document.hidden) return;
+  if (detail.type === 'reject') events.add('Spell not cast', detail.reason);
+  else if (detail.type === 'cancel' && !['camera_stopped', 'view_changed'].includes(detail.cause)) {
+    events.add('Drawing cancelled', detail.reason);
+  }
 });
 
 document.addEventListener('wizard:cast', ({detail: cast}) => {
   if ($('gameView').hidden || $('fightView').hidden || document.hidden) return;
   const now = performance.now();
   if (health.protect(cast, now)) {
-    resetNotice = false;
-    lastCastId = cast.id;
     shieldView.refresh(spellColor(cast.shape));
-    $('fightCastStatus').textContent = `${cast.shape} cast · ${(health.shield.expiresAt-now)/1000}-second shield`;
+    events.add(cast.shape, `0 damage · ${cast.score}% precision`);
     logFight('shield', {castId: cast.id, shape: cast.shape, score: cast.score, damage: 0,
       duration: health.shield.expiresAt-now});
     return;
   }
   const shot = health.launch({...cast, launchedAt: performance.now()});
   if (!shot) return;
-  resetNotice = false;
-  lastCastId = cast.id;
-  $('fightCastStatus').textContent = `${shot.shape} cast · ${shot.damage} damage`;
   effects.cast(shot);
   logFight('cast', {castId: shot.id, shape: shot.shape, score: shot.score, damage: shot.damage});
 });

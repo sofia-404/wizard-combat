@@ -1,12 +1,14 @@
 import {TrainingSession} from './training/session.js';
+import {FightHealth} from './fight-health.js';
+import {renderHealthBars, listenForPlayerHits} from './presentation/health-view.js';
 import {spellList, spellForShape} from './spells/index.js';
 import {createSpellEffects} from './fight-effects.js';
 import {createDummyReactions} from './fight-reactions.js';
 import {createFightDisarm} from './fight-disarm.js';
 import {createGestureMirror} from './fight-gesture.js';
-import {Shield} from './combat/shield.js';
-import {castDamage} from './combat/cast.js';
 import {createShieldView} from './presentation/shield-view.js';
+import {createFightEvents} from './presentation/fight-events.js';
+import {syncGameCamera} from './presentation/game-camera.js';
 import {record, cancelGestureCapture, toggleGameCamera} from './app.js';
 
 import {getInputState} from './input-state.js';
@@ -14,19 +16,38 @@ import {getInputState} from './input-state.js';
 const $ = id => document.getElementById(id);
 const session = new TrainingSession();
 const seen = new Set();
-const shield = new Shield();
-const shieldView = createShieldView($('trainingShield'), $('trainingShieldStatus'), shield, {cx:295, cy:520, rx:260, ry:325});
+const events = createFightEvents($('trainingEvents'), $('trainingEventsEmpty'));
+let previousCameraState = getInputState().cameraState;
+const health = new FightHealth();
+const RESTART_DELAY_MS = 2000;
+let restartAt = 0;
+let restartTimer = null;
+const shield = health.shield;
+const shieldView = createShieldView($('trainingShield'), null, shield, {cx:295, cy:520, rx:260, ry:325});
 const reactions = createDummyReactions($('trainingDummyActor'));
-const disarm = createFightDisarm($('trainingDummyActor'), $('trainingWandStatus'));
+const disarm = createFightDisarm($('trainingDummyActor'), null);
+listenForPlayerHits('training', health, hit => {
+  renderHealthBars('training', health);
+  events.add(hit.blocked ? 'Protego blocked the hit' : 'Player hit', `${hit.damage} damage`);
+  record({type:'fight', source:'training', cause:'player_hit', playerHealth:health.player,
+    dummyHealth:health.dummy, damage:hit.damage});
+});
 const effects = createSpellEffects($('trainingEffects'), cast => {
+  const hit = health.hit(cast);
+  if (!hit) return;
   disarm.hit(cast);
-  reactions.react(cast.shape);
-  set('trainingArenaResult', `${cast.shape} hit the dummy · ${cast.damage} damage`);
+  reactions.react(cast.shape, hit.defeated);
+  renderHealthBars('training', health);
+  events.add(cast.shape, `${hit.damage} damage · ${cast.score}% precision`);
+  if (hit.defeated) {
+    effects.cancelFlights();
+    events.add('Dummy defeated', 'Restarts in 2 seconds');
+    restartAt = performance.now() + RESTART_DELAY_MS;
+    restartTimer = setTimeout(refreshRestart, RESTART_DELAY_MS);
+  }
 });
 const mirror = createGestureMirror({
-  source: $('overlay'), target: $('trainingGesture'), video: $('video'), panel: $('trainingView'),
-  phase: $('phase'), instruction: $('instruction'), result: $('trainingArenaResult'),
-  status: {phase: $('trainingArenaPhase'), instruction: $('trainingArenaInstruction'), result: $('trainingArenaResult')}
+  source: $('overlay'), target: $('trainingGesture'), video: $('video'), panel: $('trainingView')
 });
 function set(id, value) {
   if ($(id).textContent !== value) $(id).textContent = value;
@@ -36,12 +57,27 @@ function log(cause) {
 }
 function clearEffects() {
   effects.clear();
+  health.cancelFlights();
   reactions.settle();
+}
+function resetTarget() {
+  clearTimeout(restartTimer);
+  restartTimer = null;
+  restartAt = 0;
+  clearEffects();
+  health.resetTarget();
+  reactions.reset();
+  disarm.reset();
+  renderHealthBars('training', health);
+}
+function refreshRestart() {
+  if (!restartAt || performance.now() < restartAt) return;
+  resetTarget();
+  events.add('Dummy ready', '200 / 200 health');
 }
 function renderGuide() {
   const spell = session.spell;
   set('trainingSpellTitle', spell.label);
-  set('trainingArenaSpell', spell.label);
   set('trainingDescription', spell.description);
   set('trainingEffectNote', spell.effects.some(effect => effect.type === 'shield')
     ? 'Protego protects you for three seconds. It does not hit the dummy.'
@@ -105,6 +141,7 @@ function renderGuide() {
   $('trainingGuide').replaceChildren(svg, caption);
 }
 function renderLesson() {
+  const focused = document.activeElement;
   const complete = session.state === 'complete';
   set('trainingCount', `${session.count} / ${session.requiredCasts}`);
   $('trainingProgress').value = session.count;
@@ -117,6 +154,8 @@ function renderLesson() {
   set('trainingStart', complete ? 'Practice again' : 'Start lesson');
   $('trainingStop').hidden = session.state === 'idle';
   set('trainingStop', complete ? 'Finish lesson' : 'Stop lesson');
+  if ((focused === $('trainingStart') || focused === $('trainingStop')) && focused.hidden)
+    $(session.state === 'active' ? 'trainingStop' : 'trainingStart').focus({preventScroll:true});
   set('trainingLearnedTotal', `${session.learned.size} of ${spellList.length} spells learned`);
   for (const option of $('trainingSpell').options) {
     const spell = spellList.find(item => item.id === option.value);
@@ -135,21 +174,18 @@ $('trainingSpell').addEventListener('change', () => {
   clearEffects();
   session.select($('trainingSpell').value);
   renderGuide();renderLesson();
-  set('trainingArenaResult', session.state === 'complete' ? `${session.spell.label} learned. Lesson complete.`
-    : session.state === 'active' ? `Continue the ${session.spell.label} lesson.` : 'Start a lesson to count correct casts.');
   log('training_spell');
 });
 $('trainingStart').addEventListener('click', () => {
   cancelGestureCapture('Lesson started. Hold still to start.');
-  clearEffects();session.start();renderLesson();
-  set('trainingArenaResult', `Draw ${session.spell.label}. Pause to cast.`);
+  resetTarget();
+  session.start();renderLesson();
   log('training_start');
 });
 $('trainingStop').addEventListener('click', () => {
   const complete = session.state === 'complete';
   cancelGestureCapture('Lesson stopped. Hold still to start.');
   clearEffects();session.stop();renderLesson();
-  set('trainingArenaResult', complete ? 'Lesson finished. Choose a spell to train.' : 'Lesson stopped. Start a lesson to count correct casts.');
   log(complete ? 'training_finish' : 'training_stop');
 });
 document.addEventListener('wizard:training-gesture', ({detail: event}) => {
@@ -162,37 +198,52 @@ document.addEventListener('wizard:training-gesture', ({detail: event}) => {
     reason:event.reason || '', cause:event.cause || 'unknown', expected:session.spell.label,
     lessonState:session.state, lessonCount:session.count});
   if (event.type !== 'cast' || !event.accepted) {
-    set('trainingArenaResult', event.reason || 'Follow the path and try again.');
+    if (event.type === 'reject') events.add('Spell not cast', event.reason);
+    else if (event.type === 'cancel' && !['camera_stopped', 'view_changed'].includes(event.cause)) {
+      events.add('Drawing cancelled', event.reason);
+    }
     return;
   }
   document.dispatchEvent(new CustomEvent('wizard:training-cast', {detail:{id:event.id, shape:event.shape}}));
   if (shield.cast(event, performance.now())) {
     shieldView.refresh(spellForShape(event.shape).visuals.color);
-    set('trainingArenaResult', `${event.shape} cast · Shield active`);
+    events.add(event.shape, `0 damage · ${event.score}% precision`);
     return;
   }
-  const damage = castDamage(event);
-  if (damage) {
-    set('trainingArenaResult', `${event.shape} cast · ${damage} damage`);
-    effects.cast({...event, damage});
-  }
+  const shot = spellForShape(event.shape) && health.launch(event);
+  if (shot) effects.cast(shot);
 });
 function syncControls() {
-  for (const [source, target] of [['camera','trainingCamera'], ['cameraState','trainingCameraState'], ['tracking','trainingTracking']]) set(target, getInputState()[source]);
-  $('trainingCamera').disabled = getInputState().cameraDisabled;
+  set('trainingTracking', getInputState().tracking);
+  syncGameCamera($('trainingCamera'), document.querySelector('#trainingView .fight-arena'), {
+    active: !$('trainingView').hidden
+  });
 }
 $('trainingCamera').addEventListener('click', toggleGameCamera);
-document.addEventListener('wizard:input-state', syncControls);
+document.addEventListener('wizard:input-state', ({detail}) => {
+  if (detail.changed.includes('cameraState')) {
+    const state = getInputState().cameraState;
+    const stopped = state.startsWith('Camera stopped');
+    if (!$('trainingView').hidden && (!stopped || previousCameraState === 'Camera on' || previousCameraState === 'Switching to CPU…')) {
+      events.add(stopped ? 'Camera stopped' : state);
+    }
+    previousCameraState = state;
+  }
+  syncControls();
+});
 document.addEventListener('wizard:view', ({detail}) => {
+  refreshRestart();
   clearEffects();disarm.refresh();shieldView.refresh();syncControls();
   if (detail.view === 'training') mirror.start();
   else mirror.stop();
 });
 document.addEventListener('visibilitychange', () => {
+  refreshRestart();
   disarm.refresh();shieldView.refresh();
   if (document.hidden) {clearEffects();mirror.stop();}
   else mirror.start();
 });
 window.addEventListener('pagehide', () => {clearEffects();mirror.stop();});
-window.addEventListener('pageshow', () => disarm.refresh());
+window.addEventListener('pageshow', () => {refreshRestart();disarm.refresh();});
+renderHealthBars('training', health);
 renderGuide();renderLesson();syncControls();

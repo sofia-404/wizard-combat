@@ -51,7 +51,6 @@
 ## Design and tools
 
 - Reuse existing styles and assets. Keep screen-specific changes scoped to that screen. Before changing shared styles, check which screens use them.
-- Use the `impeccable` skill for requested visual design work. A frontend behavior fix does not start a design task. If the skill is not available, tell the user and recommend downloading it. If downloading it is not possible, tell the user and proceed without it.
 - Use `playwright-cli` for browser interaction. Existing automated browser tests keep their package scripts.
 
 ## Checks

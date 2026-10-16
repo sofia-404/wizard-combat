@@ -80,6 +80,7 @@ function onGesture(event){
   updateInputState({lastShape:resultTitle(result),lastReason:event.reason,
     resultTag:event.type==='cast'?'CAST':event.type==='cancel'?(result.endRule==='loss'?'LOST':'STOP'):event.type==='ignored'?'MOVE':'RETRY',
     score:event.shape&&event.shape!=='None'?event.score+'%':'—'});
+  if(event.type!=='cast')document.dispatchEvent(new CustomEvent('wizard:fight-gesture',{detail:{type:event.type,reason:event.reason,cause:event.cause}}));
   if(event.type==='cast'){
     document.dispatchEvent(new CustomEvent('wizard:cast',{detail:{id:result.id,shape:event.shape,score:event.score,damage:castDamage(event)}}));
   }
@@ -124,9 +125,17 @@ async function recover(reason){
   try{await createTracker('CPU',run);if(run!==token)return;modelReady=true;recovering=false;lastResult=performance.now();lastVideoTime=-1;set('cameraState','Camera on');}
   catch{if(run===token)stopCamera('Tracking failed. Restart the camera.');}
 }
-export async function toggleGameCamera(){
+export async function toggleGameCamera(event){
   if(loading)return;
   if(stream){stopCamera();return;}
+  const button=event?.currentTarget,focusWatch=new AbortController();
+  let restoreFocus=event?.detail===0&&document.activeElement===button;
+  const cancelFocus=()=>{restoreFocus=false;focusWatch.abort();};
+  if(restoreFocus){
+    // Disabling the button drops focus. User input cancels any later return.
+    for(const type of ['keydown','pointerdown','wizard:view'])document.addEventListener(type,cancelFocus,{capture:true,signal:focusWatch.signal});
+    document.addEventListener('focusin',event=>{if(event.target!==button&&event.target!==document.body)cancelFocus();},{signal:focusWatch.signal});
+  }
   stopCamera('Starting camera…');loading=true;const run=token;updateInputState({cameraDisabled:true});set('camera','Starting…');set('instruction','Allow camera access. Loading hand tracking.');
   try{
     const media=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:60}},audio:false});
@@ -139,7 +148,12 @@ export async function toggleGameCamera(){
     if(run!==token)return;
     loading=false;modelReady=true;rateStart=performance.now();rateCount=0;lastResult=performance.now();lastVideoTime=-1;lastSent=0;
     $('empty').hidden=true;updateInputState({cameraDisabled:false});set('camera','Stop camera');set('cameraState','Camera on');record({type:'camera',reason:'Started '+delegate});
-  }catch(error){if(run!==token)return;const reason=error.name==='NotAllowedError'?'Camera permission denied. Allow access and retry.':error.name==='NotFoundError'?'No camera found.':error.name==='NotReadableError'?'Camera is busy. Close other camera apps.':'Camera could not start. '+String(error.message).slice(0,100);stopCamera(reason);set('instruction',reason);}
+  }catch(error){
+    if(run!==token)return;
+    const reason=error.name==='NotAllowedError'?'Camera permission denied. Allow access and retry.':error.name==='NotFoundError'?'No camera found.':error.name==='NotReadableError'?'Camera is busy. Close other camera apps.':'Camera could not start. '+String(error.message).slice(0,100);
+    stopCamera(reason);set('instruction',reason);
+  }finally{focusWatch.abort();}
+  if(restoreFocus&&document.activeElement===document.body&&document.hasFocus()&&button.getClientRects().length&&!button.disabled)button.focus({preventScroll:true});
 }
 function receive(data){
   busy=false;const now=performance.now();lastResult=now;inference=data.inference;rateCount++;

@@ -77,3 +77,33 @@ test('reset and leaving the view cancel pending damage without healing prior hit
   assert.equal(health.hit(fresh).health,170);
   assert.equal(health.player,200);
 });
+
+test('Training target reset keeps player health and an active shield', () => {
+  const health = new FightHealth();
+  health.receiveHit({id:'player-hit',damage:25},50);
+  const shots = Array.from({length:8}, (_, i) => health.launch({id:`practice-${i}`,shape:'Basic Cast',score:95}));
+  for (const shot of shots.slice(0,7)) health.hit(shot);
+  assert.equal(health.dummy,0);
+  assert.equal(health.hit(shots[7]),null);
+  health.shield.cast({type:'cast',accepted:true,shape:'Protego'},100);
+  health.resetTarget();
+  assert.equal(health.dummy,200);
+  assert.equal(health.player,175);
+  assert.equal(health.hit(shots[7]),null,'old flights cannot hit the restored target');
+  assert.equal(health.shield.active(101),true);
+  assert.equal(health.hit(health.launch({id:'next-round',score:95})).health,170);
+});
+
+test('incoming player hits validate, apply once, respect Protego, and clamp at zero', () => {
+  const health = new FightHealth();
+  assert.deepEqual(health.receiveHit({id:'first',damage:25},100),{damage:25,health:175,blocked:false});
+  assert.equal(health.receiveHit({id:'first',damage:25},101),null);
+  for (const damage of [-1,0,NaN,Infinity,'20']) assert.equal(health.receiveHit({id:'invalid',damage},100),null);
+  assert.equal(health.receiveHit({id:'',damage:20},100),null);
+  assert.equal(health.receiveHit({id:'bad-time',damage:20},NaN),null);
+  health.shield.cast({type:'cast',accepted:true,shape:'Protego'},200);
+  assert.deepEqual(health.receiveHit({id:'blocked',damage:30},201),{damage:0,health:175,blocked:true});
+  assert.equal(health.receiveHit({id:'blocked',damage:30},3200),null,'a blocked hit cannot replay after shield expiry');
+  assert.deepEqual(health.receiveHit({id:'lethal',damage:999},3200),{damage:175,health:0,blocked:false});
+  assert.equal(health.dummy,200);
+});

@@ -22,7 +22,7 @@ export function createShieldView(svg, status, shield, bounds) {
     if (color) svg.style.color = color;
     const active = shield.active(performance.now());
     svg.classList.toggle('shield-active', active);
-    status.textContent = active ? 'Shield active' : 'Shield inactive';
+    if (status) status.textContent = active ? 'Shield active' : 'Shield inactive';
     if (active) timer = setTimeout(() => refresh(), Math.max(1, shield.expiresAt-performance.now()));
   }
   refresh();

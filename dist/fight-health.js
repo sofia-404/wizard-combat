@@ -13,7 +13,8 @@ export function damageForAccuracy(score, shape) {
 
 export class FightHealth {
   constructor() {
-    this.player = MAX_HEALTH; // The static dummy does not attack.
+    this.receivedHits = new Set();
+    this.player = MAX_HEALTH;
     this.shield = new Shield();
     this.resetDummy();
   }
@@ -33,8 +34,21 @@ export class FightHealth {
     return damage;
   }
 
+  receiveHit(hit, now) {
+    if (!hit || typeof hit.id !== 'string' || !hit.id.trim() || this.receivedHits.has(hit.id)
+      || !Number.isFinite(hit.damage) || hit.damage <= 0 || !Number.isFinite(now) || now < 0) return null;
+    this.receivedHits.add(hit.id);
+    const blocked = this.shield.active(now);
+    const damage = this.takeDamage(hit.damage, now);
+    return {damage, health: this.player, blocked};
+  }
+
   resetDummy() {
     this.shield.reset();
+    this.resetTarget();
+  }
+
+  resetTarget() {
     this.dummy = MAX_HEALTH;
     this.hits = 0;
     this.pending = new Map();

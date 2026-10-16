@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {checkHealthBars, checkTrainingRestart} from './browser-health-checks.mjs';
 import {chromium} from 'playwright-core';
 import {mkdir, mkdtemp, cp, copyFile, rm} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
@@ -112,6 +113,25 @@ try {
   assert.equal(await page.locator('#video').evaluate(el => getComputedStyle(el).transform), 'matrix(-1, 0, 0, 1, 0, 0)');
 
   // Candidates stay in .tmp until they pass the manual preview checks.
+  const emptyEventHeights = new Map();
+  const checkEventPanel = async width => {
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const bounds = await page.evaluate(() => {
+      const panel = document.querySelector('#fightView .fight-events-panel');
+      const arena = document.querySelector('#fightView .fight-arena').getBoundingClientRect();
+      const box = panel.getBoundingClientRect();
+      const log = panel.querySelector('[role="log"]');
+      return {height:box.height, bottom:box.bottom, arenaBottom:arena.bottom,
+        overflow:getComputedStyle(log).overflowY, logHeight:log.clientHeight, contentHeight:log.scrollHeight};
+    });
+    if (width >= 1100) assert.ok(Math.abs(bounds.bottom - bounds.arenaBottom) < 1, 'events end at the battlefield bottom');
+    if (emptyEventHeights.has(width)) assert.ok(Math.abs(bounds.height - emptyEventHeights.get(width)) < 1, 'events do not grow the panel');
+    else emptyEventHeights.set(width, bounds.height);
+    assert.equal(bounds.overflow, 'hidden', 'older events do not create a scrollbar');
+    assert.equal(await page.locator('#fightEvents').evaluate(list =>
+      [...list.children].every(row => getComputedStyle(row).visibility === 'visible')
+    ), true, 'older rows stay in the flow and leave through the clipped bottom edge');
+  };
   const capture = async (prefix, selector) => {
     for (const [size,width,height] of [['desktop',1920,1080],['mobile',390,844]]) {
       await page.setViewportSize({width,height});
@@ -122,6 +142,7 @@ try {
         await document.fonts.ready;
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       });
+      if (prefix.startsWith('fight-')) await checkEventPanel(width);
       const options = {path:path.join(output, `${prefix}-${size}.png`), animations:'disabled'};
       if (selector) await page.locator(selector).screenshot(options);
       else await page.screenshot({...options, fullPage:true});
@@ -131,7 +152,86 @@ try {
   await capture('options');
   await page.keyboard.press('Escape');
   await openMode('Fight');
+  assert.equal(await page.locator('#fightEventsEmpty').isVisible(), true);
+  assert.equal(await page.locator('#fightEvents li').count(), 0);
+  await page.setViewportSize({width:1100,height:900});
+  await checkEventPanel(1100);
   await capture('fight-gameplay');
+  // Repeated failed attempts are separate events, even with the same reason.
+  await page.evaluate(() => {
+    for (let i = 0; i < 2; i++) document.dispatchEvent(new CustomEvent('wizard:fight-gesture', {
+      detail:{type:'reject', reason:'Draw a larger shape', cause:'too_small'}
+    }));
+  });
+  assert.equal(await page.locator('#fightEvents li').count(), 2);
+  assert.equal(await page.locator('#fightEventsEmpty').isVisible(), false);
+  // Capture the defeat window with simulated casts and no camera access.
+  for (const health of [170, 140, 110, 80, 50, 20, 0]) {
+    await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {
+      detail:{id:crypto.randomUUID(), shape:'Basic Cast', score:95, damage:30}
+    })));
+    await page.waitForFunction(value => document.querySelector('#fightDummyHealth').value === value, health);
+    if (health === 170) {
+      assert.equal(await page.locator('#fightEvents li').count(), 3, 'one spell event after two failed attempts');
+      assert.equal(await page.locator('#fightEvents li strong').first().textContent(), 'Basic Cast');
+      assert.equal(await page.locator('#fightEvents li p').first().textContent(), '30 damage · 95% precision');
+    }
+  }
+  await page.waitForFunction(() => document.querySelector('#fightEffects').childElementCount === 0);
+  assert.equal(await page.locator('#fightEvents li').count(), 10);
+  assert.equal(await page.locator('#fightEvents li strong').first().textContent(), 'Dummy defeated');
+  assert.equal(await page.locator('#fightEvents li strong').nth(1).textContent(), 'Basic Cast');
+  assert.equal(await page.locator('#fightEvents li p').nth(1).textContent(), '20 damage · 95% precision');
+  assert.equal(await page.locator('#fightEvents li strong').nth(2).textContent(), 'Basic Cast');
+  assert.equal(await page.locator('#fightEvents').textContent().then(text => text.includes('Draw a larger shape')), true);
+  await page.setViewportSize({width:1100,height:900});
+  await checkEventPanel(1100);
+  await capture('fight-defeat');
+  await page.getByRole('button', {name:'Restart', exact:true}).click();
+  assert.equal(await page.locator('#fightEvents li').count(), 1);
+  assert.equal(await page.locator('#fightEvents li strong').textContent(), 'Fight restarted');
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:cast', {
+    detail:{id:crypto.randomUUID(), shape:'Protego', score:87, damage:0}
+  })));
+  assert.equal(await page.locator('#fightEvents li strong').first().textContent(), 'Protego');
+  assert.equal(await page.locator('#fightEvents li p').first().textContent(), '0 damage · 87% precision');
+  assert.equal(await page.locator('#fightEvents').evaluate(list => list.getAnimations().length), 0, 'reduced motion has no slide');
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  for (const width of [1920,390]) {
+    await page.setViewportSize({width,height:1080});
+    const motion = await page.evaluate(() => {
+      const list = document.querySelector('#fightEvents');
+      const previous = list.firstElementChild;
+      const add = () => document.dispatchEvent(new CustomEvent('wizard:fight-gesture', {
+        detail:{type:'reject', reason:'Draw a larger shape', cause:'too_small'}
+      }));
+      add();
+      const slide = list.getAnimations()[0];
+      slide.pause();
+      slide.currentTime = 0;
+      const start = previous.getBoundingClientRect().top;
+      slide.currentTime = slide.effect.getTiming().duration / 2;
+      const middle = previous.getBoundingClientRect().top;
+      slide.finish();
+      const end = previous.getBoundingClientRect().top;
+      add();
+      list.getAnimations()[0].currentTime = 80;
+      const before = previous.getBoundingClientRect().top;
+      add();
+      const next = list.getAnimations()[0];
+      next.pause();
+      next.currentTime = 0;
+      const after = previous.getBoundingClientRect().top;
+      next.finish();
+      return {start,middle,end,before,after};
+    });
+    assert.ok(motion.start < motion.middle && motion.middle < motion.end, 'older rows slide down');
+    assert.ok(Math.abs(motion.before - motion.after) < 1, `rapid events continue without a jump: ${JSON.stringify(motion)}`);
+  }
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.locator('#fightResetDummy').evaluate(button => button.click());
+  assert.equal(await page.locator('#fightEvents').evaluate(list => list.getAnimations().length), 0, 'restart clears motion');
+  assert.equal(await page.locator('#fightEvents li').count(), 1);
   for (const [id,shape,prefix] of [['expelliarmus','Expelliarmus','training-layout']]) {
     await page.reload();
     assert.equal(await page.locator('#fightView').isVisible(), true);
@@ -146,31 +246,71 @@ try {
       }));
     }, shape);
     assert.equal(await page.locator('#trainingCount').textContent(), '3 / 3');
+    await page.waitForFunction(() => document.querySelector('#trainingEvents').children.length === 3);
+    assert.deepEqual(await page.locator('#trainingEvents li strong').allTextContents(), ['Expelliarmus','Expelliarmus','Expelliarmus']);
+    assert.deepEqual(await page.locator('#trainingEvents li p').allTextContents(), Array(3).fill('30 damage · 95% precision'));
+    assert.equal(await page.locator('#trainingEvents').evaluate(list => list.getAnimations().length), 0);
+    assert.equal(await page.locator('#fightEvents li').count(), 0, 'Training events stay separate');
     await page.waitForFunction(() => document.querySelector('#trainingEffects').childElementCount === 0
       && document.querySelector('#trainingDummyActor').dataset.disarmed === 'false', null, {timeout:10000});
     // Clear transient reactions and show the stable completed-lesson message.
     await page.locator('#trainingSpell').selectOption('protego');
     await page.locator('#trainingSpell').selectOption(id);
+    assert.deepEqual(await page.locator('#trainingView .fighter-card strong').allTextContents(), ['Player','Dummy']);
+    assert.deepEqual(await page.locator('#trainingView .fight-health').evaluateAll(bars =>
+      bars.map(bar => ({value:bar.value,max:bar.max}))), [{value:200,max:200},{value:110,max:200}]);
     await capture(prefix);
+    await openMode('Fight');
+    assert.equal(await page.locator('#fightEvents li').count(), 0);
+    await openMode('Training');
+    assert.equal(await page.locator('#trainingEvents li').count(), 3);
+    await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:training-gesture', {
+      detail:{id:crypto.randomUUID(), type:'reject', reason:'Draw a larger shape', cause:'too_small'}
+    })));
+    assert.equal(await page.locator('#trainingEvents li strong').first().textContent(), 'Spell not cast');
+    assert.equal(await page.locator('#trainingEvents li p').first().textContent(), 'Draw a larger shape');
+    assert.equal(await page.locator('#trainingCount').textContent(), '3 / 3');
     assert.equal(await page.evaluate(() => window.cameraCalls), 0);
+    assert.equal(await page.locator('#fightEvents li').count(), 0, 'reload clears Fight events and Training casts do not add them');
   }
   for (const id of ['basic-cast', 'protego', 'expelliarmus', 'confringo']) {
     await page.locator('#trainingSpell').selectOption(id);
     await capture(`training-${id}`, '#trainingGuide');
   }
   assert.equal(await page.evaluate(() => window.cameraCalls), 0);
+  await checkHealthBars(page, openMode);
+  await checkTrainingRestart(page, openMode, output);
   assert.ok(records.length > 0);
   assert.ok(records.every(record => !Object.hasOwn(record, 'swap')));
 
-  // Both mute controls keep the menu icon and the saved input choices.
-  await page.locator('#gameSoundToggle').click();
-  assert.equal(await page.locator('#gameSoundToggle').getAttribute('aria-pressed'), 'true');
-  await page.locator('#gameBack').click();
+  // Master mute is available only in Options and persists across pages.
+  assert.equal(await page.locator('#gameSoundToggle').count(), 0);
+  assert.equal(await page.locator('#soundToggle').isVisible(), false);
+  const toggleMute = async () => {
+    await openOptions();
+    await page.locator('#soundToggle').click();
+    await page.keyboard.press('Escape');
+    await openMode('Training');
+  };
+  await openOptions();
+  assert.equal(await page.locator('#optionsView #soundToggle').isVisible(), true);
+  await page.locator('#soundToggle').click();
+  await page.reload();
+  assert.equal(await page.locator('#soundToggle').getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('#soundToggleLabel').textContent(), 'Unmute sound');
   assert.equal(await page.locator('#soundToggle svg').count(), 1);
-  await page.locator('#soundToggle').click();
-  await openMode('Training');
-  assert.equal(await page.locator('#gameSoundToggle').getAttribute('aria-pressed'), 'false');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#soundToggle').isVisible(), false);
+  await page.getByRole('button', {name:'Credits', exact:true}).click();
+  assert.equal(await page.locator('#soundToggle').isVisible(), false);
+  await page.keyboard.press('Escape');
+  for (const mode of ['Fight', 'Training']) {
+    await openMode(mode);
+    assert.equal(await page.locator('#soundToggle').isVisible(), false);
+    assert.equal(await page.evaluate(async () => (await import('/settings.js')).getSettings().muted), true);
+  }
+  await toggleMute();
+  assert.equal(await page.evaluate(async () => (await import('/settings.js')).getSettings().muted), false);
   // Accepted Training spells play once, including Protego and an unselected spell.
   await page.evaluate(() => {
     window.playedAudio = [];
@@ -185,13 +325,13 @@ try {
   });
   assert.deepEqual(await page.evaluate(() => playedAudio.filter(url => url.includes('/spells/')).map(url => new URL(url).pathname)),
     ['/spells/protego/cast.wav', '/spells/basic-cast/cast.wav', '/spells/confringo/cast.wav', '/spells/expelliarmus/cast.wav']);
-  await page.locator('#gameSoundToggle').click();
+  await toggleMute();
   const soundCount = await page.evaluate(() => playedAudio.length);
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('wizard:training-gesture', {
     detail:{id:crypto.randomUUID(), type:'cast', accepted:true, shape:'Protego', score:95}
   })));
   assert.equal(await page.evaluate(() => playedAudio.length), soundCount);
-  await page.locator('#gameSoundToggle').click();
+  await toggleMute();
 
   await page.setViewportSize({width:1920,height:1080});
   await page.goto(new URL('brandbook.html', base).href);
@@ -202,7 +342,7 @@ try {
   }
   assert.equal(await page.evaluate(() => window.cameraCalls), 0);
   assert.deepEqual(errors, []);
-  console.log('PASS: input settings, mute controls, menu icon, Training spell audio and duplicate checks, mirrored preview, records, desktop/narrow layout. No camera access.');
+  console.log('PASS: input settings, Options-only mute, menu icon, Training spell audio and duplicate checks, mirrored preview, records, desktop/narrow layout. No camera access.');
 } finally {
   await browser?.close();
   if (api && api.exitCode === null && api.signalCode === null) {
