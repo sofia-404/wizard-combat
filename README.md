@@ -2,7 +2,7 @@
 
 Wizard Combat turns hand movements into spells through your camera.
 
-This browser game prototype lets you learn four spells, train on a dummy, and duel a computer opponent. Draw a shape with your hand, then pause to cast. The game runs on your own computer. Online multiplayer is the main next step.
+This browser game lets you learn four spells, train on a dummy, and duel a computer opponent. Draw a shape with your hand, then pause to cast. The game runs on your own computer. Online multiplayer is the main next step.
 
 ## How to Run
 
