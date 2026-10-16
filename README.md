@@ -1,8 +1,10 @@
-# Wizard Combat
+# Wizard Combat game
 
 Wizard Combat turns hand movements into spells through your camera.
 
 This browser game lets you learn four spells, train on a dummy, and duel a computer opponent. Draw a shape with your hand, then pause to cast. The game runs on your own computer. Online multiplayer is the main next step.
+
+The purpose of the game is to relax after a hard working day and to have fun with your teammates.
 
 ## How to Run
 
