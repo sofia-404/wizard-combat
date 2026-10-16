@@ -1,3 +1,4 @@
+import {COMBAT_SPELLS} from '../../combat/rules.js';
 export default {
   id: 'confringo', label: 'Confringo', kind: 'spell', version: 1,
   description: 'Right, down-left, then right. Either end can be the start. No mirror image.',
@@ -11,7 +12,7 @@ export default {
       ['path', {d: 'M50 46L54 50L50 54L46 50Z'}]
     ]
   },
-  effects: [{type: 'damage', tiers: [{minScore: 88, value: 30}, {minScore: 78, value: 25}, {minScore: 0, value: 20}]}],
+  effects: [{type: 'damage', tiers: [{minScore: 0, value: COMBAT_SPELLS['Confringo'].damage}]}],
   visuals: {cast: 'dummy-hit', color: '#ef4444'},
   sound: '/spells/confringo/cast.wav',
   lesson: null

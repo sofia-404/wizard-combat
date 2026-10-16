@@ -4,8 +4,8 @@ import {PracticeArenaHealth, damageForAccuracy} from '../dist/practice-arena-hea
 import {spellList} from '../dist/spells/index.js';
 import {castDamage} from '../dist/combat/cast.js';
 
-test('accuracy bands match current damage, including boundaries', () => {
-  for (const [score, damage] of [[0,20],[77.99,20],[78,25],[87.99,25],[88,30],[100,30]]) {
+test('fixed Basic Cast damage keeps score validation at all boundaries', () => {
+  for (const [score, damage] of [[0,20],[77.99,20],[78,20],[87.99,20],[88,20],[100,20]]) {
     assert.equal(damageForAccuracy(score), damage);
   }
   for (const score of [-1,101,NaN,Infinity,undefined,'90']) assert.equal(damageForAccuracy(score),0);
@@ -39,7 +39,7 @@ test('health changes at impact once; the static dummy cannot hurt the player', (
   const shot = health.launch(cast);
   assert.equal(health.dummy,200);
   assert.equal(health.launch(cast),null);
-  assert.deepEqual(health.hit(shot),{damage:25,health:175,defeated:false});
+  assert.deepEqual(health.hit(shot),{damage:20,health:180,defeated:false});
   assert.equal(health.hit(shot),null);
   assert.equal(health.hits,1);
   assert.equal(health.player,200);
@@ -47,18 +47,18 @@ test('health changes at impact once; the static dummy cannot hurt the player', (
 
 test('lethal damage clamps at zero and blocks all further hits until reset', () => {
   const health = new PracticeArenaHealth();
-  const shots = Array.from({length:8},(_,i)=>health.launch({id:String(i),score:100}));
-  assert.deepEqual(shots.slice(0,7).map(shot=>health.hit(shot).damage),[30,30,30,30,30,30,20]);
+  const shots = Array.from({length:11},(_,i)=>health.launch({id:String(i),score:100}));
+  assert.deepEqual(shots.slice(0,10).map(shot=>health.hit(shot).damage),Array(10).fill(20));
   assert.equal(health.dummy,0);
   assert.equal(health.defeated,true);
-  assert.equal(health.hits,7);
-  assert.equal(health.hit(shots[7]),null);
+  assert.equal(health.hits,10);
+  assert.equal(health.hit(shots[10]),null);
   assert.equal(health.launch({id:'after-defeat',score:100}),null);
   health.resetDummy();
   assert.equal(health.dummy,200);
   assert.equal(health.hits,0);
   assert.equal(health.defeated,false);
-  assert.equal(health.hit(shots[7]),null);
+  assert.equal(health.hit(shots[10]),null);
   assert.equal(health.hit(health.launch({id:'new-round',score:50})).health,180);
 });
 
@@ -68,30 +68,30 @@ test('reset and leaving the view cancel pending damage without healing prior hit
   const cancelled = health.launch({id:'cancelled',score:100});
   health.cancelFlights();
   assert.equal(health.hit(cancelled),null);
-  assert.equal(health.dummy,175);
+  assert.equal(health.dummy,180);
   const old = health.launch({id:'same-id',score:100});
   health.resetDummy();
   const fresh = health.launch({id:'same-id',score:100});
   assert.equal(health.hit(old),null);
   assert.equal(health.dummy,200);
-  assert.equal(health.hit(fresh).health,170);
+  assert.equal(health.hit(fresh).health,180);
   assert.equal(health.player,200);
 });
 
 test('Spell Training target reset keeps player health and an active shield', () => {
   const health = new PracticeArenaHealth();
   health.receiveHit({id:'player-hit',damage:25},50);
-  const shots = Array.from({length:8}, (_, i) => health.launch({id:`practice-${i}`,shape:'Basic Cast',score:95}));
-  for (const shot of shots.slice(0,7)) health.hit(shot);
+  const shots = Array.from({length:11}, (_, i) => health.launch({id:`practice-${i}`,shape:'Basic Cast',score:95}));
+  for (const shot of shots.slice(0,10)) health.hit(shot);
   assert.equal(health.dummy,0);
-  assert.equal(health.hit(shots[7]),null);
+  assert.equal(health.hit(shots[10]),null);
   health.shield.cast({type:'cast',accepted:true,shape:'Protego'},100);
   health.resetTarget();
   assert.equal(health.dummy,200);
   assert.equal(health.player,175);
-  assert.equal(health.hit(shots[7]),null,'old flights cannot hit the restored target');
+  assert.equal(health.hit(shots[10]),null,'old flights cannot hit the restored target');
   assert.equal(health.shield.active(101),true);
-  assert.equal(health.hit(health.launch({id:'next-round',score:95})).health,170);
+  assert.equal(health.hit(health.launch({id:'next-round',score:95})).health,180);
 });
 
 test('incoming player hits validate, apply once, respect Protego, and clamp at zero', () => {
@@ -126,5 +126,5 @@ test('player defeat stops attacks and shields until player reset', () => {
   assert.equal(health.over,false);
   assert.equal(health.receiveHit({id:'lethal-player',damage:999},200),null,'old hits cannot replay after restart');
   assert.equal(health.hit(pending),null);
-  assert.equal(health.hit(health.launch({id:'new-cast',shape:'Basic Cast',score:95})).health,170);
+  assert.equal(health.hit(health.launch({id:'new-cast',shape:'Basic Cast',score:95})).health,180);
 });

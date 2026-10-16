@@ -12,9 +12,9 @@ export function renderHealthBars(view, health) {
 }
 
 // A hit producer sends {view, id, damage} at impact. This does not start attacks.
-export function listenForPlayerHits(view, health, onHit) {
+export function listenForPlayerHits(view, health, onHit, acceptsHit = () => true) {
   document.addEventListener('wizard:player-hit', ({detail}) => {
-    if (detail?.view !== view || document.hidden || document.getElementById(view + 'View').hidden) return;
+    if (detail?.view !== view || !acceptsHit(detail) || document.hidden || document.getElementById(view + 'View').hidden) return;
     const hit = health.receiveHit(detail, performance.now());
     if (hit) onHit(hit, detail);
   });

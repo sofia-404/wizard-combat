@@ -78,7 +78,7 @@ function onGesture(event){
   result.resultImage='results/'+result.id+'.png';
   record(result,resultCard(result,preview));
   updateInputState({lastShape:resultTitle(result),lastReason:event.reason,
-    resultTag:event.type==='cast'?'CAST':event.type==='cancel'?(result.endRule==='loss'?'LOST':'STOP'):event.type==='ignored'?'MOVE':'RETRY',
+    resultTag:event.type==='cast'?'RECOGNIZED':event.type==='cancel'?(result.endRule==='loss'?'LOST':'STOP'):event.type==='ignored'?'MOVE':'RETRY',
     score:event.shape&&event.shape!=='None'?event.score+'%':'—'});
   if(event.type!=='cast')document.dispatchEvent(new CustomEvent('wizard:practice-arena-gesture',{detail:{type:event.type,reason:event.reason,cause:event.cause}}));
   if(event.type==='cast'){

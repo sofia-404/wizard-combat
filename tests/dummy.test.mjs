@@ -20,14 +20,12 @@ assert.equal(dummy.restore(2099),false);
 assert.equal(dummy.disarmed,true);
 assert.equal(dummy.restore(2100),true);
 assert.equal(dummy.restore(2101),false,'return occurs once');
-dummy.cast(exp,3000);dummy.cast(exp,4000);
-assert.equal(dummy.restore(5000),false,'another Expelliarmus restarts the wait');
-dummy.cast({...exp,shape:'Basic Cast'},5500);
-dummy.cast({...exp,type:'cancel'},5900);
-assert.equal(dummy.restore(6000),true,'other events do not extend the wait');
-dummy.cast(exp,7000);dummy.reset();
-assert.equal(dummy.disarmed,false);
-assert.equal(dummy.restore(9000),false,'session reset has no later return');
+assert.equal(dummy.cast(exp,3000),false,'wand return starts protection');
+assert.equal(dummy.cast(exp,6099),false);
+assert.equal(dummy.cast(exp,6100),true);
+assert.equal(dummy.cast(exp,7000),false,'repeated disarm does not extend');
+assert.equal(dummy.restore(8100),true);
+dummy.reset(); assert.equal(dummy.disarmed,false);
 
 // Feed real capture results to the dummy. Simulated paths are not player tests.
 const path=pairs=>resample(pairs.map(([x,y])=>({x,y})),40);

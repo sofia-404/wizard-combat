@@ -64,7 +64,7 @@ try{
  const circle=Array.from({length:40},(_,i)=>({x:.55+.1*(Math.cos(i/39*2*Math.PI)-1),y:.5+.1*Math.sin(i/39*2*Math.PI)}));
  await page.evaluate(point=>{window.steps=Array(20).fill(point);window.step=0;},exp[0]);
  await page.locator('#practiceArenaCamera').click();
- await page.waitForFunction(()=>document.querySelector('#phase').textContent==='READY');
+ await page.waitForFunction(()=>document.querySelector('#practiceArenaView .practice-arena').dataset.roundPhase==='active' && document.querySelector('#phase').textContent==='READY');
  const start=records.length;
  // Start the second spell on the first frame after the first accepted cast.
  await page.evaluate(({exp,circle})=>{
@@ -78,7 +78,7 @@ try{
  assert.deepEqual(casts.map(e=>e.shape),['Expelliarmus','Protego']);
  assert.equal(await page.evaluate(()=>window.acceptedCasts),2,'holding must not repeat a cast');
  assert.equal(await page.locator('#practiceArenaHits').textContent(),'1 hit');
- assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(el=>el.value),170);
+ assert.equal(await page.locator('#practiceArenaDummyHealth').evaluate(el=>el.value),190);
  assert.equal(await page.locator('#practiceArenaShield').evaluate(el=>el.classList.contains('shield-active')),true);
  const stored=(await readFile(path.join(folder,'play-data/events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
  for(const cast of casts){

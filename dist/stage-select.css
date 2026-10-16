@@ -1,0 +1,50 @@
+/* This screen shares the menu's fonts and palette, not its layout. */
+#stageSelectView{position:relative;min-height:100svh;background:var(--wc-ink);color:var(--wc-text);padding-bottom:32px}
+#menuShell:has(#stageSelectView:not([hidden]))>.menu-art{display:none}
+#stageSelectView .stage-hero{position:relative;height:clamp(320px,55vh,620px);overflow:hidden;border-bottom:1px solid var(--wc-gold)}
+#stageSelectView .stage-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 48%}
+#stageSelectView .stage-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#081821b8,transparent 42%,#08182124);pointer-events:none}
+#stageSelectView .stage-wizards{position:absolute;bottom:0;left:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+#stageSelectView .stage-heading{position:absolute;top:24px;left:28%;right:28%;z-index:1;text-align:center;text-shadow:0 2px 8px #081821}
+#stageSelectView h2{margin:0;font:500 var(--setup-title)/1.1 var(--font-display);letter-spacing:.12em;color:var(--wc-gold-bright)}
+#stageSelectView h2:focus-visible{outline:2px solid var(--wc-cyan);outline-offset:6px}
+#stageSelectView #stageMode{margin:16px 0 0;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
+#stageSelectView .menu-back{z-index:2;background:#081821b8}
+#stageSelectView .stage-actions{position:relative;display:flex;justify-content:center;margin:-20px 0 16px;z-index:1}
+#stageSelectView #stageStart{min-width:260px;min-height:58px;margin:0;padding:10px 36px;border:1px solid var(--wc-gold-bright);border-radius:2px;background:var(--wc-gold);color:var(--wc-ink);font:500 30px/1 var(--font-display)}
+#stageSelectView #stageStart:hover{background:var(--wc-gold-bright)}
+#stageSelectView #stageStart:disabled{cursor:wait;opacity:.75}
+#stageSelectView .stage-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;width:min(92%,1680px);margin:auto}
+#stageSelectView .stage-tile{position:relative;display:flex;flex-direction:column;min-width:0;min-height:44px;padding:0;overflow:hidden;border:1px solid var(--wc-gold);border-radius:0;background:var(--wc-deep);color:var(--wc-text);text-align:center;transition:border-color 180ms,background-color 180ms}
+#stageSelectView .stage-tile img{display:block;width:100%;height:auto;aspect-ratio:16/7;object-fit:cover}
+#stageSelectView .stage-name{display:block;width:100%;padding:5px 4px;font:500 18px/1.2 var(--font-display);background:#081821}
+#stageSelectView .stage-tile[aria-pressed="true"]{outline:2px solid var(--wc-gold-bright);outline-offset:2px}
+#stageSelectView .stage-tile[aria-pressed="true"] .stage-name{color:var(--wc-gold-bright)}
+#stageSelectView .stage-tile:focus-visible{outline:3px solid var(--wc-cyan);outline-offset:3px}
+@media(hover:hover){
+  #stageSelectView .stage-tile:hover::after{content:'';position:absolute;inset:0;border:2px solid var(--wc-gold-bright);pointer-events:none}
+  #stageSelectView .stage-tile:hover .stage-name{background:var(--wc-gold-bright);color:var(--wc-ink)}
+}
+#stageSelectView .stage-random{display:grid;place-items:center;width:100%;aspect-ratio:16/7;background:radial-gradient(ellipse,#23444d,transparent);color:var(--wc-gold-bright);font:500 clamp(40px,5vw,80px)/1 var(--font-display)}
+#stageSelectView #stageStatus{min-height:24px;margin:14px auto 0;width:92%;text-align:center;font-size:14px;color:var(--wc-text)}
+#stageSelectView #stageStatus:empty{min-height:0;margin-block:0}
+@media(min-width:901px){
+  #stageSelectView{height:var(--setup-height);display:flex;flex-direction:column;padding-bottom:var(--setup-edge)}
+  #stageSelectView .stage-hero{flex:1 1 55svh;min-height:240px;max-height:620px}
+  #stageSelectView .stage-actions,#stageSelectView .stage-grid,#stageSelectView #stageStatus{flex-shrink:0}
+  /* Two tile rows share the viewport budget with the flexible preview. */
+  #stageSelectView .stage-grid{width:min(92%,1680px,calc(var(--setup-height) * 1.55));margin:0 auto}
+}
+@media(max-width:900px){
+  #stageSelectView .stage-heading{top:76px;left:24%;right:24%}
+  #stageSelectView .stage-hero{height:350px}
+  #stageSelectView .stage-grid{gap:8px}
+}
+@media(max-width:600px){
+  #stageSelectView .stage-hero{height:300px}
+  #stageSelectView .stage-heading{top:64px;left:16%;right:16%}
+  #stageSelectView .stage-wizards{height:58%;width:150%;left:-25%}
+  #stageSelectView .stage-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  #stageSelectView #stageStart{min-width:220px;min-height:52px;font-size:26px}
+}
+@media(prefers-reduced-motion:reduce){#stageSelectView .stage-tile{transition:none}}

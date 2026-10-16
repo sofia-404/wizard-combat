@@ -133,6 +133,9 @@ body.practice-arena-open #gameView>main{padding-top:16px}
 .practice-arena-actors{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .practice-arena-player-repair{display:none}
 .practice-arena-player:has([data-pose="falling"],[data-pose="fallen"]) .practice-arena-player-repair{display:block}
+/* Selected stages are empty scenes; the original castle patches are not needed. */
+.practice-arena[data-stage] :is(.arena-backing,.practice-arena-player-repair){display:none}
+.practice-arena .skin-original-hidden,.practice-arena.has-player-skin :is(.arena-backing,.practice-arena-player-repair){display:none}
 :is(#practiceArenaPlayerActor,#soloDuelPlayerActor),#spellTrainingPlayerActor{transform-box:view-box;transform-origin:295px 773px}
 :is(#practiceArenaDummyActor,#soloDuelDummyActor){transform-box:view-box;transform-origin:1404px 773px}
 :is(#practiceArenaDummyWand,#soloDuelDummyWand){transform-box:view-box;transform-origin:1348px 534px;transform:translate(0,0) rotate(0deg)}
@@ -145,6 +148,9 @@ body.practice-arena-open #gameView>main{padding-top:16px}
   100%{transform:translate(-35px,230px) rotate(54deg)}
 }
 @media(prefers-reduced-motion:reduce){:is(#practiceArenaDummyActor,#soloDuelDummyActor)[data-disarmed="true"] :is(#practiceArenaDummyWand,#soloDuelDummyWand){animation:none}}
+/* New skins hold the wand higher. Drop it flat onto the same floor. */
+:is(#practiceArenaDummyActor,#soloDuelDummyActor)[data-skin][data-disarmed="true"] :is(#practiceArenaDummyWand,#soloDuelDummyWand){transform:translate(-35px,var(--skin-wand-drop-y)) rotate(-21.25deg);animation-name:skin-wand-drop}
+@keyframes skin-wand-drop{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(-35px,var(--skin-wand-drop-y)) rotate(-21.25deg)}}
 /* Idle motion. The figures breathe and sway on planted feet, and their wands
    drift. Origins are arena pixels at the feet, a shoulder, or a wand grip. The
    wizard layers cover the wizard painted into the arena art with the same pixels. */
@@ -175,3 +181,17 @@ body.practice-arena-open #gameView>main{padding-top:16px}
 
 /* Solo Duel must show its cast warning at narrow widths too. */
 #soloDuelDummyState:not([hidden]){display:block}
+
+/* Round display is used only by Practice Arena and Solo Duel. */
+:is(#practiceArenaView,#soloDuelView) .practice-arena-timer{visibility:visible}
+.arena-round-score{display:flex;gap:7px;margin-top:7px}
+.arena-round-score i{display:block;width:9px;height:9px;border:1px solid #c5ad7e;border-radius:50%;background:#101820}
+.arena-round-score .is-won{background:#c5ad7e}
+.arena-round-banner{position:absolute;inset:43% 0 auto;z-index:4;display:flex;align-items:center;gap:18px;pointer-events:none;color:#e9cf97;font:400 clamp(20px,3.2vw,44px)/1.2 Georgia,'Times New Roman',serif;text-align:center;text-transform:uppercase;text-shadow:0 2px 8px #000}
+.arena-round-banner[hidden]{display:none}
+.arena-round-banner::before,.arena-round-banner::after{content:'';height:1px;flex:1;background:#c5ad7e}
+.arena-round-banner span{max-width:80%;padding:8px 14px;background:#101820e8}
+@media(max-width:600px){.arena-round-banner{gap:8px}.arena-round-banner span{padding:6px 8px}.arena-round-score{gap:5px;margin-top:5px}.arena-round-score i{width:7px;height:7px}}
+
+/* Shared combat availability below the camera, separate from tracking status. */
+.combat-status{margin:0;padding:6px 10px;font:inherit;font-size:12px;line-height:1.4;min-height:2.8em;color:inherit;overflow-wrap:anywhere}

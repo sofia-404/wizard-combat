@@ -42,7 +42,7 @@ for(const [first,a] of Object.entries(shapes))for(const [second,b] of Object.ent
   assert.equal(results[0].diagnostics.captureNo,2);
   assert.ok(results[0].path.every(p=>p.t>=firstEndedAt));
   const count=Number(first==='Expelliarmus')+Number(second==='Expelliarmus');
-  assert.equal(s.lesson.count,count);assert.equal(s.disarms(),count);
+  assert.equal(s.lesson.count,count);assert.equal(s.disarms(),Math.min(1,count));
   s.hold(two.at(-1),120);
   assert.equal(s.events.filter(e=>e.type==='cast').length,2,'holding cannot duplicate a cast');
 }

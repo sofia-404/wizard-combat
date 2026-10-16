@@ -30,6 +30,7 @@ export function createOpponentCharge(wand, warningMs) {
     delete group.dataset.spell;
   }
   function refresh(preparing, now) {
+    group.setAttribute('transform', `translate(${wand.dataset.tipX || 1289} ${wand.dataset.tipY || 618})`);
     if (!preparing) { clear(); return; }
     const progress = reducedMotion.matches ? .65 : Math.max(0, Math.min(1, 1 - (preparing.releaseAt - now) / (preparing.warningMs ?? warningMs)));
     group.dataset.spell = preparing.shape;

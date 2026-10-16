@@ -31,7 +31,7 @@ class SelectedSpellLesson extends SpellLesson {
     } else if (event.type === 'hit') {
       this.message = 'The spell hit you. Cast Protego before the next spell hits.';
     } else if (event.type === 'cast' && event.accepted && event.shape === 'Protego') {
-      this.message = 'Protego cast. Block an incoming spell within 3 seconds to count.';
+      this.message = 'Protego cast. Block an incoming spell within 2 seconds to count.';
     } else if (event.type !== 'block') super.update(event);
   }
 }

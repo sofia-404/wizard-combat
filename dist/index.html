@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/practice-arena.css"><link rel="stylesheet" href="/menu.css"><link rel="stylesheet" href="/presentation/shield.css"><link rel="stylesheet" href="/spell-training.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wizard Combat</title><link rel="icon" href="/brand/assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/brand/tokens.css"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/practice-arena.css"><link rel="stylesheet" href="/menu.css"><link rel="stylesheet" href="/presentation/shield.css"><link rel="stylesheet" href="/spell-training.css"><link rel="stylesheet" href="/stage-select.css"><link rel="stylesheet" href="/character-select.css"></head>
 <body>
 <div id="menuShell" class="menu-shell" hidden>
   <div class="menu-art" aria-hidden="true"></div>
@@ -20,6 +20,37 @@
         <button type="button" data-view="credits"><span>Credits</span></button>
       </div>
     </nav>
+  </section>
+  <section id="characterSelectView" hidden aria-labelledby="characterSelectTitle">
+    <button id="characterBack" type="button" data-back></button>
+    <header><h2 id="characterSelectTitle" tabindex="-1">SELECT A CHARACTER</h2><p id="characterMode"></p></header>
+    <div class="character-layout">
+      <section class="character-fighter character-player" aria-labelledby="characterName">
+        <div id="characterPreview" class="character-preview" aria-hidden="true"></div>
+        <button id="playerRole" class="character-role" type="button" aria-controls="characterChoices">P1 You</button>
+      </section>
+      <section id="opponentPanel" class="character-fighter character-opponent" aria-labelledby="opponentName">
+        <div id="opponentPreview" class="character-preview" aria-hidden="true"></div>
+        <button id="opponentRole" class="character-role" type="button" aria-controls="characterChoices">P2 Computer</button>
+      </section>
+      <div class="character-roster">
+        <div id="characterChoices" class="character-grid" role="group" aria-label="Choose your character"></div>
+        <div id="characterMatchup" class="character-matchup"><h3 id="characterName"></h3><span id="characterVersus">VS</span><h3 id="opponentName"></h3></div>
+        <button id="characterNext" type="button">Choose location</button>
+        <p id="characterStatus" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+  <section id="stageSelectView" hidden aria-labelledby="stageSelectTitle">
+    <button id="stageBack" type="button" data-back></button>
+    <div class="stage-hero">
+      <img id="stagePreview" class="stage-preview" src="/assets/stages/01-courtyard.jpg" alt="" loading="lazy">
+      <img class="stage-wizards" src="/assets/stages/selection-wizards.png" alt="" loading="lazy">
+      <div class="stage-heading"><h2 id="stageSelectTitle" tabindex="-1">SELECT STAGE</h2><p id="stageMode"></p></div>
+    </div>
+    <div class="stage-actions"><button id="stageStart" type="button">Start Game</button></div>
+    <div id="stageChoices" class="stage-grid" role="group" aria-label="Choose a stage"></div>
+    <p id="stageStatus" role="status" aria-live="polite"></p>
   </section>
   <section id="optionsView" class="menu-screen detail-view" hidden aria-labelledby="optionsTitle">
     <button type="button" data-back></button>
@@ -75,7 +106,7 @@
       <img class="arena-art" src="/assets/practice-arena-background.jpg" width="1659" height="948" alt="Moonlit ruined castle and stone arena." loading="lazy">
       <svg class="practice-arena-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
         <g class="practice-arena-player">
-          <image aria-hidden="true" href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
+          <image class="arena-backing" aria-hidden="true" href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
           <defs><mask id="practiceArenaPlayerRepairMask" maskUnits="userSpaceOnUse" x="0" y="240" width="660" height="570" style="mask-type:alpha">
             <image href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
           </mask></defs>
@@ -132,7 +163,7 @@
       <img class="arena-art" src="/assets/practice-arena-background.jpg" width="1659" height="948" alt="Moonlit ruined castle and stone arena." loading="lazy">
       <svg class="practice-arena-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
         <g class="practice-arena-player">
-          <image aria-hidden="true" href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
+          <image class="arena-backing" aria-hidden="true" href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
           <defs><mask id="soloDuelPlayerRepairMask" maskUnits="userSpaceOnUse" x="0" y="240" width="660" height="570" style="mask-type:alpha">
             <image href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
           </mask></defs>
@@ -191,7 +222,7 @@
           <img class="arena-art" src="/assets/practice-arena-background.jpg" width="1659" height="948" alt="Moonlit ruined castle and stone arena." loading="lazy">
           <svg class="practice-arena-actors" viewBox="0 0 1659 948" preserveAspectRatio="xMidYMid slice">
             <g class="practice-arena-player">
-              <image aria-hidden="true" href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
+              <image class="arena-backing" aria-hidden="true" href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
               <defs><mask id="spellTrainingPlayerRepairMask" maskUnits="userSpaceOnUse" x="0" y="240" width="660" height="570" style="mask-type:alpha">
                 <image href="/assets/practice-arena-player-plate.png" x="0" y="240" width="660" height="570"/>
               </mask></defs>
@@ -225,7 +256,7 @@
           <div id="spellTrainingGuide" class="lesson-guide"></div>
           <button id="spellTrainingCamera" class="practice-arena-start" type="button">Start camera</button>
         </div>
-        <div class="spell-training-guide-area">
+        <div class="spell-training-guide-area" hidden>
           <div id="spellTrainingCompletion" class="spell-training-completion" role="status" aria-live="polite" hidden><strong id="spellTrainingLearnedTitle">Spell learned</strong><p id="spellTrainingCompletionText">Lesson complete. Three correct casts.</p><button id="spellTrainingCompletionClose" class="practice-arena-back" type="button" hidden>Close</button></div>
           <p id="spellTrainingMessage" role="status" aria-live="polite" hidden></p>
         </div>

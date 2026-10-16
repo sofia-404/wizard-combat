@@ -29,8 +29,8 @@ export function validateDefinitions(definitions) {
               !Number.isFinite(tier.value) || tier.value < 0 || (i && tier.minScore >= tiers[i-1].minScore)) fail('damage tier order or value');
         }
       }
-      if (effect.type === 'disarm' && (!positive(effect.durationMs) || effect.repeat !== 'refresh')) fail('disarm settings');
-      if (effect.type === 'shield' && (!positive(effect.durationMs) || effect.repeat !== 'refresh' || effect.target !== 'self')) fail('shield settings');
+      if (effect.type === 'disarm' && (!positive(effect.durationMs) || effect.repeat !== 'ignore')) fail('disarm settings');
+      if (effect.type === 'shield' && (!positive(effect.durationMs) || effect.repeat !== 'ignore' || effect.target !== 'self')) fail('shield settings');
     }
     if (!['shield', 'dummy-hit'].includes(spell.visuals?.cast)) fail('cast animation');
     if (typeof spell.visuals.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(spell.visuals.color)) fail('spell color');

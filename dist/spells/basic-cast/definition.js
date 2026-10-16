@@ -1,3 +1,4 @@
+import {COMBAT_SPELLS} from '../../combat/rules.js';
 export default {
   id: 'basic-cast', label: 'Basic Cast', kind: 'spell', version: 1,
   description: 'Start at the dot. Down, then up. Either direction. Pause at the end.',
@@ -11,7 +12,7 @@ export default {
       ['path', {d: 'M50 6L54 10L50 14L46 10Z'}]
     ]
   },
-  effects: [{type: 'damage', tiers: [{minScore: 88, value: 30}, {minScore: 78, value: 25}, {minScore: 0, value: 20}]}],
+  effects: [{type: 'damage', tiers: [{minScore: 0, value: COMBAT_SPELLS['Basic Cast'].damage}]}],
   visuals: {cast: 'dummy-hit', color: '#c5a0ff'},
   sound: '/spells/basic-cast/cast.wav',
   lesson: null

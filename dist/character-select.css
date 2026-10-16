@@ -1,0 +1,95 @@
+/* Selection portraits share one crop model on the roster and stage screens. */
+.character-portrait{position:relative;display:block;overflow:hidden;width:100%;height:100%}
+.character-portrait img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom}
+.character-portrait[data-crop] img{position:absolute;bottom:0;width:280%;max-width:none;height:100%;object-fit:fill}
+.character-portrait[data-crop="left"] img{left:0}
+.character-portrait[data-crop="right"] img{right:0}
+#menuShell:has(#characterSelectView:not([hidden]))>.menu-art{display:none}
+#characterSelectView{position:relative;min-height:100svh;padding:32px 24px;background:var(--wc-ink);color:var(--wc-text)}
+#characterSelectView::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#08182188,#081821bb 60%,var(--wc-ink)),url('/assets/stages/01-courtyard.jpg') center/cover;pointer-events:none}
+#characterSelectView>*{position:relative}
+#characterSelectView header{text-align:center;margin-bottom:32px;padding:0 160px}
+#characterSelectView h2{margin:0;color:var(--wc-gold-bright);font:500 var(--setup-title)/1.1 var(--font-display);letter-spacing:.08em;text-wrap:balance}
+#characterSelectView #characterMode{margin:12px 0 0;font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+#characterSelectView .character-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(400px,560px) minmax(0,1fr);align-items:end;gap:24px;max-width:1920px;margin:auto}
+#characterSelectView .character-fighter{min-width:0;text-align:center;align-self:end}
+#characterSelectView .character-player{grid-area:1/1}
+#characterSelectView .character-opponent{grid-area:1/3}
+#characterSelectView .character-roster{grid-area:1/2;min-width:0;text-align:center}
+#characterSelectView .character-preview{position:relative;pointer-events:none;aspect-ratio:1/1;width:100%;max-width:660px;margin:auto}
+#characterSelectView .character-preview .character-portrait:not([data-crop]) img{object-fit:cover;object-position:center top}
+#characterSelectView .character-player .character-portrait[data-crop="right"]{transform:scaleX(-1)}
+#characterSelectView .character-opponent .character-portrait:not([data-crop="right"]){transform:scaleX(-1)}
+#characterSelectView .character-preview.is-random img{filter:brightness(0);opacity:.65}
+#characterSelectView .character-preview.is-random::after{content:'?';position:absolute;inset:0;display:grid;place-items:center;color:var(--wc-gold-bright);font:500 96px/1 var(--font-display)}
+#characterSelectView .character-role{display:block;min-height:52px;max-width:100%;margin:16px auto 0;padding:8px 20px;border:1px solid var(--wc-gold);border-radius:2px;background:var(--wc-ink);color:var(--wc-text);font:500 22px/1.2 var(--font-body)}
+#characterSelectView .character-role[aria-pressed="true"]{background:var(--wc-gold);color:var(--wc-ink)}
+#characterSelectView .character-role:hover{border-color:var(--wc-gold-bright);color:var(--wc-gold-bright)}
+#characterSelectView .character-role[aria-pressed="true"]:hover{background:var(--wc-gold-bright);color:var(--wc-ink)}
+#characterSelectView h3{min-width:0;margin:0;font:500 32px/1.1 var(--font-display);color:var(--wc-gold-bright);text-wrap:balance}
+#characterSelectView .character-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#characterSelectView .character-tile{position:relative;display:flex;flex-direction:column;min-width:0;padding:0;border:1px solid var(--wc-gold);border-radius:0;background:var(--wc-deep);color:var(--wc-text);text-align:center;transition:border-color 180ms var(--ease),background-color 180ms var(--ease)}
+#characterSelectView .character-tile>.character-portrait,#characterSelectView .character-random{height:auto;aspect-ratio:1/1}
+#characterSelectView .character-tile .character-portrait:not([data-crop]) img{object-fit:cover;object-position:center top}
+#characterSelectView .character-label{width:100%;min-height:44px;display:grid;place-items:center;padding:4px;font:500 18px/1.1 var(--font-display);background:var(--wc-ink)}
+@media(hover:hover){
+  #characterSelectView .character-tile:hover::after{content:'';position:absolute;inset:0;border:2px solid var(--wc-gold-bright);pointer-events:none}
+  #characterSelectView .character-tile:hover .character-label{background:var(--wc-gold-bright);color:var(--wc-ink)}
+}
+#characterSelectView .character-tile[aria-pressed="true"]{outline:2px solid var(--wc-gold-bright);outline-offset:2px}
+#characterSelectView .character-marker:not(:empty){position:absolute;top:0;left:0;padding:3px 7px;background:var(--wc-gold-bright);color:var(--wc-ink);font:600 14px/1.2 var(--font-body)}
+#characterSelectView .character-random{display:grid;place-items:center;width:100%;font:500 72px/1 var(--font-display);color:var(--wc-gold-bright)}
+#characterSelectView .character-matchup{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px;margin:24px 0}
+#characterSelectView #characterName{text-align:right}
+#characterSelectView #opponentName{text-align:left}
+#characterSelectView:not([data-mode="soloDuel"]) .character-matchup{display:block}
+#characterSelectView:not([data-mode="soloDuel"]) #characterName{text-align:center}
+#characterSelectView #characterVersus{margin:0;color:var(--wc-gold-bright);font:500 40px/1 var(--font-display)}
+#characterSelectView #characterNext{display:block;min-width:200px;min-height:52px;margin:0 auto;padding:10px 32px;border:1px solid var(--wc-gold-bright);border-radius:2px;background:var(--wc-gold);color:var(--wc-ink);font:500 28px/1 var(--font-display)}
+#characterSelectView #characterNext:hover{background:var(--wc-gold-bright)}
+#characterSelectView #characterNext:disabled{cursor:wait;opacity:.75}
+#characterSelectView #characterStatus{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+#characterSelectView :is(button,h2):focus-visible{outline:3px solid var(--wc-cyan);outline-offset:5px}
+#characterSelectView:not([data-mode="soloDuel"]) .character-layout{grid-template-columns:minmax(0,1fr) minmax(400px,560px);max-width:1280px;gap:48px}
+#stageSelectView .stage-character{position:absolute;bottom:0;left:0;width:36%;height:90%;pointer-events:none}
+#stageSelectView .stage-character-opponent{left:auto;right:0}
+#stageSelectView .stage-character .character-portrait:not([data-crop]) img{object-fit:cover;object-position:center top}
+#stageSelectView .stage-character .character-portrait[data-crop]{width:auto;aspect-ratio:1/1;max-width:100%}
+#stageSelectView .stage-character-opponent .character-portrait{margin-left:auto}
+#stageSelectView .stage-character:not(.stage-character-opponent) .character-portrait[data-crop="right"]{transform:scaleX(-1)}
+#stageSelectView .stage-character-opponent .character-portrait:not([data-crop="right"]){transform:scaleX(-1)}
+@media(min-width:1101px){
+  #characterSelectView{height:var(--setup-height);padding-block:var(--setup-edge);display:grid;grid-template-rows:auto minmax(0,1fr)}
+  #characterSelectView header{margin-bottom:var(--setup-gap)}
+  #characterSelectView .character-layout{container-type:size;width:100%;height:100%;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+  #characterSelectView:not([data-mode="soloDuel"]) .character-layout{grid-template-columns:minmax(0,1fr) auto}
+  /* Reserve two lines for names, the action, and up to two lines per tile label.
+     Convert the remaining height of three square image rows into four columns. */
+  #characterSelectView .character-roster{width:min(560px,44cqw,calc((100cqh - 72px - 52px - 144px - 24px - 6px - var(--setup-gap) * 2) * 4 / 3 + 36px))}
+  #characterSelectView .character-matchup{margin-block:var(--setup-gap)}
+  #characterSelectView .character-preview{max-width:min(660px,calc(100cqh - 68px))}
+}
+@media(max-width:1100px){
+  #characterSelectView{padding-top:88px}
+  #characterSelectView header{padding:0}
+  #characterSelectView .character-layout,#characterSelectView:not([data-mode="soloDuel"]) .character-layout{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;max-width:640px}
+  #characterSelectView .character-player{grid-area:1/1}
+  #characterSelectView .character-opponent{grid-area:1/2}
+  #characterSelectView .character-roster{grid-area:2/1/3/3}
+  #characterSelectView .character-preview{max-width:280px}
+  #characterSelectView:not([data-mode="soloDuel"]) .character-player{grid-column:1/3}
+}
+@media(max-width:600px){
+  #characterSelectView{padding:80px 16px 24px}
+  #characterSelectView header{margin-bottom:24px}
+  #characterSelectView .character-layout{column-gap:8px}
+  #characterSelectView .character-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  #characterSelectView .character-role{font-size:18px;padding:8px 12px;margin-top:8px}
+  #characterSelectView h3{font-size:28px}
+  #characterSelectView .character-label{font-size:17px}
+  #characterSelectView .character-preview.is-random::after{font-size:64px}
+  #characterSelectView:not([data-mode="soloDuel"]) .character-preview{max-width:220px}
+  #stageSelectView .stage-character{height:58%;width:48%;left:-6%}
+  #stageSelectView .stage-character-opponent{left:auto;right:-6%}
+}
+@media(prefers-reduced-motion:reduce){#characterSelectView .character-tile{transition:none}}

@@ -1,9 +1,8 @@
 import {PracticeDummy} from './combat/practice-dummy.js';
 
 export function createPracticeArenaDisarm(actor, status, {
-  now = () => performance.now(), schedule = setTimeout, cancel = clearTimeout
+  now = () => performance.now(), schedule = setTimeout, cancel = clearTimeout, dummy = new PracticeDummy()
 } = {}) {
-  const dummy = new PracticeDummy();
   let timer;
 
   function render() {

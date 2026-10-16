@@ -1,5 +1,8 @@
 import {SpellTrainingSession} from './spell-training/session.js';
-import {SoloOpponent, SOLO_RULES} from './combat/solo-opponent.js';
+import {DuelFighter, DuelOpponent, applyDuelImpact} from './combat/solo-duel.js';
+import {COMBAT_RULES} from './combat/rules.js';
+import {getSettings} from './settings.js';
+import {createCombatStatus} from './presentation/combat-status.js';
 import {PracticeArenaHealth} from './practice-arena-health.js';
 import {renderHealthBars, listenForPlayerHits} from './presentation/health-view.js';
 import {spellList, spellForShape} from './spells/index.js';
@@ -23,10 +26,13 @@ let previousCameraState = getInputState().cameraState;
 let cameraReady = false;
 let completionDismissed = false;
 const health = new PracticeArenaHealth();
-const opponent = new SoloOpponent({attacksOnly:true});
-const opponentCharge = createOpponentCharge($('spellTrainingDummyWand'), SOLO_RULES.warningMs);
+const player = new DuelFighter();
+health.shield = player.shield;
+const combatStatus = createCombatStatus($('spellTrainingCameraMount'), player);
+const opponent = new DuelOpponent({attacksOnly:true});
+const opponentCharge = createOpponentCharge($('spellTrainingDummyWand'), 0);
 const incoming = new Set();
-let opponentTick = null, chargeVisible = false;
+let opponentTick = null, chargeVisible = false, impactAt = 0, incomingImpactAt = 0, cueShown = false;
 let pageHidden = false;
 const RESTART_DELAY_MS = 2000;
 let restartAt = 0;
@@ -37,10 +43,12 @@ const shield = health.shield;
 const shieldView = createShieldView($('spellTrainingShield'), null, shield, {cx:295, cy:520, rx:260, ry:325});
 const playerReactions = createPlayerReactions($('spellTrainingPlayerActor'));
 const reactions = createDummyReactions($('spellTrainingDummyActor'));
-const disarm = createPracticeArenaDisarm($('spellTrainingDummyActor'), null);
+const disarm = createPracticeArenaDisarm($('spellTrainingDummyActor'), null, {dummy:opponent});
 listenForPlayerHits('spellTraining', health, (hit, cast) => {
   renderHealthBars('spellTraining', health);
-  events.add(hit.blocked ? 'Protego blocked the hit' : 'Player hit', `${hit.damage} damage`);
+  const perfect = applyDuelImpact(player, opponent, cast, hit, performance.now()).perfect;
+  if (perfect) impactAt = incomingImpactAt;
+  events.add(perfect ? 'Perfect block' : hit.blocked ? 'Protego blocked the hit' : 'Player hit', `${hit.damage} damage`);
   if (incoming.delete(cast.id) && session.spell.id === 'protego') {
     session.update({type:hit.blocked ? 'block' : 'hit', id:cast.id, blocked:hit.blocked});
     renderLesson();
@@ -54,6 +62,8 @@ listenForPlayerHits('spellTraining', health, (hit, cast) => {
   if (health.playerDefeated) {
     document.dispatchEvent(new CustomEvent('wizard:duel-defeat', {detail:{view:'spellTraining', player:true}}));
     playerReactions.react('Basic Cast', true);
+    player.cancelPending();
+    health.cancelFlights();
     effects.cancelFlights();
     events.add('Player defeated', 'Restarts in 2 seconds');
     playerRestartAt = performance.now() + RESTART_DELAY_MS;
@@ -63,9 +73,15 @@ listenForPlayerHits('spellTraining', health, (hit, cast) => {
 });
 const incomingEffects = createSpellEffects($('spellTrainingIncomingEffects'), cast => {
   if (!opponentActive()) return;
+  impactAt = incomingImpactAt = 0;
   document.dispatchEvent(new CustomEvent('wizard:player-hit', {detail:{view:'spellTraining', ...cast}}));
-}, {start:{x:1348, y:534}, target:{x:295, y:520}, flightMs:SOLO_RULES.flightMs, keepFlightTime:true});
+}, {start:{x:1348, y:534}, target:{x:295, y:520}, flightMs:cast => cast.flightMs, keepFlightTime:true});
 
+function combatActive() {
+  const input = getInputState();
+  return !$('gameView').hidden && !$('spellTrainingView').hidden && !document.hidden && !pageHidden
+    && input.camera === 'Stop camera' && input.cameraState === 'Camera on' && !input.cameraDisabled && !health.playerDefeated;
+}
 function opponentActive() {
   const input = getInputState();
   return session.spell.id === 'protego' && session.state === 'active' && !health.over
@@ -73,8 +89,7 @@ function opponentActive() {
     && input.camera === 'Stop camera' && input.cameraState === 'Camera on' && !input.cameraDisabled;
 }
 function stopOpponent() {
-  clearInterval(opponentTick);
-  opponentTick = null;
+  impactAt = incomingImpactAt = 0; cueShown = false;
   opponent.stop();
   opponentCharge.clear();
   chargeVisible = false;
@@ -84,10 +99,22 @@ function stopOpponent() {
   set('spellTrainingDummyState', '');
 }
 function syncOpponent() {
-  if (!opponentActive()) { stopOpponent(); return; }
-  const now = performance.now();
+  const now = performance.now(), active = combatActive();
+  if (active) {
+    const cast = player.update(now);
+    if (cast) releaseCast(cast);
+    if (opponentTick === null) opponentTick = setInterval(syncOpponent, 50);
+  } else {
+    player.cancelPending();
+    clearInterval(opponentTick); opponentTick = null;
+  }
+  combatStatus.render(now, active);
+  if (!opponentActive()) {
+    if (opponent.running || incoming.size || chargeVisible) stopOpponent();
+    return;
+  }
   const disarmed = $('spellTrainingDummyActor').dataset.disarmed === 'true';
-  const action = opponent.update(now, {active:true, disarmed});
+  const action = opponent.update(now, {active:true, difficulty:getSettings().difficulty});
   if (opponent.preparing) {
     opponentCharge.refresh(opponent.preparing, now);
     chargeVisible = true;
@@ -95,26 +122,29 @@ function syncOpponent() {
     opponentCharge.clear();
     chargeVisible = false;
   }
-  if (opponentTick === null) opponentTick = setInterval(syncOpponent, 50);
   if (action?.type === 'prepare') {
+    impactAt = action.releaseAt + action.flightMs; cueShown = false;
     events.add(`Opponent prepares ${action.shape}`, 'Cast Protego before the spell hits.');
   } else if (action?.type === 'cast') {
-    const cast = {id:crypto.randomUUID(), shape:action.shape, damage:action.damage, launchedAt:now};
+    const cast = {...action, id:crypto.randomUUID(), launchedAt:now};
+    impactAt = incomingImpactAt = now + cast.flightMs;
     incoming.add(cast.id);
     incomingEffects.cast(cast);
     events.add(`Opponent cast ${action.shape}`, 'Incoming spell.');
     document.dispatchEvent(new CustomEvent('wizard:opponent-cast', {detail:{...cast, view:'spellTraining'}}));
   }
-  const text = disarmed ? 'Disarmed' : opponent.preparing ? `Casting ${opponent.preparing.shape}` : '';
+  const cue = impactAt > now && impactAt - now <= COMBAT_RULES.castCueMs;
+  if (cue && !cueShown) { events.add('Cast Protego now', 'Incoming spell.'); cueShown = true; }
+  const text = disarmed ? 'Disarmed' : cue ? 'Cast Protego now' : opponent.preparing ? `Casting ${opponent.preparing.shape}` : '';
   const state = $('spellTrainingDummyState');
   if (state.textContent !== text) state.textContent = text;
   if (state.hidden !== !text) state.hidden = !text;
 }
 const effects = createSpellEffects($('spellTrainingEffects'), cast => {
-  const hit = health.hit(cast);
+  const hit = health.hit(cast, performance.now());
   if (!hit) return;
   document.dispatchEvent(new CustomEvent('wizard:duel-hit', {detail:{view:'spellTraining'}}));
-  disarm.hit(cast);
+  if (applyDuelImpact(opponent, player, cast, hit, performance.now()).disarmed) { impactAt = incomingImpactAt; disarm.refresh(); }
   reactions.react(cast.shape, hit.defeated);
   renderHealthBars('spellTraining', health);
   events.add(cast.shape, `${hit.damage} damage · ${cast.score}% precision`);
@@ -137,6 +167,7 @@ function log(cause) {
   record({type:'settings', source:'spellTraining', cause, shape:session.spell.label, lessonState:session.state, lessonCount:session.count});
 }
 function clearEffects() {
+  player.cancelPending();
   stopOpponent();
   effects.clear();
   health.cancelFlights();
@@ -163,6 +194,7 @@ function refreshRestart() {
     clearTimeout(playerRestartTimer);
     playerRestartTimer = null;
     playerRestartAt = 0;
+    player.reset();
     health.resetPlayer();
     playerReactions.reset();
     shieldView.refresh();
@@ -297,10 +329,10 @@ function startLesson() {
 }
 document.addEventListener('wizard:spell-training-gesture', ({detail: event}) => {
   if ($('spellTrainingView').hidden || document.hidden || health.playerDefeated) return;
-  if (event.type === 'capture') return;
+  if (event.type === 'capture' || !combatActive()) return;
   if (seen.has(event.id)) return;
   seen.add(event.id);
-  session.update(event);renderLesson();
+  if (event.type !== 'cast') { session.update(event); renderLesson(); }
   record({id:event.id, type:event.type, source:'spellTraining', shape:event.shape || 'None', score:event.score || 0,
     reason:event.reason || '', cause:event.cause || 'unknown', expected:session.spell.label,
     lessonState:session.state, lessonCount:session.count});
@@ -311,18 +343,35 @@ document.addEventListener('wizard:spell-training-gesture', ({detail: event}) => 
     }
     return;
   }
-  if (shield.cast(event, performance.now())) {
-    document.dispatchEvent(new CustomEvent('wizard:spell-training-cast', {detail:{view:'spellTraining', id:event.id, shape:event.shape}}));
-    shieldView.refresh(spellForShape(event.shape).visuals.color);
-    events.add(event.shape, `0 damage · ${event.score}% precision`);
-    return;
-  }
-  const shot = spellForShape(event.shape) && health.launch(event);
-  if (shot) {
-    document.dispatchEvent(new CustomEvent('wizard:spell-training-cast', {detail:{view:'spellTraining', id:event.id, shape:event.shape}}));
-    effects.cast(shot);
-  }
+  const result = player.submit(event, performance.now());
+  if (result.type === 'queued') {
+    events.add('Spell ready', result.replaced ? 'Protego replaces the queued attack.' : `${event.shape} will release after recovery.`);
+    record({type:'practiceArena', source:'spellTraining', cause:'cast_queued', castId:event.id, shape:event.shape,
+      reason:result.replaced ? 'replaced_attack' : 'recovery'});
+    if (result.replaced) record({type:'practiceArena', source:'spellTraining', cause:'queue_replaced', castId:result.replaced});
+  } else if (result.type === 'rejected') {
+    events.add('Spell not cast', result.reason);
+    record({type:'practiceArena', source:'spellTraining', cause:'cast_rejected', castId:event.id, shape:event.shape, reason:result.reason});
+  } else releaseCast(result);
+  syncOpponent();
 });
+function releaseCast(cast) {
+  if (!combatActive()) return;
+  // Lessons count released spells, including a queued spell released later.
+  session.update({...cast, type:'cast', accepted:true}); renderLesson();
+  record({type:'practiceArena', source:'spellTraining', cause:cast.type === 'shield' ? 'shield' : 'cast',
+    castId:cast.id, shape:cast.shape, damage:cast.damage, lessonState:session.state, lessonCount:session.count});
+  const sound = () => document.dispatchEvent(new CustomEvent('wizard:spell-training-cast', {detail:{...cast, view:'spellTraining'}}));
+  if (cast.type === 'shield') {
+    sound();
+    shieldView.refresh(spellForShape(cast.shape).visuals.color);
+    events.add(cast.shape, `0 damage · ${cast.score}% precision`);
+  } else {
+    const shot = health.launch(cast);
+    if (shot) { sound(); effects.cast(shot); }
+  }
+}
+
 function syncControls() {
   set('spellTrainingTracking', getInputState().tracking);
   syncGameCamera($('spellTrainingCamera'), document.querySelector('#spellTrainingView .practice-arena'), {

@@ -2,7 +2,8 @@ import {castDamage} from './combat/cast.js';
 import {spellForShape, spells} from './spells/index.js';
 import {Shield} from './combat/shield.js';
 
-export const MAX_HEALTH = 200;
+import {COMBAT_RULES} from './combat/rules.js';
+export const MAX_HEALTH = COMBAT_RULES.health;
 
 // Keep score-only callers and unknown labels working with the existing default damage.
 export function damageForAccuracy(score, shape) {
@@ -12,8 +13,9 @@ export function damageForAccuracy(score, shape) {
 }
 
 export class PracticeArenaHealth {
-  constructor({targetShield = null} = {}) {
+  constructor({targetShield = null, damageForCast = damageForAccuracy} = {}) {
     this.targetShield = targetShield;
+    this.damageForCast = damageForCast;
     this.receivedHits = new Set();
     this.player = MAX_HEALTH;
     this.shield = new Shield();
@@ -66,7 +68,7 @@ export class PracticeArenaHealth {
   }
 
   launch(cast) {
-    const damage = damageForAccuracy(cast.score, cast.shape);
+    const damage = this.damageForCast(cast.score, cast.shape);
     if (this.over || !damage || !cast.id || this.seen.has(cast.id)) return null;
     const shot = Object.freeze({...cast, damage});
     this.seen.add(shot.id);

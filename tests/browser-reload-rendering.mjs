@@ -79,7 +79,7 @@ export async function checkReloadRendering(browser, base, root) {
       assert.equal(await page.locator(`#${mode}Camera`).isVisible(), true);
       failActor = false;
       await page.locator('#gameBack').click();
-      await page.locator(`[data-view="${mode}"]`).click();
+      await page.evaluate(mode => { location.hash = mode; }, mode);
       await page.waitForFunction(mode => document.querySelector(`#${mode}View .practice-arena`).dataset.artState === 'ready', mode);
 
       // Leaving while an image is pending must not let its completion change the route.
