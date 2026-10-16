@@ -25,7 +25,7 @@ export function createArenaView(view, label) {
   const opponent = view === 'soloDuel' ? new SoloOpponent() : null;
   const targetName = opponent ? 'Opponent' : 'Dummy';
   const health = new PracticeArenaHealth({targetShield:opponent?.shield});
-  let opponentTick = null, pageHidden = false;
+  let opponentTick = null, pageHidden = false, chargeVisible = false;
   let timeRemaining = 100000;
   let timerDeadline = null;
   let timerTick;
@@ -76,18 +76,27 @@ export function createArenaView(view, label) {
     const now = performance.now(), active = opponentActive();
     const disarmed = $('practiceArenaDummyActor').dataset.disarmed === 'true';
     const action = opponent.update(now, {active, disarmed, difficulty:getSettings().difficulty});
-    opponentCharge.refresh(opponent.preparing, now);
+    if (opponent.preparing) {
+      opponentCharge.refresh(opponent.preparing, now);
+      chargeVisible = true;
+    } else if (chargeVisible) {
+      opponentCharge.clear();
+      chargeVisible = false;
+    }
     if (!active) {
       clearInterval(opponentTick);
       opponentTick = null;
       incomingEffects.clear();
     } else if (opponentTick === null) opponentTick = setInterval(syncOpponent, 50);
-    if (health.over) opponent.shield.reset();
-    opponentShieldView.refresh(spellColor('Protego'));
+    if (health.over && opponent.shield.active(now)) {
+      opponent.shield.reset();
+      opponentShieldView.refresh();
+    }
     if (action?.type === 'prepare') {
       events.add(`Opponent prepares ${action.shape}`, 'Cast Protego before the spell hits.');
       logPracticeArena('opponent_prepare', {shape:action.shape});
     } else if (action?.type === 'shield') {
+      opponentShieldView.refresh(spellColor('Protego'));
       events.add('Opponent cast Protego', 'Incoming spells blocked for 3 seconds.');
       logPracticeArena('opponent_shield', {shape:'Protego', duration:opponent.shield.expiresAt-now});
       document.dispatchEvent(new CustomEvent('wizard:opponent-cast', {detail:{...action, view}}));
@@ -100,8 +109,9 @@ export function createArenaView(view, label) {
     }
     const text = health.defeated ? 'Defeated' : !active ? '' : disarmed ? 'Disarmed'
       : opponent.preparing ? `Casting ${opponent.preparing.shape}` : opponent.shield.active(now) ? 'Protego active' : '';
-    $('practiceArenaDummyState').textContent = text;
-    $('practiceArenaDummyState').hidden = !text;
+    const state = $('practiceArenaDummyState');
+    if (state.textContent !== text) state.textContent = text;
+    if (state.hidden !== !text) state.hidden = !text;
   }
 
   const effects = createSpellEffects($('practiceArenaEffects'), cast => {
@@ -136,6 +146,7 @@ export function createArenaView(view, label) {
     incomingEffects?.clear();
     opponent?.stop();
     opponentCharge?.clear();
+    chargeVisible = false;
     health.cancelFlights();
     dummyReactions.settle();
     playerReactions.settle();
@@ -177,6 +188,7 @@ export function createArenaView(view, label) {
     const previousDummyHealth = health.dummy;
     clearEffects('dummy_reset');
     opponent?.reset();
+    opponentShieldView?.refresh();
     health.resetDummy();
     health.resetPlayer();
     playerReactions.reset();

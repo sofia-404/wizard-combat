@@ -6,7 +6,7 @@ self.onmessage=async({data})=>{
       const vision=await Vision.FilesetResolver.forVisionTasks('/vendor/wasm');
       tracker=await Vision.HandLandmarker.createFromOptions(vision,{
         baseOptions:{modelAssetPath:'/models/hand_landmarker.task',delegate:data.delegate||'GPU'},
-        runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6,minTrackingConfidence:.6
+        runningMode:'VIDEO',numHands:data.numHands||2,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6,minTrackingConfidence:.6
       });
       self.postMessage({type:'ready',delegate:data.delegate||'GPU'});
     }catch(e){self.postMessage({type:'error',message:String(e.message||e)});}
