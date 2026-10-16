@@ -103,7 +103,7 @@ function stopCamera(reason='Camera stopped'){
   handInput.reset();tracking={};lastFrameT=null;trackingAt=0;trackingFrames=0;noHandFrames=0;labelHoldFrames=0;wrongHandFrames=0;edgeFrames=0;duplicateFrames=0;
   updateInputState({cameraDisabled:false});set('camera','Start camera');set('cameraState',reason);set('tracking','Off');set('phase','OFF');set('instruction',reason);$('empty').hidden=false;
 }
-async function createTracker(useDelegate,run){
+async function createTracker(useDelegate,run,options={}){
   const w=new Worker('/tracker-worker.js');worker=w;
   await new Promise((resolve,reject)=>{
     let finished=false;const timer=setTimeout(()=>finish(Error('Model load timed out')),20000);
@@ -115,15 +115,18 @@ async function createTracker(useDelegate,run){
       else if(data.type==='error'){if(!finished)finish(Error(data.message));else recover('Tracking error');}
       else if(data.type==='result')receive(data);
     };
-    w.postMessage({type:'init',delegate:useDelegate});
+    w.postMessage({type:'init',delegate:useDelegate,...options});
   });
 }
 async function recover(reason){
   if(recovering||!stream)return;
   if(delegate==='CPU'){stopCamera(reason+'. Restart the camera.');return;}
   recovering=true;modelReady=false;busy=false;record({type:'camera',reason,cause:'worker_error'});controller.cancel('Tracking reset. Start again.','worker_error');handInput.reset();worker?.terminate();set('cameraState','Switching to CPU…');const run=token;
-  try{await createTracker('CPU',run);if(run!==token)return;modelReady=true;recovering=false;lastResult=performance.now();lastVideoTime=-1;set('cameraState','Camera on');}
+  try{await createTracker('CPU',run,{numHands:trackerHands()});if(run!==token)return;modelReady=true;recovering=false;lastResult=performance.now();lastVideoTime=-1;set('cameraState','Camera on');}
   catch{if(run===token)stopCamera('Tracking failed. Restart the camera.');}
+}
+function trackerHands(){
+  return $('soloDuelView')?.hidden===false ? 1 : 2;
 }
 export async function toggleGameCamera(event){
   if(loading)return;
@@ -144,7 +147,7 @@ export async function toggleGameCamera(event){
     if(run!==token)return;
     stream.getVideoTracks()[0].onended=()=>stopCamera('Camera disconnected');
     canvas.width=video.videoWidth||640;canvas.height=video.videoHeight||480;$('viewport').style.aspectRatio=canvas.width+'/'+canvas.height;
-    try{await createTracker('GPU',run);}catch{if(run!==token)return;worker?.terminate();await createTracker('CPU',run);}
+    try{await createTracker('GPU',run,{numHands:trackerHands()});}catch{if(run!==token)return;worker?.terminate();await createTracker('CPU',run,{numHands:trackerHands()});}
     if(run!==token)return;
     loading=false;modelReady=true;rateStart=performance.now();rateCount=0;lastResult=performance.now();lastVideoTime=-1;lastSent=0;
     $('empty').hidden=true;updateInputState({cameraDisabled:false});set('camera','Stop camera');set('cameraState','Camera on');record({type:'camera',reason:'Started '+delegate});
